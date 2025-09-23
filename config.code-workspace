@@ -1,0 +1,26 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "editor.tabSize": 4,
+        "editor.fontSize": 16,
+        "editor.insertSpaces": true,
+        "editor.detectIndentation": false,
+        "editor.formatOnSave": true,
+        "window.zoomLevel": 1,
+        "window.title": "config",
+        "files.autoSave": "afterDelay",
+        "files.exclude": {
+            "**/.git": true,
+            "**/.svn": true,
+            "**/.hg": true,
+            "**/.DS_Store": true,
+            // "**/.gitignore": true,
+            // "**/README.md": true,
+            // "**/config.code-workspace": true,
+        }
+    }
+}
