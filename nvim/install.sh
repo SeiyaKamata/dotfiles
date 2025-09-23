@@ -1,0 +1,2 @@
+# インストール
+brew install neovim
