@@ -1,0 +1,28 @@
+shell = "zsh"
+
+[plugins]
+
+# zshの便利なプラグイン
+[plugins.zsh-autosuggestions]
+github = "zsh-users/zsh-autosuggestions"
+
+[plugins.zsh-syntax-highlighting]
+github = "zsh-users/zsh-syntax-highlighting"
+
+[plugins.zsh-completions]
+github = "zsh-users/zsh-completions"
+
+[plugins.zsh-z]
+github = "agkozak/zsh-z"
+
+[plugins.z]
+github = "rupa/z"
+
+[plugins.fast-syntax-highlighting]
+github = "zdharma-continuum/fast-syntax-highlighting"
+
+[plugins.zsh-autopair]
+github = "hlissner/zsh-autopair"
+
+[plugins.powerlevel10k]
+github = "romkatv/powerlevel10k"
