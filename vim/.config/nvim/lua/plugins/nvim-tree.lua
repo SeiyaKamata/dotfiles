@@ -19,6 +19,12 @@ return {
       },
       filters = {
         dotfiles = false, -- ドットファイルを表示する（true にすると非表示）
+        custom ={
+          "config.code%-workspace", -- ← このファイルを非表示に
+          ".git",                   -- .git フォルダを非表示に
+          "node_modules",
+          "*.code-workspace",
+        }
       },
       git = {
         enable = true, -- Git 連携を有効化

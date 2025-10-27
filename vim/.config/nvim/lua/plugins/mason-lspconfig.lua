@@ -12,7 +12,6 @@ return {
           "ts_ls",
           "gopls",
           "pyright",
-          "ruby_lsp",
           "clangd",
         },
         handlers = {

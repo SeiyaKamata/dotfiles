@@ -17,4 +17,5 @@ return {
   require("plugins.tokyonight"),
   require("plugins.treesitter"),
   require("plugins.whichkey"),
+  require("plugins.vim-visual-multi"),
 }
