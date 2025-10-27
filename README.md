@@ -8,7 +8,6 @@ PCを引越する際に、環境を同一にするための設定ファイル群
 - iTerm2
 - Visual Studio Code
 - Docker
-- Obsidian
 - Notion (Obsidianに移行中)
 - Rectangle
 - WireShake
