@@ -1,0 +1,49 @@
+{
+  "[html]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4
+  },
+  "[json]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4
+  },
+  "chat.commandCenter.enabled": false,
+  "editor.accessibilitySupport": "off",
+  "editor.detectIndentation": false,
+  "editor.formatOnSave": true,
+  "editor.minimap.enabled": false,
+  "files.autoSave": "afterDelay",
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "githubPullRequests.pullBranch": "never",
+  "terminal.integrated.env.osx": {
+    "Q_NEW_SESSION": "1"
+},
+  "window.commandCenter": false,
+  "workbench.activityBar.location": "top",
+
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/*.log": true,
+    "**/*.log*": true,
+    "**/*_spec.rb": true,
+    "**/*.md": true,
+    // "**/*.cache": true,
+
+    "**/node_modules": true,
+    // "**/.next": true,
+    "**/dist": true,
+    // "**/build": true,
+
+    "**/*._.js": true,
+    // "**/*._.map": true,
+    "trace": true,
+    ".git/": true,
+    // "**/*_test.go": true,
+    "**/*_mock.go": true
+  },
+
+  "search.exclude": {},
+  "gitlens.ai.model": "vscode",
+  "gitlens.ai.vscode.model": "copilot:gpt-4.1"
+}
