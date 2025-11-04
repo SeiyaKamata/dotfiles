@@ -13,5 +13,8 @@ if [ -e /usr/local/share/zsh-completions ]; then
   fpath=(/usr/local/share/zsh-completions $fpath)
 fi
 
+mkdir -p "$XDG_CACHE_HOME/zsh"
 autoload -Uz compinit
 compinit -u
+compinit -d "$XDG_CACHE_HOME/zsh/zcompdump"
+

@@ -9,7 +9,7 @@ git_branch_name_show_and_copy() {
 
 # ブランチを選択してチェックアウト
 git_checkout_branch_fzf() {
-  branch=$(git branch -a | sed 's/^[* ] //g' | fzf)
+  branch=$(git branch | sed 's/^[* ] //g' | fzf)
   [ -n "$branch" ] && git checkout $branch
 }
 
@@ -24,4 +24,8 @@ git_checkout_file_fzf() {
   file=$(git ls-files | fzf)
   commit=$(git log --oneline | fzf | awk '{print $1}')
   [ -n "$file" ] && [ -n "$commit" ] && git checkout $commit -- $file
+}
+
+git_clean_branches() {
+  git branch --merged develop | egrep -v '^\*|develop|main' | xargs -n 1 git branch -d
 }
