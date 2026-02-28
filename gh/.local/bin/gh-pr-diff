@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+pr="$1"
+
+if [[ -z "$pr" ]]; then
+  echo "usage: gh-pr-diff <pr-number-or-url>" >&2
+  exit 1
+fi
+
+if ! command -v gh >/dev/null 2>&1; then
+  echo "error: gh command not found" >&2
+  exit 1
+fi
+
+if ! gh auth status >/dev/null 2>&1; then
+  echo "error: gh auth required (run: gh auth login)" >&2
+  exit 1
+fi
+
+if ! gh pr diff "$pr"; then
+  echo "error: failed to fetch PR diff" >&2
+  exit 1
+fi
