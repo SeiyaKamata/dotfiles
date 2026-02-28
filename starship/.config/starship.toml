@@ -1,0 +1,82 @@
+format = """
+[](fg:#7aa2f7)\
+$os\
+[ ](fg:#7aa2f7 bg:#3b4261)\
+$directory\
+$git_branch\
+$git_status\
+$git_metrics\
+[](fg:#3b4261)\
+$fill\
+[](fg:#1a1b26)\
+$docker_context\
+$line_break\
+$character
+"""
+
+[os]
+format = "[$symbol]($style)"
+style = 'fg:#1a1b26 bg:#7aa2f7'
+disabled = false
+
+[os.symbols]
+Macos = "  " # nf-fa-apple
+Ubuntu = "  " # nf-linux-ubuntu
+Debian = "  " # nf-linux-debian
+
+[directory]
+truncation_length = 10
+truncation_symbol = ' ' # nf-fa-folder_open
+truncate_to_repo = true
+home_symbol = ' ~' # nf-costum-home
+style = 'fg:#7aa2f7 bg:#3b4261'
+read_only = ' 󰌾 ' # nf-md-lock
+read_only_style = 'fg:#f7768e bg:#3b4261'
+format = '[$path]($style)[$read_only]($read_only_style)'
+
+[git_branch]
+symbol = ' ' # nf-fa-github_alt, nf-fa-code_fork
+truncation_length = 20
+truncation_symbol = ''
+style = 'fg:#7aa2f7 bg:#3b4261'
+format = '[  $symbol$branch(:$remote_branch) ]($style)' # nf-pl-left_soft_divider
+
+[git_status]
+style = 'fg:#e0af68 bg:#3b4261'
+conflicted = '='
+ahead = '⇡${count}'
+behind = '⇣${count}'
+diverged = '⇕'
+up_to_date = '✓'
+untracked = '?'
+stashed = 's'
+modified = '!${count}'
+renamed = '»'
+deleted = '✘'
+format = '([\[$all_status$ahead_behind\]]($style))'
+
+[git_metrics]
+added_style = 'fg:#9ece6a bg:#3b4261'
+deleted_style = 'fg:#9ece6a bg:#3b4261'
+format = '[+$added/-$deleted]($deleted_style)'
+disabled = false
+
+[fill]
+symbol = '─'
+style = 'blue'
+
+[docker_context]
+symbol = "🐳 "
+style = "cyan"
+only_with_files = true
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+
+[cmd_duration]
+disabled = true
+
+[package]
+disabled = true
+
