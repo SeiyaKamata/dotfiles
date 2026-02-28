@@ -1,0 +1,5 @@
+#!/bin/sh
+
+file=$(git ls-files | fzf)
+commit=$(git log --oneline | fzf | awk '{print $1}')
+[ -n "$file" ] && [ -n "$commit" ] && git checkout "$commit" -- "$file"

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+branch=$(git branch | sed 's/^[* ] //g' | fzf)
+[ -n "$branch" ] && git checkout "$branch"

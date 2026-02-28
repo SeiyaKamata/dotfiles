@@ -1,0 +1,4 @@
+#!/bin/sh
+
+git branch --contains | cut -d' ' -f2 | tr -d '\n'
+git branch --contains | cut -d' ' -f2 | tr -d '\n' | pbcopy

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+git branch --merged develop | egrep -v '^\*|develop|main' | xargs -n 1 git branch -d

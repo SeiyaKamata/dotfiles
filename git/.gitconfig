@@ -1,0 +1,59 @@
+[user]
+	name = SeiyaKamata
+	email = kmt2000200@gmail.com
+
+[init]
+	defaultBranch = main
+
+[pull]
+	rebase = false
+
+[merge]
+    conflictStyle = zdiff3
+
+[pager]
+    diff = delta
+    log  = delta
+    show = delta
+    reflog = delta
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    dark = true
+    navigate = true
+    line-numbers = true
+    side-by-side = true
+    syntax-theme = Dracula
+    merge-conflict-style = zdiff3
+    file-modified-label = [M]
+    file-renamed-label = [R]
+    file-removed-label = [-]
+    file-copied-label = [C]
+    file-added-label = [+]
+#    commit-decoration-style = 232 130 box
+#    commit-style = 232 bold italic 130
+#    file-decoration-style = "#606018" overline
+#    hunk-header-decoration-style = none
+#    hunk-header-style = syntax bold italic 237
+#    line-numbers-left-format = "{nm:>1}┊"
+#    line-numbers-right-format = "{np:>1}┊"
+#    line-numbers-minus-style = white bold red
+#    line-numbers-plus-style = white bold green
+#    line-numbers-zero-style = white bold black
+
+[color]
+    ui = auto
+
+[includeIf "gitdir:~/work/"]
+    path = ~/.gitconfig-work
+
+[includeIf "gitdir:~/personal/"]
+    path = ~/.gitconfig-personal
+
+[include]
+    path = ~/.gitconfig.local
+
+[core]
+	editor = nvim

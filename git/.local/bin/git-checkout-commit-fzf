@@ -1,0 +1,4 @@
+#!/bin/sh
+
+commit=$(git log --oneline | fzf | awk '{print $1}')
+[ -n "$commit" ] && git checkout "$commit"
