@@ -1,0 +1,64 @@
+# ===== Settings =====
+model = "gpt-5.3-codex"
+model_reasoning_effort = "medium"
+personality = "pragmatic"
+hide_agent_reasoning = true
+network_access = false
+notify = ["bash", "-lc", "osascript -e 'display notification \"完了しました\" with title \"Codex\" subtitle \"タスク終了\" sound name \"Ping\"'"]
+
+
+# ===== MCP =====
+[mcp_servers.context7]
+args = ["-y", "@upstash/context7-mcp@2.1.1"]
+command = "npx"
+startup_timeout_sec = 60
+
+[mcp_servers.serena]
+command = "uvx"
+args = ["--from", "serena-agent==0.1.4", "serena", "start-mcp-server", "--context", "codex"]
+startup_timeout_sec = 60
+
+# [mcp_servers.chrome-devtools]
+# command = "npx"
+# args = ["-y", "chrome-devtools-mcp@0.17.0"]
+# startup_timeout_sec = 60
+
+# [mcp_servers.next-devtools]
+# command = "npx"
+# args = ["-y", "next-devtools-mcp@0.3.10"]
+# startup_timeout_sec = 60
+
+[mcp_servers.notion]
+command = "npx"
+args    =  ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
+startup_timeout_sec = 60
+
+[mcp_servers.playwright]
+command = "npx"
+args    = ["@playwright/mcp@latest", "--isolated", "--headless" , "--no-sandbox"]
+startup_timeout_sec = 60
+
+
+# Disabled by default: remote MCP extends the trust boundary.
+# Enable only when needed and keep the bridge package pinned.
+# [mcp_servers.ultracite]
+# command = "npx"
+# args = ["-y", "mcp-remote@0.1.16", "https://docs.ultracite.ai/mcp"]
+# startup_timeout_sec = 10
+
+
+# ===== Projects =====
+[projects."/Users/kamata_seiya/dotfiles"]
+trust_level = "trusted"
+
+[projects."/Users/kamata_seiya/Develop/elearning-service"]
+trust_level = "trusted"
+
+[projects."/Users/kamata_seiya/Develop/Seculio"]
+trust_level = "trusted"
+
+[projects."/Users/kamata_seiya/Develop/projects/work/automated-training-service"]
+trust_level = "trusted"
+
+[notice.model_migrations]
+gpt-5-codex = "gpt-5.3-codex"
