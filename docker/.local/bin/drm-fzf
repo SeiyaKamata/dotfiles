@@ -1,0 +1,4 @@
+#!/bin/sh
+
+image=$(docker images --format '{{.Repository}}:{{.Tag}}' | fzf)
+[ -n "$image" ] && docker rmi "$image"
