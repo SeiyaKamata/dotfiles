@@ -1,0 +1,24 @@
+git:
+  branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --oneline {{branchName}} --"
+  pagers:
+    - colorArg: always
+      pager: "delta --dark --paging=never --side-by-side"
+  allBranchesLogCmds:
+    - "git log --oneline --graph --color=always --pretty='%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --all"
+
+gui:
+  theme:
+    optionsTextColor:
+      - white
+  showBottomLine: false
+  showIcons: true
+
+  commandLogSize: 1
+  showRandomTip: false
+  sidePanelWidth: 0.25
+  expandFocusedSidePanel: false
+
+os:
+  editInTerminal: true
+  editAtLine: 'tmux send-keys -t ! "vim +{{line}} -- {{filename}}" C-m'
+  edit: 'tmux send-keys -t ! "vim -- {{filename}}" C-m'
