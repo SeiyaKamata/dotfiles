@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -eu
+
+cur_sess="$(tmux display-message -p '#S')"
+
+ensure_window() {
+  name="$1"
+
+  if tmux list-windows -t "$cur_sess" -F '#W' | grep -Fxq "$name"; then
+    return 0
+  fi
+
+  tmux new-window -d -t "$cur_sess" -n "$name"
+}
+
+case "$cur_sess" in
+  ev2)
+    ensure_window "server"
+    ensure_window "front"
+    ensure_window "back"
+    ensure_window "top"
+    ensure_window "codex"
+    ensure_window "claude"
+    tmux select-window -t "$cur_sess:server"
+    ;;
+  *)
+    echo "no window template for session: $cur_sess" >&2
+    exit 1
+    ;;
+esac

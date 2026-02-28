@@ -1,0 +1,63 @@
+#!/bin/sh
+
+out=$(
+  tmux list-windows -F "#I:#W" |
+  fzf \
+    --prompt="session-window> " \
+    --height=100% --border --reverse \
+    --print-query \
+    --expect=ctrl-n,ctrl-q,ctrl-d \
+    --bind 'enter:accept-non-empty'
+)
+
+# With --print-query + --expect, output lines are:
+# 1) query, 2) key (empty on Enter), 3) selection (if any)
+query=$(printf "%s\n" "$out" | sed -n '1p')
+key=$(printf "%s\n" "$out" | sed -n '2p')
+target=$(printf "%s\n" "$out" | sed -n '3p')
+
+# ESC is closes
+[ -z "$out" ] && exit 0
+
+cur_sess="$(tmux display-message -p '#S')"
+
+# Ctrl-Q closes
+if [ "$key" = "ctrl-q" ]; then
+  exit 0
+fi
+
+# Ctrl-D closes selected window
+if [ "$key" = "ctrl-d" ]; then
+  if [ -n "$target" ]; then
+    sess=$(printf "%s\n" "$target" | awk -F: '{print $1}')
+    idx=$(printf "%s\n" "$target" | awk -F: '{print $2}')
+    tmux kill-window -t "$sess:$idx"
+  fi
+  exit 0
+fi
+
+# Ctrl-Nは常に「今のセッションに作成」
+if [ "$key" = "ctrl-n" ]; then
+  name="$query"
+  [ -z "$name" ] && exit 0
+
+  # 同名があれば連番（同一セッション内）
+  if tmux list-windows -t "$cur_sess" -F '#W' | grep -Fxq "$name"; then
+    i=2
+    while tmux list-windows -t "$cur_sess" -F '#W' | grep -Fxq "${name}-${i}"; do
+      i=$((i+1))
+    done
+    name="${name}-${i}"
+  fi
+
+  tmux new-window -t "$cur_sess" -n "$name"
+  exit 0
+fi
+
+# Enterは「選択があるなら移動」
+if [ -n "$target" ]; then
+  sess=$(printf "%s\n" "$target" | awk -F: '{print $1}')
+  idx=$(printf "%s\n" "$target" | awk -F: '{print $2}')
+  tmux switch-client -t "$sess"
+  tmux select-window -t "$sess:$idx"
+fi

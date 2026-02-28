@@ -1,0 +1,56 @@
+#!/bin/sh
+
+out=$(
+  tmux list-sessions -F "#S" |
+  fzf \
+    --prompt="session> " \
+    --height=100% --border --reverse \
+    --print-query \
+    --expect=ctrl-n,ctrl-q,ctrl-d \
+    --bind 'enter:accept-non-empty'
+)
+
+# With --print-query + --expect, output lines are:
+# 1) query, 2) key (empty on Enter), 3) selection (if any)
+query=$(printf "%s\n" "$out" | sed -n '1p')
+key=$(printf "%s\n" "$out" | sed -n '2p')
+target=$(printf "%s\n" "$out" | sed -n '3p')
+
+# ESC is already handled by "|| exit 0" above
+[ -z "$out" ] && exit 0
+
+# Ctrl-Q closes
+if [ "$key" = "ctrl-q" ]; then
+  exit 0
+fi
+
+# Ctrl-D closes selected session
+if [ "$key" = "ctrl-d" ]; then
+
+  if [ -n "$target" ]; then
+    tmux kill-session -t "$target"
+  fi
+  exit 0
+fi
+
+# Ctrl-Nは常に「新規セッション作成」
+if [ "$key" = "ctrl-n" ]; then
+  name="$query"
+  [ -z "$name" ] && exit 0
+
+  # 同名があれば連番
+  if tmux list-sessions -F '#S' | grep -Fxq "$name"; then
+    i=2
+    while tmux list-sessions -F '#S' | grep -Fxq "${name}-${i}"; do
+      i=$((i+1))
+    done
+    name="${name}-${i}"
+  fi
+
+  tmux new-session -d -s "$name" && tmux switch-client -t "$name"
+  exit 0
+fi
+
+if [ -n "$target" ]; then
+  tmux switch-client -t "$target"
+fi
