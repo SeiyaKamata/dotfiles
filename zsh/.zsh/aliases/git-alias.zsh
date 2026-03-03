@@ -15,6 +15,7 @@ alias gca="git commit --amend --noedit"
 
 # Checkout aliases (gco)
 alias gco="git checkout"
+alias gcop="git checkout -"
 alias gcob="git checkout -b"
 alias gcod="git checkout develop"
 
