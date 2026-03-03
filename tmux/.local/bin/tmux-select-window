@@ -31,7 +31,7 @@ if [ "$key" = "ctrl-d" ]; then
   if [ -n "$target" ]; then
     sess=$(printf "%s\n" "$target" | awk -F: '{print $1}')
     idx=$(printf "%s\n" "$target" | awk -F: '{print $2}')
-    tmux kill-window -t "$sess:$idx"
+    tmux kill-window -t "$cur_sess:$idx"
   fi
   exit 0
 fi
@@ -58,6 +58,6 @@ fi
 if [ -n "$target" ]; then
   sess=$(printf "%s\n" "$target" | awk -F: '{print $1}')
   idx=$(printf "%s\n" "$target" | awk -F: '{print $2}')
-  tmux switch-client -t "$sess"
-  tmux select-window -t "$sess:$idx"
+  tmux switch-client -t "$cur_sess"
+  tmux select-window -t "$cur_sess:$idx"
 fi
