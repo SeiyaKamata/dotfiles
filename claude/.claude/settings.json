@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git*)",
+      "Bash(cat *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(make *)",
+      "Bash(go *)",
+      "Bash(docker *)",
+      "Bash(docker compose *)",
+      "Read(~/Develop/*)",
+      "mcp__*"
+    ],
+    "deny": [
+      "Bash(git pull*)"
+    ]
+  },
+  "enabledPlugins": {
+    "claude-mem@thedotmack": true,
+    "serena@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "Notion@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "example-skills@anthropic-agent-skills": true,
+    "document-skills@anthropic-agent-skills": true
+  },
+  "extraKnownMarketplaces": {
+    "anthropic-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/skills"
+      }
+    }
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "effortLevel": "low"
+}
