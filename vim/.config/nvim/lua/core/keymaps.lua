@@ -12,6 +12,11 @@ map("n", "<leader>w", ":w<CR>", "保存")
 map("n", "<leader>q", ":q<CR>", "終了")
 map("n", "<leader>h", ":nohlsearch<CR>", "検索ハイライト解除")
 map("n", "<leader>rp", ":RelPath<CR>", "相対パスをコピー")
+map("n", "H", "^", "行頭")
+map("n", "L", "$", "行末")
+map("n", "J", "}", "段落を下へ")
+map("n", "K", "{", "段落を上へ")
+
 
 -- VS Code風操作
 map("n", "<M-Down>", ":m .+1<CR>==", "現在行を下へ移動")
@@ -42,11 +47,13 @@ map("n", "<leader>bd", "<cmd>bdelete<CR>", "現在のバッファを削除")
 --map("n", "<leader>sx", ":close<CR>", "ウィンドウを閉じる")
 
 -- いらないキーバインド
-map("n", "q", "<Nop>", "q を無効化")
-map("n", "Q", "<Nop>", "Ex モードを無効化")
-map("n", "q:", "<Nop>", "コマンドライン履歴を無効化")
-map("n", "q/", "<Nop>", "検索履歴を無効化")
-map("n", "q?", "<Nop>", "逆方向検索履歴を無効化")
-map("n", "ZZ", "<Nop>", "保存して終了を無効化")
-map("n", "ZQ", "<Nop>", "保存せず終了を無効化")
-map("n", "?", "<Nop>", "逆方向検索を無効化")
+map("n", "q", "<Nop>", "")
+map("n", "Q", "<Nop>", "")
+map("n", "q:", "<Nop>", "")
+map("n", "q/", "<Nop>", "")
+map("n", "q?", "<Nop>", "")
+map("n", "ZZ", "<Nop>", "")
+map("n", "ZQ", "<Nop>", "")
+map("n", "?", "<Nop>", "")
+
+map("n", "s", "<Nop>", "")
