@@ -8,7 +8,3 @@ require("core.options")
 require("core.keymaps")
 require("core.lazy")
 require("core.commands")
-
--- Plugins 設定をロード
-require("plugins")
-
