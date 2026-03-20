@@ -5,6 +5,7 @@ return {
     "hrsh7th/cmp-buffer",
     "hrsh7th/cmp-path",
   },
+  event = "BufReadPre",
   config = function()
     local cmp = require("cmp")
     cmp.setup {
