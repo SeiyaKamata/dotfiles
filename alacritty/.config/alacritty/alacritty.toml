@@ -7,11 +7,16 @@ import = [
 padding = { x = 4, y = 0 }
 # opacity = 0.75
 blur = true
-startup_mode = "Fullscreen"
+startup_mode = "Maximized"
 
 [scrolling]
 history = 100000
 multiplier = 5
+
+[keyboard]
+bindings = [
+    { key = "Enter", mods = "Command|Option", action = "ToggleMaximized" },
+]
 
 [font]
 size = 18.0
