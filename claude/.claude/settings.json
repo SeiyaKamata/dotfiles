@@ -20,10 +20,9 @@
     "claude-mem@thedotmack": true,
     "serena@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
-    "Notion@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
-    "example-skills@anthropic-agent-skills": true,
-    "document-skills@anthropic-agent-skills": true
+    "figma@claude-plugins-official": true,
+    "notion@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -33,6 +32,7 @@
       }
     }
   },
-  "skipDangerousModePermissionPrompt": true,
-  "effortLevel": "low"
+  "language": "Japanese",
+  "effortLevel": "low",
+  "skipDangerousModePermissionPrompt": true
 }

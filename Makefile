@@ -1,6 +1,6 @@
 STOW_TARGETS = \
 	alacritty \
-	codex \
+	claude \
 	docker \
 	gh \
 	git \
