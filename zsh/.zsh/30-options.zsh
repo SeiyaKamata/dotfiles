@@ -5,6 +5,9 @@ unsetopt correct_all
 # キーバインドをemacs風に
 bindkey -v
 bindkey -M viins 'jj' vi-cmd-mode
+bindkey -M vicmd 'H' vi-beginning-of-line
+bindkey -M vicmd 'L' vi-end-of-line
+
 
 ##### completion #####
 mkdir -p "$XDG_CACHE_HOME/zsh"
