@@ -15,7 +15,8 @@ multiplier = 5
 
 [keyboard]
 bindings = [
-    { key = "Enter", mods = "Command|Option", action = "ToggleMaximized" },
+    { key = "Enter", mods = "Command", action = "ToggleMaximized" },
+    { key = "¥", chars = "\\" },
 ]
 
 [font]
