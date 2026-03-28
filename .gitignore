@@ -7,3 +7,6 @@ lazygit/.config/lazygit/state.yml
 
 # lazysql
 lazysql/.config/lazysql/history/
+
+# secret
+zsh/.zshenv.local
