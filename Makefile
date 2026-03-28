@@ -79,5 +79,5 @@ stow-all: $(STOW_TARGETS)
 
 $(STOW_TARGETS):
 	$(call log,Setting up)
-	@stow --restow $@
+	@stow --restow --target=$(HOME) $@
 	$(call log,Done)
