@@ -2,10 +2,8 @@ export EDITOR=nvim
 
 export LANG=en_US.UTF-8
 
-
 # zsh
 export SHELL_SESSIONS_DISABLE=1
-
 
 
 # XDG
@@ -40,3 +38,6 @@ nvm()  { _nvm_load; nvm  "$@"; }
 node() { _nvm_load; node "$@"; }
 npm()  { _nvm_load; npm  "$@"; }
 npx()  { _nvm_load; npx  "$@"; }
+
+
+source $HOME/.zshenv.local
