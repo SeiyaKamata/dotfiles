@@ -1,6 +1,6 @@
 -- キーマッピング
 local function map(mode, lhs, rhs, desc)
-  vim.keymap.set(mode, lhs, rhs, { desc = desc, noremap = true, silent = true })
+	vim.keymap.set(mode, lhs, rhs, { desc = desc, noremap = true, silent = true })
 end
 
 -- スペースをリーダーキーに
@@ -17,10 +17,10 @@ map("n", "L", "$", "行末")
 map("n", "J", "}", "段落を下へ")
 map("n", "K", "{", "段落を上へ")
 
-map("n", "<C-j>", ":m .+1<CR>==",        "現在行を下へ移動")
-map("n", "<C-k>", ":m .-2<CR>==",        "現在行を上へ移動")
-map("v", "<C-j>", ":m '>+1<CR>gv=gv",    "選択行を下へ移動")
-map("v", "<C-k>", ":m '<-2<CR>gv=gv",    "選択行を上へ移動")
+map("n", "<C-j>", ":m .+1<CR>==", "現在行を下へ移動")
+map("n", "<C-k>", ":m .-2<CR>==", "現在行を上へ移動")
+map("v", "<C-j>", ":m '>+1<CR>gv=gv", "選択行を下へ移動")
+map("v", "<C-k>", ":m '<-2<CR>gv=gv", "選択行を上へ移動")
 map("i", "<C-j>", "<Esc>:m .+1<CR>==gi", "挿入モードで現在行を下へ移動")
 map("i", "<C-k>", "<Esc>:m .-2<CR>==gi", "挿入モードで現在行を上へ移動")
 
@@ -45,12 +45,12 @@ map("n", "<leader>bd", "<cmd>bdelete<CR>", "現在のバッファを削除")
 --map("n", "<leader>sx", ":close<CR>", "ウィンドウを閉じる")
 
 -- いらないキーバインド
-map("n", "q",  "<Nop>", "")
-map("n", "Q",  "<Nop>", "")
+map("n", "q", "<Nop>", "")
+map("n", "Q", "<Nop>", "")
 map("n", "q:", "<Nop>", "")
 map("n", "q/", "<Nop>", "")
 map("n", "q?", "<Nop>", "")
 map("n", "ZZ", "<Nop>", "")
 map("n", "ZQ", "<Nop>", "")
-map("n", "?",  "<Nop>", "")
-map("n", "s",  "<Nop>", "")
+map("n", "?", "<Nop>", "")
+map("n", "s", "<Nop>", "")
