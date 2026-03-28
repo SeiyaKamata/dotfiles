@@ -81,3 +81,12 @@ $(STOW_TARGETS):
 	$(call log,Setting up)
 	@stow --restow --target=$(HOME) $@
 	$(call log,Done)
+
+
+claude:
+	$(call log,Setting up)
+	@stow --restow --target=$(HOME) claude
+	@ln -sfn $(HOME)/.claude/skills $(HOME)/.claude-p/skills
+	@ln -sfn $(HOME)/.claude/CLAUDE.md $(HOME)/.claude-p/CLAUDE.md
+	@ln -sfn $(HOME)/.claude/settings.json $(HOME)/.claude-p/settings.json
+	$(call log,Done)
