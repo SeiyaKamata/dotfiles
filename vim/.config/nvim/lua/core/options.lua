@@ -40,7 +40,7 @@ opt.clipboard = "unnamedplus"
 
 -- 大きいファイルの時はundo無効化（編集体験優先）
 vim.api.nvim_create_autocmd("BufReadPre", {
-	pattern = "*.csv",
+  pattern = { "*.csv", "*.txt" },
 	callback = function()
 		vim.opt_local.undofile = false
 		vim.opt_local.foldmethod = "manual"
