@@ -1,7 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git*)",
+      "Bash(git *)",
       "Bash(cat *)",
       "Bash(npm *)",
       "Bash(npx *)",
@@ -13,7 +13,8 @@
       "mcp__*"
     ],
     "deny": [
-      "Bash(git pull*)"
+      "Bash(git commit*)",
+      "Bash(git push*)"
     ]
   },
   "enabledPlugins": {
