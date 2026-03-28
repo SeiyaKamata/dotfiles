@@ -2,6 +2,12 @@ export EDITOR=nvim
 
 export LANG=en_US.UTF-8
 
+
+# zsh
+export SHELL_SESSIONS_DISABLE=1
+
+
+
 # XDG
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_CACHE_HOME="$HOME/.cache"
