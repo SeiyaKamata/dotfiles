@@ -10,6 +10,7 @@ opt.signcolumn = "yes"      -- 常にサインカラムを表示
 opt.wrap = false            -- 折り返し無効化
 opt.winbar = "%=%f"
 opt.title = true
+opt.synmaxcol = 320
 
 -- buffer保存
 opt.hidden = true
@@ -36,3 +37,14 @@ opt.completeopt = { "menu", "menuone", "noselect" }
 
 -- clipboard
 opt.clipboard = "unnamedplus"
+
+
+-- 大きいファイルの時はundo無効化（編集体験優先）
+vim.api.nvim_create_autocmd("BufReadPre", {
+  pattern = "*.csv",
+  callback = function()
+    vim.opt_local.undofile = false
+    vim.opt_local.foldmethod = "manual"
+    vim.opt_local.synmaxcol = 320
+  end,
+})
