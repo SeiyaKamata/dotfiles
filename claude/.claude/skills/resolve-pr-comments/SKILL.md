@@ -1,5 +1,5 @@
 ---
-name: pr-review-resolve
+name: resolve-pr-comments
 description: 自分のPRに付いたAIレビューコメントに対応する。CI完了後に使う。
 ---
 
