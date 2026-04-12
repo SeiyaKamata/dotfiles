@@ -33,4 +33,19 @@ function M.on_save(pattern, callback)
 	})
 end
 
+--- LSP共通のon_attach（キーバインド設定）
+--- @param _ any
+--- @param bufnr integer
+function M.lsp_on_attach(_, bufnr)
+	local map = M.buf_map(bufnr)
+	map("n", "<leader>ca", vim.lsp.buf.code_action)
+	map("n", "<leader>gf", function()
+		vim.lsp.buf.format({ async = true })
+	end)
+	map("n", "<leader>rn", vim.lsp.buf.rename)
+	map("n", "<leader>gd", vim.lsp.buf.definition)
+	map("n", "<leader>gr", vim.lsp.buf.references)
+	map("n", "<leader>gk", vim.lsp.buf.hover)
+end
+
 return M

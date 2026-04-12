@@ -2,7 +2,7 @@ return {
 	"williamboman/mason-lspconfig.nvim",
 	dependencies = { "neovim/nvim-lspconfig", "williamboman/mason.nvim" },
 	config = function()
-		local lsp = vim.lsp.config
+		local on_attach = require("core.utils").lsp_on_attach
 
 		require("mason-lspconfig").setup({
 			ensure_installed = {
@@ -13,54 +13,48 @@ return {
 				"pyright",
 				"clangd",
 			},
-			handlers = {
-				-- デフォルト設定（全LSP共通）
-				function(server_name)
-					vim.lsp.config[server_name].setup({})
-				end,
+			automatic_enable = true,
+		})
 
-				-- TypeScript / JavaScript
-				["ts_ls"] = function()
-					vim.lsp.config.ts_ls.setup({
-						on_attach = function(client)
-							client.server_capabilities.documentFormattingProvider = false
-						end,
-					})
-				end,
+		-- デフォルト設定（全LSP共通）
+		vim.lsp.config("*", { on_attach = on_attach })
 
-				-- Go
-				["gopls"] = function()
-					vim.lsp.config.gopls.setup({
-						on_attach = function()
-							vim.api.nvim_create_autocmd("BufWritePre", {
-								pattern = "*.go",
-								callback = function()
-									vim.lsp.buf.format({ async = false })
-								end,
-							})
-						end,
-					})
-				end,
+		-- TypeScript / JavaScript
+		vim.lsp.config("ts_ls", {
+			on_attach = function(client, bufnr)
+				client.server_capabilities.documentFormattingProvider = false
+				on_attach(client, bufnr)
+			end,
+		})
 
-				-- Python
-				["pyright"] = function()
-					vim.lsp.config.pyright.setup({
-						settings = {
-							python = {
-								analysis = { typeCheckingMode = "basic" },
-							},
-						},
-					})
-				end,
+		-- Go
+		vim.lsp.config("gopls", {
+			on_attach = function(client, bufnr)
+				on_attach(client, bufnr)
+				local augroup = vim.api.nvim_create_augroup("LspFormatting_" .. bufnr, { clear = true })
+				vim.api.nvim_create_autocmd("BufWritePre", {
+					group = augroup,
+					buffer = bufnr,
+					callback = function()
+						vim.lsp.buf.format({ async = false })
+					end,
+				})
+			end,
+		})
 
-				-- C / C++
-				["clangd"] = function()
-					vim.lsp.config.clangd.setup({
-						cmd = { "clangd", "--background-index" },
-						filetypes = { "c", "cpp", "objc", "objcpp" },
-					})
-				end,
+		-- Python
+		vim.lsp.config("pyright", {
+			settings = {
+				python = {
+					analysis = { typeCheckingMode = "basic" },
+				},
 			},
+		})
+
+		-- C / C++
+		vim.lsp.config("clangd", {
+			cmd = { "clangd", "--background-index" },
+			filetypes = { "c", "cpp", "objc", "objcpp" },
 		})
 	end,
 }
