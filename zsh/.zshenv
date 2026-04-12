@@ -17,8 +17,7 @@ path=("$HOME/.local/bin" $path)
 # workspace root
 export WORKSPACE="$HOME/Develop/workspace"
 
-# workspace 生成
-[ ! -d "$WORKSPACE" ] && mkdir -p "$WORKSPACE"
+mkdir -p "$WORKSPACE"
 
 # Go
 export GOPATH="$WORKSPACE/go"

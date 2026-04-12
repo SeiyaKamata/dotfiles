@@ -8,4 +8,4 @@ alias dr="docker restart"
 
 alias dcl="docker container ls --format 'table {{.Names}}\t{{.ID}}\t{{.Image}}\t{{.Status}}'"
 
-alias dl="docker logs --tails=1000"
+alias dl="docker logs --tail=1000"
