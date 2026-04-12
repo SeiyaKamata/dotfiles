@@ -1,17 +1,17 @@
 ---
-name: sending-message
-description: 指定したエージェントのRedisキューにメッセージを送信する。他のエージェントに情報・指示を渡したいときに使用する。
+name: polling-queue
+description: 自分のRedisキューからメッセージをポーリングして受信する。他のエージェントからの指示・通知を受け取りたいときに使用する。
 disable-model-invocation: true
 ---
 
-# sending-message
+# polling-queue
 
-指定エージェントのキューにメッセージを送信する。
+自分のキューからメッセージを受信する。
 
 ## 使い方
 
 ```bash
-./scripts/send_message.sh <agent_name> "<message>"
+./scripts/poll_queue.sh
 ```
 
 詳細な使用例は [references/examples.md](references/examples.md) を参照。

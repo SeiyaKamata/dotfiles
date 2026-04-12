@@ -2,6 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(git *)",
+      "Bash(gh label*)",
+      "Bash(gh pr*)",
       "Bash(cat *)",
       "Bash(npm *)",
       "Bash(npx *)",
@@ -18,7 +20,6 @@
     ]
   },
   "enabledPlugins": {
-    "claude-mem@thedotmack": true,
     "serena@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
@@ -33,7 +34,55 @@
       }
     }
   },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "serena-hooks remind --client=claude-code"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__serena__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "serena-hooks auto-approve --client=claude-code"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "serena-hooks activate --client=claude-code"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "serena-hooks cleanup --client=claude-code"
+          }
+        ]
+      }
+    ]
+  },
   "language": "Japanese",
   "effortLevel": "low",
-  "skipDangerousModePermissionPrompt": true
+  "spinnerTipsEnabled": false
 }
