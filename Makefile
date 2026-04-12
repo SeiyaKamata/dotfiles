@@ -1,6 +1,5 @@
 STOW_TARGETS = \
 	alacritty \
-	claude \
 	docker \
 	gh \
 	git \
@@ -23,7 +22,11 @@ STOW_TARGETS = \
 	reload-sheldon \
 	clean-ds-store \
 	stow-all \
-	$(STOW_TARGETS)
+	$(STOW_TARGETS) \
+	claude
+
+DOTFILES_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+CLAUDE_DIR   := $(DOTFILES_DIR)claude/.claude
 
 define log
 	@printf "[%s] %s\n" "$@" "$(1)"
@@ -86,7 +89,8 @@ $(STOW_TARGETS):
 claude:
 	$(call log,Setting up)
 	@stow --restow --target=$(HOME) claude
-	@ln -sfn $(HOME)/.claude/skills $(HOME)/.claude-p/skills
-	@ln -sfn $(HOME)/.claude/CLAUDE.md $(HOME)/.claude-p/CLAUDE.md
-	@ln -sfn $(HOME)/.claude/settings.json $(HOME)/.claude-p/settings.json
+	 @find $(CLAUDE_DIR) -maxdepth 1 -mindepth 1 | while read f; do \
+  	ln -sfn "$$f" $(HOME)/.claude-p/$$(basename "$$f"); \
+  done
+	$(call log,$(CLAUDE_DIR))
 	$(call log,Done)
