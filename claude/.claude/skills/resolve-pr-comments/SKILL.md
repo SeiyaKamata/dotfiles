@@ -11,7 +11,7 @@ PRの未解決コメントを確認し、対応する。
 ## 進め方
 1. PR番号を人間に確認する
 2. 以下のコマンドで未解決のレビューコメントを取得する
-   ```
+   ```bash
    gh api repos/{owner}/{repo}/pulls/<PR番号>/comments --jq '[.[] | select(.line != null)] | sort_by(.path, .line)'
    ```
    スレッドが解決済みかどうかは `gh pr view <PR番号> --json reviewThreads` で確認する
