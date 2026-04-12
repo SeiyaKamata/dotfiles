@@ -2,7 +2,7 @@ return {
 	"williamboman/mason-lspconfig.nvim",
 	dependencies = { "neovim/nvim-lspconfig", "williamboman/mason.nvim" },
 	config = function()
-		local lsp = vim.lsp.config
+		local on_attach = require("core.utils").lsp_on_attach
 
 		require("mason-lspconfig").setup({
 			ensure_installed = {
@@ -16,14 +16,15 @@ return {
 			handlers = {
 				-- デフォルト設定（全LSP共通）
 				function(server_name)
-					vim.lsp.config[server_name].setup({})
+					vim.lsp.config[server_name].setup({ on_attach = on_attach })
 				end,
 
 				-- TypeScript / JavaScript
 				["ts_ls"] = function()
 					vim.lsp.config.ts_ls.setup({
-						on_attach = function(client)
+						on_attach = function(client, bufnr)
 							client.server_capabilities.documentFormattingProvider = false
+							on_attach(client, bufnr)
 						end,
 					})
 				end,
@@ -31,7 +32,8 @@ return {
 				-- Go
 				["gopls"] = function()
 					vim.lsp.config.gopls.setup({
-						on_attach = function()
+						on_attach = function(client, bufnr)
+							on_attach(client, bufnr)
 							vim.api.nvim_create_autocmd("BufWritePre", {
 								pattern = "*.go",
 								callback = function()

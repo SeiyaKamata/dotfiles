@@ -44,6 +44,5 @@ vim.api.nvim_create_autocmd("BufReadPre", {
 	callback = function()
 		vim.opt_local.undofile = false
 		vim.opt_local.foldmethod = "manual"
-		vim.opt_local.synmaxcol = 320
 	end,
 })
