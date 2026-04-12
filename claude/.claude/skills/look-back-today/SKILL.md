@@ -5,6 +5,9 @@ description: 今日の作業をclaude-memで振り返り、知見をmemoryに保
 
 日次振り返りを行います。以下の手順で進めてください。
 
+> **前提:** `claude-mem` MCPサーバーが有効になっている必要があります。
+> **`write-daily` との違い:** このskillはClaude Codeの作業ログから**知見を抽出してmemoryに保存**することが目的です。Notionへの日報書き込みは `/write-daily` を使ってください。
+
 ## 1. 今日の作業を確認
 
 claude-memで今日の作業履歴を検索する。

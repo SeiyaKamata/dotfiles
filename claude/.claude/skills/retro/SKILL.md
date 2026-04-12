@@ -2,7 +2,7 @@
 name: retro
 description: 1日の終わりにClaude Codeの全セッションログを横断的に読み込み、KPT形式でレトロスペクティブを行う。skill化候補・CLAUDE.mdへの追記・memory.mdへの保存・指示の出し方の改善を提案する。
 disable-model-invocation: true
-allowed-tools: Bash(bash *) Bash(chmod *)
+allowed-tools: Bash(bash *), Bash(chmod *)
 argument-hint: [YYYY-MM-DD]
 ---
 
