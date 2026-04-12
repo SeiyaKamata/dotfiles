@@ -28,6 +28,22 @@ git remote show origin | grep 'HEAD branch' | awk '{print $NF}'
 
 回答がなければ上記で取得したブランチを使用する。
 
+### Step 1.5: 作業ブランチを確認・作成する
+
+現在のブランチを確認する：
+```
+git branch --show-current
+```
+
+現在のブランチがベースブランチと同じ場合、**必ず新しいブランチを作成してからPRを作る**。
+ブランチ名はコミット内容から自動で命名する（例: `feat/add-login`, `fix/typo-in-readme`）。
+
+```
+git checkout -b <ブランチ名>
+```
+
+既に別のブランチにいる場合はそのまま進む。
+
 ### Step 2: 変更内容を確認する
 ```
 git log origin/<ベースブランチ>..HEAD --oneline
@@ -69,6 +85,7 @@ gh pr create --draft --base <ベースブランチ> --title "<タイトル>" --b
 
 ## エラー処理
 - `gh pr create` が「ブランチがpushされていない」エラーになった場合: `git push -u origin HEAD` を実行してから再試行する
+- `gh pr create` が「head branch is the same as base branch」エラーになった場合: Step 1.5 に戻り、新しいブランチを作成してから再試行する
 
 ## 完了条件
 draftのPR作成後にURLをユーザーに報告したら完了。
