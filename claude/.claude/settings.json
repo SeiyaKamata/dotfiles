@@ -13,10 +13,6 @@
       "Bash(docker compose *)",
       "Read(~/Develop/*)",
       "mcp__*"
-    ],
-    "deny": [
-      "Bash(git commit*)",
-      "Bash(git push*)"
     ]
   },
   "enabledPlugins": {
