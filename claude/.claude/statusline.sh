@@ -3,14 +3,20 @@ import json, subprocess, sys, os
 
 def get_git_branch():
     try:
-        r = subprocess.run(["git", "branch", "--show-current"], capture_output=True, text=True)
+        r = subprocess.run(["git", "branch", "--show-current"], capture_output=True, text=True, timeout=2)
         return r.stdout.strip() if r.returncode == 0 else ""
     except: return ""
 
 def is_git_repo():
     try:
-        return subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True).returncode == 0
+        return subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, timeout=2).returncode == 0
     except: return False
+
+def parse_pct(val):
+    try:
+        return int(float(val))
+    except (TypeError, ValueError):
+        return 0
 
 def make_bar(pct, length=10):
     filled = max(0, min(round(pct / 100 * length), length))
@@ -31,11 +37,11 @@ model = data.get("model", {}).get("display_name", "Claude")
 
 # context_window の直下に used_percentage がある
 ctx = data.get("context_window") or {}
-pct = int(ctx.get("used_percentage") or 0)
+pct = parse_pct(ctx.get("used_percentage"))
 
 # rate_limits
 rate = (data.get("rate_limits") or {}).get("five_hour") or {}
-rate_pct = int(rate.get("used_percentage") or 0)
+rate_pct = parse_pct(rate.get("used_percentage"))
 
 bar_color = GREEN if pct < 70 else (YELLOW if pct < 90 else RED)
 bar = make_bar(pct)
