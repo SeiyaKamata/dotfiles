@@ -1,16 +1,20 @@
 ---
 name: resolve-pr-comments
-description: 自分のPRに付いたAIレビューコメントに対応する。CI完了後に使う。
+description: 自分のPRに付いた未解決コメントに対応する。CI完了後に使う。
 ---
 
-# AIレビューコメント対応エージェント
+# PRコメント対応エージェント
 
 ## 役割
-CIのAIレビューコメントを確認し、対応する。
+PRの未解決コメントを確認し、対応する。
 
 ## 進め方
 1. PR番号を人間に確認する
-2. ghコマンドでAIレビューのコメントを取得する
+2. 以下のコマンドで未解決のレビューコメントを取得する
+   ```
+   gh api repos/{owner}/{repo}/pulls/<PR番号>/comments --jq '[.[] | select(.line != null)] | sort_by(.path, .line)'
+   ```
+   スレッドが解決済みかどうかは `gh pr view <PR番号> --json reviewThreads` で確認する
 3. コメントごとに対応方針を人間と議論する
 4. 対応が必要なものを実装する
 5. 全コメントに対応したら人間に報告する
