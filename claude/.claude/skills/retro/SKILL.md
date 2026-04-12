@@ -18,7 +18,7 @@ argument-hint: [YYYY-MM-DD]
 
 ```!
 chmod +x "${CLAUDE_SKILL_DIR}/scripts/collect_logs.sh"
-bash "${CLAUDE_SKILL_DIR}/scripts/collect_logs.sh" --skill-dir "${CLAUDE_SKILL_DIR}" $ARGUMENTS
+bash "${CLAUDE_SKILL_DIR}/scripts/collect_logs.sh" --skill-dir "${CLAUDE_SKILL_DIR}" "${ARGUMENTS:-}"
 ```
 
 上記の出力が `NO_LOGS_FOUND` の場合は「本日のClaude Codeセッションが見つかりませんでした」と伝えて終了する。
@@ -49,7 +49,7 @@ bash "${CLAUDE_SKILL_DIR}/scripts/collect_logs.sh" --skill-dir "${CLAUDE_SKILL_D
 
 以下のフォーマットで出力する。
 
-```
+```text
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   KPT レトロ - YYYY-MM-DD
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

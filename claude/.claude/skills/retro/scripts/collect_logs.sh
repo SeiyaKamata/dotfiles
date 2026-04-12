@@ -1,6 +1,8 @@
 #!/bin/bash
 # collect_logs.sh - 指定日のClaude Codeセッションログを全プロジェクトから収集する
-# 使い方: bash collect_logs.sh [--projects-dir DIR] [YYYY-MM-DD]
+# 使い方: bash collect_logs.sh [--skill-dir DIR] [YYYY-MM-DD]
+
+shopt -s globstar nullglob
 
 TARGET_DATE=""
 SKILL_DIR=""
@@ -8,6 +10,10 @@ SKILL_DIR=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --skill-dir)
+      if [[ -z "${2:-}" || "${2:-}" == -* ]]; then
+        echo "ERROR: --skill-dir requires a value" >&2
+        exit 1
+      fi
       SKILL_DIR="$2"
       shift 2
       ;;
@@ -34,7 +40,7 @@ fi
 
 FOUND=0
 
-for jsonl_file in "${CLAUDE_PROJECTS}"/**/*.jsonl "${CLAUDE_PROJECTS}"/*/*.jsonl; do
+for jsonl_file in "${CLAUDE_PROJECTS}"/**/*.jsonl; do
   [[ -f "$jsonl_file" ]] || continue
 
   project_name=$(basename "$(dirname "$jsonl_file")" \
