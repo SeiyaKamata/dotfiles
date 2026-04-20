@@ -26,12 +26,6 @@ bind-key c display-popup \
   -d "#{pane_current_path}" \
   -w 80% \
   -h 80% \
-  -E "tmux select-window -t codex || tmux display-message 'codex window not found'"
-
-bind-key a display-popup \
-  -d "#{pane_current_path}" \
-  -w 80% \
-  -h 80% \
   -E "claude"
 
 bind-key y display-popup \
@@ -40,11 +34,11 @@ bind-key y display-popup \
   -h 80% \
   -E "yazi"
 
-bind-key r display-popup \
+bind-key v display-popup \
   -d "#{pane_current_path}" \
   -w 80% \
   -h 80% \
-  -E "gh dash"
+  -E "vim"
 
 bind-key z display-popup \
   -d "#{pane_current_path}" \
