@@ -15,6 +15,11 @@
       "mcp__*"
     ]
   },
+  "hooks": {},
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude-p/statusline.sh"
+  },
   "enabledPlugins": {
     "serena@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
@@ -30,12 +35,10 @@
       }
     }
   },
-  "statusLine": {
-    "type": "command",
-    "command": "~/.claude-p/statusline.sh"
-  },
-  "hooks": {},
   "language": "Japanese",
+  "spinnerTipsEnabled": false,
   "effortLevel": "low",
-  "spinnerTipsEnabled": false
+  "theme": "dark-daltonized",
+  "preferredNotifChannel": "terminal_bell",
+  "autoCompactEnabled": false
 }
