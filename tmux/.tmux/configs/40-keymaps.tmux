@@ -38,7 +38,7 @@ bind-key v display-popup \
   -d "#{pane_current_path}" \
   -w 80% \
   -h 80% \
-  -E "vim"
+  -E "nvim"
 
 bind-key z display-popup \
   -d "#{pane_current_path}" \
