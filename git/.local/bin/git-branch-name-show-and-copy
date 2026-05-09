@@ -1,4 +1,5 @@
 #!/bin/sh
 
-git branch --contains | cut -d' ' -f2 | tr -d '\n'
-git branch --contains | cut -d' ' -f2 | tr -d '\n' | pbcopy
+name=$(git branch --contains | cut -d' ' -f2 | tr -d '\n')
+echo "$name"
+echo "$name" | pbcopy
