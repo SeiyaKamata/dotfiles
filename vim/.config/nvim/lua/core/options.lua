@@ -1,48 +1,54 @@
--- 基本オプション
 local opt = vim.opt
 
 -- 表示系
-opt.number = true -- 行番号を表示
-opt.relativenumber = true -- 相対行番号
-opt.cursorline = true -- カーソル行をハイライト
-opt.termguicolors = true -- 24bitカラー有効化
-opt.signcolumn = "yes" -- 常にサインカラムを表示
-opt.wrap = false -- 折り返し無効化
+opt.number = true
+opt.relativenumber = true
+opt.cursorline = true
+opt.termguicolors = true
+opt.signcolumn = "yes"
+opt.wrap = false
 opt.winbar = "%=%f"
 opt.title = true
-opt.synmaxcol = 320
-
--- buffer保存
-opt.hidden = true
+opt.synmaxcol = 320 -- 長行のシンタックスハイライトを打ち切りパフォーマンス改善
+opt.showmode = false
+opt.cmdheight = 0
 
 -- インデント系
-opt.expandtab = true -- タブをスペースに変換
-opt.shiftwidth = 2 -- 自動インデントの幅
-opt.tabstop = 2 -- タブ幅
-opt.smartindent = true -- スマートインデント
+opt.expandtab = true
+opt.shiftwidth = 2
+opt.tabstop = 2
+opt.smartindent = true
 
 -- 検索系
-opt.ignorecase = true -- 大文字小文字を無視
-opt.smartcase = true -- 大文字が含まれていたら区別
-opt.incsearch = true -- インクリメンタルサーチ
-opt.hlsearch = true -- 検索結果をハイライト
+opt.ignorecase = true
+opt.smartcase = true
+opt.hlsearch = true
+opt.inccommand = "split"
 
 -- 操作性
-opt.scrolloff = 8 -- 上下に余白を持たせる
-opt.splitbelow = true -- 横分割は下に開く
-opt.splitright = true -- 縦分割は右に開く
+opt.scrolloff = 8
+opt.splitbelow = true
+opt.splitright = true
+opt.undofile = true
+opt.updatetime = 250
+opt.timeoutlen = 300
+opt.jumpoptions = "view"
+opt.swapfile = false
 
 -- 補完
 opt.completeopt = { "menu", "menuone", "noselect" }
+opt.pumheight = 10
 
 -- clipboard
 opt.clipboard = "unnamedplus"
 
--- 大きいファイルの時はundo無効化（編集体験優先）
+-- 大きいファイル（1MB以上）はundo無効化
 vim.api.nvim_create_autocmd("BufReadPre", {
-  pattern = { "*.csv", "*.txt" },
 	callback = function()
-		vim.opt_local.undofile = false
-		vim.opt_local.foldmethod = "manual"
+		local ok, stat = pcall(vim.uv.fs_stat, vim.fn.expand("<afile>"))
+		if ok and stat and stat.size > 1024 * 1024 then
+			vim.opt_local.undofile = false
+			vim.opt_local.foldmethod = "manual"
+		end
 	end,
 })
