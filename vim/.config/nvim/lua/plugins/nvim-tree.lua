@@ -3,36 +3,16 @@ return {
 	dependencies = { "nvim-tree/nvim-web-devicons" },
 	config = function()
 		require("nvim-tree").setup({
-			view = {
-				width = 30,
-				side = "left", -- 左側に表示
-			},
+			view = { width = 30 },
 			renderer = {
-				icons = {
-					show = {
-						git = true, -- Git 状態アイコンを表示
-						folder = true, -- フォルダアイコンを表示
-						file = true, -- ファイルアイコンを表示
-					},
-				},
-				group_empty = true, -- 空フォルダをまとめて表示
+				group_empty = true,
+				icons = { show = { git = true, folder = true, file = true } },
 			},
-			filters = {
-				dotfiles = false, -- ドットファイルを表示する（true にすると非表示）
-				git_clean = false,
-				custom = {},
-			},
-			git = {
-				enable = true, -- Git 連携を有効化
-			},
+			filters = { dotfiles = false, git_clean = false },
+			git = { enable = true },
 		})
 
-		local map = vim.keymap.set
-		local opts = { noremap = true, silent = true }
-
-		-- key map
-		map("n", "<leader>et", ":NvimTreeToggle<CR>", opts)
-		map("n", "<leader>eo", ":NvimTreeFocus<CR>", opts)
-		map("n", "<leader>ef", ":NvimTreeFindFile<CR>", opts)
+		vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<CR>",
+			{ noremap = true, silent = true, desc = "Toggle file tree" })
 	end,
 }
