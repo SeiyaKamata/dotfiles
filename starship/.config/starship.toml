@@ -22,7 +22,7 @@ disabled = false
 [os.symbols]
 Macos = "  " # nf-fa-apple
 Ubuntu = "  " # nf-linux-ubuntu
-Debian = "  " # nf-linux-debian
+Arch = " " # nf-linux-archlinux
 
 [directory]
 truncation_length = 10
@@ -49,7 +49,7 @@ behind = '⇣${count}'
 diverged = '⇕'
 up_to_date = '✓'
 untracked = '?'
-stashed = 's'
+stashed = '$'
 modified = '!${count}'
 renamed = '»'
 deleted = '✘'
@@ -57,7 +57,7 @@ format = '([\[$all_status$ahead_behind\]]($style))'
 
 [git_metrics]
 added_style = 'fg:#9ece6a bg:#3b4261'
-deleted_style = 'fg:#9ece6a bg:#3b4261'
+deleted_style = 'fg:#f7768e bg:#3b4261'
 format = '[+$added/-$deleted]($deleted_style)'
 disabled = false
 
