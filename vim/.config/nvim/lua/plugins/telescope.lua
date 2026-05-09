@@ -7,36 +7,26 @@ return {
 				prompt_prefix = "❯ ",
 				selection_caret = "❯ ",
 				path_display = { "truncate" },
-				find_command = { "fd", "--type", "f" },
+			},
+			pickers = {
+				find_files = { find_command = { "fd", "--type", "f" } },
 			},
 		})
 
 		local builtin = require("telescope.builtin")
 		local map = vim.keymap.set
-		local opts = { noremap = true, silent = true }
 
-		-- custom functions
 		local function find_files_all()
-			builtin.find_files({
-				hidden = true,
-				no_ignore = true,
-			})
+			builtin.find_files({ hidden = true, no_ignore = true })
 		end
 		local function live_grep_all()
-			builtin.live_grep({
-				additional_args = function()
-					return { "--hidden", "--no-ignore" }
-				end,
-			})
+			builtin.live_grep({ additional_args = { "--hidden", "--no-ignore" } })
 		end
 
-		-- key maps
-		map("n", "<leader>ff", builtin.find_files, opts)
-		map("n", "<C-p>", builtin.find_files, opts)
-		map("n", "<leader>fb", builtin.buffers, opts)
-		map("n", "<leader>fg", builtin.live_grep, opts)
-
-		map("n", "<leader>fF", find_files_all, opts)
-		map("n", "<leader>fG", live_grep_all, opts)
+		map("n", "<leader>ff", builtin.find_files, { desc = "Find files" })
+		map("n", "<leader>fb", builtin.buffers,     { desc = "Find buffers" })
+		map("n", "<leader>fg", builtin.live_grep,   { desc = "Live grep" })
+		map("n", "<leader>fF", find_files_all,      { desc = "Find files (all)" })
+		map("n", "<leader>fG", live_grep_all,        { desc = "Live grep (all)" })
 	end,
 }
