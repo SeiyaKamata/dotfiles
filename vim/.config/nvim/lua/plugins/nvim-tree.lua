@@ -14,5 +14,16 @@ return {
 
 		vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<CR>",
 			{ noremap = true, silent = true, desc = "Toggle file tree" })
+    
+    		-- 最後のウィンドウが nvim-tree なら自動で閉じる
+		vim.api.nvim_create_autocmd("BufEnter", {
+			nested = true,
+			callback = function()
+				if #vim.api.nvim_list_wins() == 1
+					and vim.bo.filetype == "NvimTree" then
+					vim.cmd("quit")
+				end
+			end,
+		})
 	end,
 }
