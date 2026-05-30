@@ -24,7 +24,7 @@
 	dark = true
 	navigate = true
 	line-numbers = true
-	side-by-side = true
+	side-by-side = false
 	syntax-theme = Dracula
 	merge-conflict-style = zdiff3
 	file-modified-label = [M]
