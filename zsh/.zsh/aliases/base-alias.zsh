@@ -1,7 +1,8 @@
 alias exe="pbpaste | ./a.out"
 alias clip="pbcopy"
+alias vi="nvim"
 alias vim="nvim"
-
+alias q="exit"
 
 # Rust command
 alias ls='eza'
