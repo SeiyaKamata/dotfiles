@@ -1,5 +1,0 @@
-gui:
-  theme:
-    optionsTextColor:
-      - white
-  showBottomLine: false
