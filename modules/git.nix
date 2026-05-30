@@ -25,7 +25,6 @@
       pull.rebase = false;
       merge.conflictStyle = "zdiff3";
       color.ui = "auto";
-      interactive.diffFilter = "delta --color-only";
     };
 
     includes = [

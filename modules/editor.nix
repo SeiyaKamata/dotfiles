@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, dotfilesRoot, lib, ... }:
 
 {
   programs.neovim = {
@@ -7,7 +7,11 @@
     viAlias = true;
   };
 
-  home.file.".config/nvim".source =
-    config.lib.file.mkOutOfStoreSymlink
-      "${config.home.homeDirectory}/dotfiles/vim/.config/nvim";
+  # nvim設定はdotfilesRootから直接参照（ストアへのコピー）
+  # 編集ワークフローのためにシンボリックリンクが必要な場合は
+  # home-manager switch 後に手動で差し替えること
+  home.file.".config/nvim" = {
+    source = "${dotfilesRoot}/vim/.config/nvim";
+    recursive = true;
+  };
 }

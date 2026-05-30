@@ -1,34 +1,38 @@
-{ pkgs, config, ... }: {
-  # alacrittyはhome.fileで設定ファイルをそのまま配置
+{ pkgs, config, lib, dotfilesRoot, ... }: {
+  # alacrittyはmacOS向け（home.fileで設定ファイルをそのまま配置）
   # programs.alacritty.settingsでは `import` キーが処理できないため
-  programs.alacritty.enable = true;
-
-  home.file.".config/alacritty/alacritty.toml".source =
-    ../../alacritty/.config/alacritty/alacritty.toml;
-
-  home.file.".config/alacritty/themes.toml".source =
-    ../../alacritty/.config/alacritty/themes.toml;
+  programs.alacritty.enable = lib.mkIf pkgs.stdenv.isDarwin true;
 
   programs.tmux = {
     enable = true;
-    extraConfig = builtins.readFile ../../tmux/.config/tmux/tmux.conf;
+    extraConfig = builtins.readFile "${dotfilesRoot}/tmux/.config/tmux/tmux.conf";
   };
 
-  # tmux conf.d の各設定ファイルをhome.fileで配置
-  home.file.".config/tmux/conf.d/00-core.conf".source =
-    ../../tmux/.config/tmux/conf.d/00-core.conf;
-  home.file.".config/tmux/conf.d/10-terminal.conf".source =
-    ../../tmux/.config/tmux/conf.d/10-terminal.conf;
-  home.file.".config/tmux/conf.d/20-style.conf".source =
-    ../../tmux/.config/tmux/conf.d/20-style.conf;
-  home.file.".config/tmux/conf.d/30-status.conf".source =
-    ../../tmux/.config/tmux/conf.d/30-status.conf;
-  home.file.".config/tmux/conf.d/40-keymaps.conf".source =
-    ../../tmux/.config/tmux/conf.d/40-keymaps.conf;
-  home.file.".config/tmux/conf.d/50-mouse-copy.conf".source =
-    ../../tmux/.config/tmux/conf.d/50-mouse-copy.conf;
-
-  # lazydockerの設定をhome.fileで管理
-  home.file.".config/lazydocker/config.yml".source =
-    ../../lazydocker/.config/lazydocker/config.yml;
+  home.file = lib.mkMerge [
+    # alacritty設定はmacOSのみ
+    (lib.mkIf pkgs.stdenv.isDarwin {
+      ".config/alacritty/alacritty.toml".source =
+        "${dotfilesRoot}/alacritty/.config/alacritty/alacritty.toml";
+      ".config/alacritty/themes.toml".source =
+        "${dotfilesRoot}/alacritty/.config/alacritty/themes.toml";
+    })
+    # tmux conf.d の各設定ファイル（共通）
+    {
+      ".config/tmux/conf.d/00-core.conf".source =
+        "${dotfilesRoot}/tmux/.config/tmux/conf.d/00-core.conf";
+      ".config/tmux/conf.d/10-terminal.conf".source =
+        "${dotfilesRoot}/tmux/.config/tmux/conf.d/10-terminal.conf";
+      ".config/tmux/conf.d/20-style.conf".source =
+        "${dotfilesRoot}/tmux/.config/tmux/conf.d/20-style.conf";
+      ".config/tmux/conf.d/30-status.conf".source =
+        "${dotfilesRoot}/tmux/.config/tmux/conf.d/30-status.conf";
+      ".config/tmux/conf.d/40-keymaps.conf".source =
+        "${dotfilesRoot}/tmux/.config/tmux/conf.d/40-keymaps.conf";
+      ".config/tmux/conf.d/50-mouse-copy.conf".source =
+        "${dotfilesRoot}/tmux/.config/tmux/conf.d/50-mouse-copy.conf";
+      # lazydockerの設定
+      ".config/lazydocker/config.yml".source =
+        "${dotfilesRoot}/lazydocker/.config/lazydocker/config.yml";
+    }
+  ];
 }

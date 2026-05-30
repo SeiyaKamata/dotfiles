@@ -1,8 +1,8 @@
-{ pkgs, config, ... }: {
+{ pkgs, config, dotfilesRoot, ... }: {
   programs.zsh = {
     enable = true;
     dotDir = ".config/zsh";
-    envExtra = builtins.readFile ../zsh/.zshenv;
+    envExtra = builtins.readFile "${dotfilesRoot}/zsh/.zshenv";
     initExtra = ''
       # .config/zsh/*.zsh をソース
       for f in ${config.home.homeDirectory}/.config/zsh/*.zsh; do
@@ -32,7 +32,7 @@
   programs.starship = {
     enable = true;
     enableZshIntegration = true;
-    settings = builtins.fromTOML (builtins.readFile ../starship/.config/starship.toml);
+    settings = builtins.fromTOML (builtins.readFile "${dotfilesRoot}/starship/.config/starship.toml");
   };
 
   programs.zoxide = {

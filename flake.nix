@@ -14,6 +14,7 @@
       mkHomeConfig = { system, homeNix }:
         home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs { inherit system; };
+          extraSpecialArgs = { dotfilesRoot = self; };
           modules = [ homeNix ];
         };
     in
