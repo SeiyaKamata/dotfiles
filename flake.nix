@@ -22,11 +22,11 @@
       homeConfigurations = {
         "kamata_seiya@mac" = mkHomeConfig {
           system = "aarch64-darwin";
-          homeNix = ./hosts/mac/home.nix;
+          homeNix = ./nix/hosts/mac/home.nix;
         };
         "kamata_seiya@linux" = mkHomeConfig {
           system = "x86_64-linux";
-          homeNix = ./hosts/linux/home.nix;
+          homeNix = ./nix/hosts/linux/home.nix;
         };
       };
     };
