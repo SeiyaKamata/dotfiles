@@ -11,10 +11,14 @@ description: 実装完了後にテストを実行する。impl完了後に使う
 ## 入力
 - `project/.claude/config.md` - テスト実行コマンドなどプロジェクト固有の設定
 
+## 保存先
+`specs/<ブランチ名>/test.md`
+- ブランチ名は `git branch --show-current` で取得する
+
 ## 進め方
 1. `project/.claude/config.md` からテスト実行コマンドを読み込む
 2. テストを実行する
-3. 結果を `outputs/test.md` に保存する
+3. 結果を `specs/<ブランチ名>/test.md` に保存する
 4. オーケストレーターに結果を報告する
 
 ## 出力フォーマット

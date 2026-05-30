@@ -4,6 +4,7 @@
       "Bash(git *)",
       "Bash(gh label*)",
       "Bash(gh pr*)",
+      "Bash(gh run *)",
       "Bash(cat *)",
       "Bash(npm *)",
       "Bash(npx *)",
@@ -11,11 +12,38 @@
       "Bash(go *)",
       "Bash(docker *)",
       "Bash(docker compose *)",
+      "Bash(~/.claude-p/skills/send-message/scripts/send.sh *)",
+      "Bash(~/.claude/skills/send-message/scripts/send.sh *)",
+      "Bash(*/send-message/scripts/send.sh *)",
       "Read(~/Develop/*)",
       "mcp__*"
+    ],
+    "defaultMode": "auto"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/skills/agent-protocol/scripts/register.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/skills/agent-protocol/scripts/unregister.sh"
+          }
+        ]
+      }
     ]
   },
-  "hooks": {},
   "statusLine": {
     "type": "command",
     "command": "~/.claude-p/statusline.sh"
@@ -40,5 +68,6 @@
   "effortLevel": "low",
   "theme": "dark-daltonized",
   "preferredNotifChannel": "terminal_bell",
-  "autoCompactEnabled": false
+  "autoCompactEnabled": false,
+  "skipAutoPermissionPrompt": true
 }
