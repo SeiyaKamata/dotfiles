@@ -30,7 +30,11 @@
     # 言語ランタイム・パッケージマネージャ
     nodejs
     uv
+    go
     # pipx  # nixpkgs上流のテスト失敗のため一時的にコメントアウト（タスク4.1）
+
+    # インフラ
+    terraform
 
     # データベース
     mycli
@@ -41,5 +45,9 @@
     # TUI ツール
     yazi
     lazydocker
+
+    # 検索・差分
+    ripgrep
+    delta
   ];
 }

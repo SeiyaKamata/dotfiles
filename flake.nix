@@ -13,7 +13,7 @@
     let
       mkHomeConfig = { system, homeNix }:
         home-manager.lib.homeManagerConfiguration {
-          pkgs = import nixpkgs { inherit system; };
+          pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
           extraSpecialArgs = { dotfilesRoot = self; };
           modules = [ homeNix ];
         };
