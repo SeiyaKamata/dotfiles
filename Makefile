@@ -1,28 +1,16 @@
-STOW_TARGETS = \
-	alacritty \
-	docker \
-	gh \
-	git \
-	homebrew \
-	lazydocker \
-	lazygit \
-	lazysql \
-	sheldon \
-	starship \
-	tmux \
-	vim \
-	zsh
+HOSTNAME := $(shell hostname -s)
+USERNAME := $(shell whoami)
+NIX_TARGET := $(USERNAME)@$(HOSTNAME)
 
 .PHONY: \
 	setup \
+	nix-switch \
 	brew-install \
 	brew-dump \
 	reload-zsh \
 	reload-tmux \
 	reload-sheldon \
 	clean-ds-store \
-	stow-all \
-	$(STOW_TARGETS) \
 	claude
 
 DOTFILES_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
@@ -33,12 +21,14 @@ define log
 endef
 
 # ===== setup =====
-setup: \
-	brew-install \
-	stow-all \
-	reload-zsh \
-	reload-tmux \
-	reload-sheldon
+setup: brew-install nix-switch
+	$(call log,Done)
+
+
+# ===== nix =====
+nix-switch:
+	$(call log,Applying Home Manager configuration for $(NIX_TARGET))
+	@home-manager switch --flake .#"$(NIX_TARGET)"
 	$(call log,Done)
 
 
@@ -55,7 +45,7 @@ brew-dump:
 
 
 # ===== apply setting file =====
-reload-zsh: # このコマンドは、検証用でしかない、makeで設定ファイルの再読み込みは不可
+reload-zsh: # このコマンドは検証用。makeで設定ファイルの再読み込みは不可
 	$(call log,Reloading config ~/.zshrc)
 	@zsh -lc 'source ~/.zshrc'
 	$(call log,Done)
@@ -72,18 +62,10 @@ reload-sheldon:
 	$(call log,Done)
 
 
-# ===== stow =====
+# ===== utils =====
 clean-ds-store:
 	$(call log,Removing .DS_Store files)
 	@find . -type f -name '.DS_Store' -delete
-	$(call log,Done)
-
-stow-all: $(STOW_TARGETS)
-	$(call log,All packages stowed)
-
-$(STOW_TARGETS):
-	$(call log,Setting up)
-	@stow --restow --target=$(HOME) $@
 	$(call log,Done)
 
 
