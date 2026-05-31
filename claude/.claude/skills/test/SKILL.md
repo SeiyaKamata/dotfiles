@@ -10,7 +10,27 @@ allowed-tools: Read, Write, Bash, Glob
 実装後にテストを実行し、PASS/FAILを判定する。
 テストを書くのは `/impl` の責任。ここは**実行と検証のみ**。
 
-## テストコマンドの自動検出
+## 進め方
+
+### Step 1: 環境ロック取得
+ユーザーに調停役のエージェント名を確認する：
+
+> テスト環境の調停役エージェント名を教えてください。（例: `Seculio`）
+
+エージェント名が分かったら `send-message` スキルで env-lock を要求する：
+
+```
+send-message で <エージェント名> に以下を送信:
+  type: request
+  action: env-lock
+  payload: {"worktree": "<現在のworktree名>"}
+```
+
+response を待ち、結果を判定する：
+- `"status": "ready"` → Step 2 へ進む
+- `"status": "busy"` → ユーザーに報告して待機するか確認する
+
+### Step 2: テストコマンド検出
 以下の優先順位でテストコマンドを探す：
 
 1. `Makefile` に `test` ターゲットがあれば `make test`
@@ -22,15 +42,20 @@ allowed-tools: Read, Write, Bash, Glob
 
 見つからない場合はユーザーに確認する。
 
-## 進め方
-
-### Step 1: コマンド検出
-上記の順序でテストコマンドを検出する。
-
-### Step 2: テスト実行
+### Step 3: テスト実行
 検出したコマンドを実行する。
 
-### Step 3: 結果判定・報告
+### Step 4: 環境ロック解放
+テスト完了後（PASS/FAIL問わず）必ず env-unlock を送信する：
+
+```
+send-message で <エージェント名> に以下を送信:
+  type: request
+  action: env-unlock
+  payload: {"worktree": "<現在のworktree名>"}
+```
+
+### Step 5: 結果判定・報告
 結果をコンソールに出力し、PASS/FAILを明示する。
 
 **PASS の場合:** `/review` を起動する。
