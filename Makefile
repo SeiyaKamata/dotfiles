@@ -71,9 +71,9 @@ clean-ds-store:
 
 claude:
 	$(call log,Setting up)
-	@stow --restow --target=$(HOME) claude
-	 @find $(CLAUDE_DIR) -maxdepth 1 -mindepth 1 | while read f; do \
-  	ln -sfn "$$f" $(HOME)/.claude-p/$$(basename "$$f"); \
-  done
+	@ln -sfn $(CLAUDE_DIR) $(HOME)/.claude
+	@find $(CLAUDE_DIR) -maxdepth 1 -mindepth 1 | while read f; do \
+		ln -sfn "$$f" $(HOME)/.claude-p/$$(basename "$$f"); \
+	done
 	$(call log,$(CLAUDE_DIR))
 	$(call log,Done)

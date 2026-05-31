@@ -5,9 +5,6 @@
 
 # ─── Taps ──────────────────────────────────────────────────────────────────
 
-# HashiCorp公式tap（nixpkgsのterraformバージョンが古く、最新機能が必要なため）
-tap "hashicorp/tap"
-
 # Infisical公式tap（nixpkgsに存在しないため）
 tap "infisical/get-cli"
 
@@ -30,9 +27,6 @@ brew "rbenv-gemset"
 
 # aws-sam-cli: nixpkgsのバージョンが古くAWSの最新機能に追随できないため
 brew "aws-sam-cli"
-
-# terraform: HashiCorp公式tapから取得（nixpkgsより更新が速いため）
-brew "hashicorp/tap/terraform"
 
 # infisical: nixpkgsに存在しないため公式tapから取得
 brew "infisical/get-cli/infisical"
