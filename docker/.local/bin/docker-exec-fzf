@@ -1,4 +1,0 @@
-#!/bin/sh
-
-container=$(docker ps --format '{{.Names}}' | fzf)
-[ -n "$container" ] && docker exec -it "$container" /bin/bash
