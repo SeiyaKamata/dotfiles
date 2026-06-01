@@ -5,6 +5,8 @@
     enable = true;
     vimAlias = true;
     viAlias = true;
+    withRuby = false;
+    withPython3 = false;
   };
 
   # nvim設定はdotfilesRootから直接参照（ストアへのコピー）

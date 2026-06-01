@@ -3,6 +3,8 @@
 {
   home.packages = with pkgs; [
     # CLIユーティリティ
+    tmux
+    tree-sitter  # nvim-treesitter main ブランチがパーサのコンパイルに必要（≥0.26.1）
     bat
     bottom
     chafa
