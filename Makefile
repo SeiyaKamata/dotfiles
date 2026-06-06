@@ -1,34 +1,61 @@
 HOSTNAME := $(shell hostname -s)
 USERNAME := $(shell whoami)
-NIX_TARGET := $(USERNAME)@$(HOSTNAME)
+UNAME    := $(shell uname -s)
 
 .PHONY: \
 	setup \
-	nix-switch \
+	nix-install \
+	nix-update \
+	stow-install \
 	brew-install \
 	brew-dump \
 	reload-zsh \
 	reload-tmux \
 	reload-sheldon \
 	clean-ds-store \
-	claude
+	claude \
+	help
+
+help:
+	@grep -E '^[a-zA-Z_-]+:' Makefile | grep -v '^\s' | sed 's/:.*//' | sort | column
 
 DOTFILES_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 CLAUDE_DIR   := $(DOTFILES_DIR)claude/.claude
+
+STOW_PACKAGES_COMMON := zsh git tmux vim sheldon starship
+STOW_PACKAGES_MAC    := alacritty
+ifeq ($(UNAME), Darwin)
+  STOW_PACKAGES := $(STOW_PACKAGES_COMMON) $(STOW_PACKAGES_MAC)
+else
+  STOW_PACKAGES := $(STOW_PACKAGES_COMMON)
+endif
 
 define log
 	@printf "[%s] %s\n" "$@" "$(1)"
 endef
 
 # ===== setup =====
-setup: brew-install nix-switch
+setup: brew-install nix-install stow-install
 	$(call log,Done)
 
 
 # ===== nix =====
-nix-switch:
-	$(call log,Applying Home Manager configuration for $(NIX_TARGET))
-	@home-manager switch --flake .#"$(NIX_TARGET)"
+nix-install:
+	$(call log,Installing Nix packages)
+	@nix profile install .#
+	$(call log,Done)
+
+nix-update:
+	$(call log,Updating Nix packages)
+	@nix flake update
+	@nix profile upgrade '.*'
+	$(call log,Done)
+
+
+# ===== stow =====
+stow-install:
+	$(call log,Linking dotfiles with stow)
+	@stow -d $(DOTFILES_DIR) -t $(HOME) --restow $(STOW_PACKAGES)
 	$(call log,Done)
 
 

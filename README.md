@@ -1,6 +1,10 @@
 # dotfiles
 
-My dotfiles managed with Nix Home Manager.
+My dotfiles managed with Nix + stow.
+
+- **Nix** — パッケージ管理（mac/Linux 共通）
+- **Homebrew** — macOS 向けパッケージ・GUI アプリ
+- **stow** — dotfiles のシンボリックリンク管理
 
 ## Prerequisites
 
@@ -10,7 +14,7 @@ My dotfiles managed with Nix Home Manager.
 curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
 ```
 
-### 2. Install Homebrew
+### 2. Install Homebrew (macOS only)
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -25,21 +29,29 @@ make setup
 ```
 
 `make setup` は以下を実行します：
-1. `brew bundle install` — Homebrew パッケージのインストール
-2. `home-manager switch` — Nix Home Manager による環境構築
+1. `brew bundle install` — Homebrew パッケージのインストール（macOS のみ）
+2. `nix profile install .#` — Nix パッケージのインストール
+3. `stow` — dotfiles のシンボリックリンクを `~` に展開
 
 ## Usage
 
-### Nix 設定を反映する
+### Nix パッケージを更新する
 
 ```bash
-make nix-switch
+# flake.lock を更新してパッケージを最新化
+make nix-update
+```
+
+### dotfiles のリンクを張り直す
+
+```bash
+make stow-install
 ```
 
 ### Homebrew パッケージを更新する
 
 ```bash
-# Brewfile から一括インストール
+# Brewfile からインストール
 make brew-install
 
 # 現在の状態を Brewfile に書き出す
@@ -58,17 +70,16 @@ make reload-sheldon
 
 ```
 dotfiles/
-├── nix/
-│   ├── hosts/
-│   │   ├── mac/home.nix      # macOS プロファイル
-│   │   └── linux/home.nix    # Linux プロファイル
-│   └── modules/
-│       ├── packages.nix      # home.packages
-│       ├── shell.nix         # zsh, sheldon, starship, zoxide
-│       ├── git.nix           # git, gh, delta
-│       ├── editor.nix        # neovim
-│       └── terminal.nix      # alacritty, tmux
+├── flake.nix             # Nix パッケージ定義
+├── flake.lock
 ├── homebrew/
-│   └── .Brewfile             # Homebrew で管理するパッケージ
-└── flake.nix
+│   └── .Brewfile         # Homebrew パッケージ
+├── zsh/                  # zsh 設定
+├── git/                  # git 設定 (.gitconfig)
+├── vim/                  # Neovim 設定
+├── tmux/                 # tmux 設定
+├── alacritty/            # Alacritty 設定（macOS）
+├── sheldon/              # sheldon プラグイン設定
+├── starship/             # starship プロンプト設定
+└── claude/               # Claude Code 設定
 ```
