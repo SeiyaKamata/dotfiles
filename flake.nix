@@ -1,33 +1,95 @@
 {
-  description = "kamata_seiya's dotfiles managed by Home Manager";
+  description = "kamata_seiya's dotfiles";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = { self, nixpkgs, home-manager, ... }:
+  outputs = { self, nixpkgs }:
     let
-      mkHomeConfig = { system, homeNix }:
-        home-manager.lib.homeManagerConfiguration {
-          pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
-          extraSpecialArgs = { dotfilesRoot = self; };
-          modules = [ homeNix ];
-        };
+      mkPkgs = system: import nixpkgs { inherit system; config.allowUnfree = true; };
+
+      commonPackages = pkgs: with pkgs; [
+        # CLI
+        tmux
+        tree-sitter
+        bat
+        bottom
+        chafa
+        eza
+        fd
+        fzf
+        jq
+        procs
+        stow
+
+        # Docker
+        docker
+        docker-compose
+        docker-buildx
+
+        # AWS
+        awscli2
+        awslogs
+
+        # ファイル処理
+        imagemagick
+        nkf
+        fswatch
+        flock
+
+        # 言語ランタイム
+        nodejs
+        uv
+        go
+
+        # インフラ
+        terraform
+
+        # データベース
+        mycli
+
+        # Go ツール
+        golangci-lint
+
+        # TUI
+        yazi
+        lazydocker
+
+        # 検索・差分
+        ripgrep
+        delta
+
+        # Git
+        gh
+
+        # shell
+        sheldon
+        starship
+        zoxide
+
+        # Editor
+        neovim
+      ];
+
+      macPackages = pkgs: with pkgs; [
+        alacritty
+      ];
     in
     {
-      homeConfigurations = {
-        "kamata_seiya@mac" = mkHomeConfig {
-          system = "aarch64-darwin";
-          homeNix = ./nix/hosts/mac/home.nix;
-        };
-        "kamata_seiya@linux" = mkHomeConfig {
-          system = "x86_64-linux";
-          homeNix = ./nix/hosts/linux/home.nix;
-        };
+      packages = {
+        "aarch64-darwin".default =
+          let pkgs = mkPkgs "aarch64-darwin";
+          in pkgs.buildEnv {
+            name = "kamata-env";
+            paths = commonPackages pkgs ++ macPackages pkgs;
+          };
+        "x86_64-linux".default =
+          let pkgs = mkPkgs "x86_64-linux";
+          in pkgs.buildEnv {
+            name = "kamata-env";
+            paths = commonPackages pkgs;
+          };
       };
     };
 }
