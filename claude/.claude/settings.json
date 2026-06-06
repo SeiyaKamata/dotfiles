@@ -2,9 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(git *)",
-      "Bash(gh label*)",
-      "Bash(gh pr*)",
-      "Bash(gh run *)",
+      "Bash(gh *)",
       "Bash(cat *)",
       "Bash(npm *)",
       "Bash(npx *)",
@@ -15,8 +13,7 @@
       "Bash(~/.claude-p/skills/send-message/scripts/send.sh *)",
       "Bash(~/.claude/skills/send-message/scripts/send.sh *)",
       "Bash(*/send-message/scripts/send.sh *)",
-      "Read(~/Develop/*)",
-      "mcp__*"
+      "Read(~/Develop/*)"
     ],
     "defaultMode": "auto"
   },
@@ -65,6 +62,7 @@
   },
   "language": "Japanese",
   "spinnerTipsEnabled": false,
+  "startupTipsEnabled": false,
   "effortLevel": "low",
   "theme": "dark-daltonized",
   "preferredNotifChannel": "terminal_bell",
