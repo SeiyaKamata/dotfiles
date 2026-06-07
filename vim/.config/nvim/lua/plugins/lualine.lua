@@ -58,17 +58,17 @@ return {
 			sections = {
 				lualine_a = {
 					{
-						-- tmux prefix(白 PREFIX) と区別するため gruvbox の赤で LEADER
-						function()
-							return " LEADER "
-						end,
-						cond = function()
-							return vim.g.leader_pending
-						end,
+						function() return " LEADER " end,
+						cond = function() return vim.g.leader_pending end,
 						color = { fg = "#1d2021", bg = "#fb4934", gui = "bold" },
 					},
 					"mode",
 				},
+				lualine_b = { "filename" },
+				lualine_c = {},
+				lualine_x = { "filetype" },
+				lualine_y = {},
+				lualine_z = { "location" },
 			},
 		})
 	end,

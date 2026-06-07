@@ -35,6 +35,13 @@ return {
         },
       },
 			git = { enable = true },
+			on_attach = function(bufnr)
+				local api = require("nvim-tree.api")
+				api.config.mappings.default_on_attach(bufnr)
+				local opts = { buffer = bufnr, noremap = true, silent = true, nowait = true }
+				vim.keymap.set("n", "l", api.node.open.edit, opts)
+				vim.keymap.set("n", "h", api.node.navigate.parent_close, opts)
+			end,
 		})
 
 		vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<CR>",
