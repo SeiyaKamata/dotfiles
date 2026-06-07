@@ -1,16 +1,6 @@
 #!/usr/bin/env python3
-import json, subprocess, sys, os
+import json, subprocess, sys
 
-def get_git_branch():
-    try:
-        r = subprocess.run(["git", "branch", "--show-current"], capture_output=True, text=True, timeout=2)
-        return r.stdout.strip() if r.returncode == 0 else ""
-    except: return ""
-
-def is_git_repo():
-    try:
-        return subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, timeout=2).returncode == 0
-    except: return False
 
 def parse_pct(val):
     try:
@@ -46,14 +36,8 @@ rate_pct = parse_pct(rate.get("used_percentage"))
 bar_color = GREEN if pct < 70 else (YELLOW if pct < 90 else RED)
 bar = make_bar(pct)
 
-git_part = ""
-if is_git_repo():
-    branch = get_git_branch()
-    if branch:
-        git_part = f" {CYAN}⎇ {branch}{RESET}"
-
 # 5時間レート表示
 rate_color = GREEN if rate_pct < 50 else (YELLOW if rate_pct < 80 else RED)
 rate_msg = f"{rate_color}rate {rate_pct}%{RESET}"
 
-print(f"{model}{git_part} | {bar_color}{bar}{RESET} {pct}% | {rate_msg}")
+print(f"{model} | {bar_color}{bar}{RESET} {pct}% | {rate_msg}")

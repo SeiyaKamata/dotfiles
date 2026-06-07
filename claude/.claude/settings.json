@@ -46,11 +46,11 @@
     "command": "~/.claude-p/statusline.sh"
   },
   "enabledPlugins": {
-    "serena@claude-plugins-official": true,
+    "serena@claude-plugins-official": false,
     "context7@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true,
-    "figma@claude-plugins-official": true,
-    "notion@claude-plugins-official": true
+    "gopls-lsp@claude-plugins-official": false,
+    "figma@claude-plugins-official": false,
+    "notion@claude-plugins-official": false
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -62,10 +62,10 @@
   },
   "language": "Japanese",
   "spinnerTipsEnabled": false,
-  "startupTipsEnabled": false,
   "effortLevel": "low",
   "theme": "dark-daltonized",
   "preferredNotifChannel": "terminal_bell",
   "autoCompactEnabled": false,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "startupTipsEnabled": false
 }
