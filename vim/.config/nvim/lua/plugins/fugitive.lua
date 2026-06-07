@@ -20,6 +20,8 @@ return {
       callback = function(ev)
         local buf = ev.buf
         local opts = { buffer = buf, silent = true }
+        -- ウィンドウ背景を NormalFloat にして他のウィンドウと区別
+        vim.wo.winhighlight = "Normal:FugitiveBg,SignColumn:FugitiveBg,CursorLine:Visual"
         -- cc でコミット
         vim.keymap.set("n", "cc", "<cmd>Git commit<cr>", opts)
         -- pp でプッシュ
