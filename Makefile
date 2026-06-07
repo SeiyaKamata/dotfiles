@@ -70,7 +70,7 @@ brew-dump:
 	@brew bundle dump --file homebrew/.Brewfile --force
 	$(call log,Done)
 
-
+ 
 # ===== apply setting file =====
 reload-zsh: # このコマンドは検証用。makeで設定ファイルの再読み込みは不可
 	$(call log,Reloading config ~/.zshrc)
@@ -98,8 +98,8 @@ clean-ds-store:
 
 claude:
 	$(call log,Setting up)
-	@ln -sfn $(CLAUDE_DIR) $(HOME)/.claude
 	@find $(CLAUDE_DIR) -maxdepth 1 -mindepth 1 | while read f; do \
+		ln -sfn "$$f" $(HOME)/.claude/$$(basename "$$f"); \
 		ln -sfn "$$f" $(HOME)/.claude-p/$$(basename "$$f"); \
 	done
 	$(call log,$(CLAUDE_DIR))
