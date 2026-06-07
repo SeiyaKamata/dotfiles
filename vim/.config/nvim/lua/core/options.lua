@@ -42,6 +42,13 @@ opt.pumheight = 10
 -- clipboard
 opt.clipboard = "unnamedplus"
 
+-- tmux の conf ファイルを tmux filetype として認識
+vim.filetype.add({
+	pattern = {
+		[".*/tmux/.*%.conf"] = "tmux",
+	},
+})
+
 -- 大きいファイル（1MB以上）はundo無効化
 vim.api.nvim_create_autocmd("BufReadPre", {
 	callback = function()
