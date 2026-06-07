@@ -67,5 +67,6 @@
   "preferredNotifChannel": "terminal_bell",
   "autoCompactEnabled": false,
   "skipAutoPermissionPrompt": true,
-  "startupTipsEnabled": false
+  "startupTipsEnabled": false,
+  "tui": "fullscreen"
 }
