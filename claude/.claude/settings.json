@@ -1,15 +1,59 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git status *)",
+      "Bash(git fetch *)",
+      "Bash(git pull *)",
+      "Bash(git push)",
+      "Bash(git push origin *)",
+      "Bash(git checkout *)",
+      "Bash(git switch *)",
+      "Bash(git branch *)",
+      "Bash(git stash *)",
+      "Bash(git show *)",
+      "Bash(git tag *)",
+      "Bash(git merge *)",
+      "Bash(git rebase *)",
+      "Bash(git worktree *)",
       "Bash(gh *)",
       "Bash(cat *)",
+      "Bash(ls *)",
+      "Bash(ls)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
       "Bash(npm *)",
       "Bash(npx *)",
       "Bash(make *)",
-      "Bash(go *)",
-      "Bash(docker *)",
-      "Bash(docker compose *)",
+      "Bash(go build *)",
+      "Bash(go test *)",
+      "Bash(go run *)",
+      "Bash(go generate *)",
+      "Bash(go mod *)",
+      "Bash(go vet *)",
+      "Bash(go fmt *)",
+      "Bash(go tool *)",
+      "Bash(docker build *)",
+      "Bash(docker run *)",
+      "Bash(docker ps *)",
+      "Bash(docker images *)",
+      "Bash(docker logs *)",
+      "Bash(docker exec *)",
+      "Bash(docker stop *)",
+      "Bash(docker rm *)",
+      "Bash(docker rmi *)",
+      "Bash(docker pull *)",
+      "Bash(docker push *)",
+      "Bash(docker compose up *)",
+      "Bash(docker compose down *)",
+      "Bash(docker compose build *)",
+      "Bash(docker compose logs *)",
+      "Bash(docker compose ps *)",
+      "Bash(docker compose exec *)",
       "Bash(~/.claude-p/skills/send-message/scripts/send.sh *)",
       "Bash(~/.claude/skills/send-message/scripts/send.sh *)",
       "Bash(*/send-message/scripts/send.sh *)",
@@ -39,6 +83,17 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/guard.sh"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -62,7 +117,7 @@
   },
   "language": "Japanese",
   "spinnerTipsEnabled": false,
-  "effortLevel": "low",
+  "effortLevel": "medium",
   "theme": "dark-daltonized",
   "preferredNotifChannel": "terminal_bell",
   "autoCompactEnabled": false,
