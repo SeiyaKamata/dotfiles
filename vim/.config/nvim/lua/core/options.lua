@@ -7,7 +7,7 @@ opt.cursorline = true
 opt.termguicolors = true
 opt.signcolumn = "yes"
 opt.wrap = false
-opt.winbar = "%=%f"
+-- opt.winbar = "%=%f"
 opt.title = true
 opt.synmaxcol = 320 -- 長行のシンタックスハイライトを打ち切りパフォーマンス改善
 opt.showmode = false
@@ -31,7 +31,7 @@ opt.splitbelow = true
 opt.splitright = true
 opt.undofile = true
 opt.updatetime = 250
-opt.timeoutlen = 300
+opt.timeoutlen = 500
 opt.jumpoptions = "view"
 opt.swapfile = false
 
