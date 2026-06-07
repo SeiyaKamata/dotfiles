@@ -1,8 +1,15 @@
 -- nvim-treesitter main ブランチ（Neovim 0.12+ 必須）
 local parsers = {
-	"lua", "python",
+	"lua", "python", "nix",
 	"javascript", "jsx", "typescript", "tsx",
 	"ruby", "go",
+	"json", "yaml", "toml", "sql",
+	"bash",
+	"terraform", "hcl",
+	"dockerfile",
+	"git_config", "gitignore", "gitcommit", "git_rebase", "gitattributes",
+	"tmux",
+	-- "make",  -- tree-sitter-grammars/tree-sitter-make のアーカイブが現在504のため保留
 	"markdown", "markdown_inline",
 }
 
@@ -16,6 +23,9 @@ return {
 		require("nvim-treesitter").install(parsers)
 
 		local function try_start(buf)
+			local lang = vim.treesitter.language.get_lang(vim.bo[buf].filetype)
+			if not lang then return end
+			if not pcall(vim.treesitter.language.add, lang) then return end
 			pcall(vim.treesitter.start, buf)
 			vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
 		end
