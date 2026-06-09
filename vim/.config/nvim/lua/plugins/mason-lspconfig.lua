@@ -11,7 +11,7 @@ return {
 			map("n", "<leader>rn", vim.lsp.buf.rename,                               { desc = "Rename" })
 			map("n", "<leader>gd", vim.lsp.buf.definition,                           { desc = "Go to definition" })
 			map("n", "<leader>gr", vim.lsp.buf.references,                           { desc = "References" })
-			map("n", "<leader>gk", vim.lsp.buf.hover,                                { desc = "Hover" })
+			map("n", "<leader>gk", function() vim.lsp.buf.hover({ border = "rounded" }) end, { desc = "Hover" })
 		end
 
 		require("mason-lspconfig").setup({
