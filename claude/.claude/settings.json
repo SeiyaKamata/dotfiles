@@ -96,6 +96,7 @@
       }
     ]
   },
+  "enableWorkflows": true,
   "statusLine": {
     "type": "command",
     "command": "~/.claude-p/statusline.sh"
@@ -117,11 +118,18 @@
   },
   "language": "Japanese",
   "spinnerTipsEnabled": false,
-  "effortLevel": "medium",
-  "theme": "dark-daltonized",
+  "effortLevel": "high",
+  "tui": "fullscreen",
+  "theme": "dark",
+  "editorMode": "normal",
   "preferredNotifChannel": "terminal_bell",
   "autoCompactEnabled": false,
+  "showTurnDuration": false,
   "skipAutoPermissionPrompt": true,
-  "startupTipsEnabled": false,
-  "tui": "fullscreen"
+  "mcpServers": {
+    "shogun": {
+      "disabled": true
+    }
+  },
+  "startupTipsEnabled": false
 }
