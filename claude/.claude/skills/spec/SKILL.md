@@ -11,7 +11,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion
 「何を作るか（WHAT）」を明確にする。「どう作るか（HOW）」は設計フェーズに委ねる。
 
 ## 出力先
-`specs/<feature>/requirements.md`（プロジェクトルートの`specs/`ディレクトリ）
+`.specs/<feature>/requirements.md`（プロジェクトルートの`.specs/`ディレクトリ）
 
 ## EARS形式
 受け入れ条件はEARS形式で記述する：
@@ -25,7 +25,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion
 ## 進め方
 
 ### Step 1: コンテキスト収集
-- 既存の `specs/<feature>/requirements.md` があれば読み込む
+- 既存の `.specs/<feature>/requirements.md` があれば読み込む
 - `.kiro/steering/` があればプロジェクト背景として参照する
 
 ### Step 2: 要件の詳細化
@@ -41,7 +41,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion
 十分な情報が集まったら要件ドキュメントのドラフトを作成し、ユーザーに確認を取る。
 
 ### Step 4: レビューゲート（書き込み前に実施）
-以下を自己チェックしてから `specs/<feature>/requirements.md` に書き込む：
+以下を自己チェックしてから `.specs/<feature>/requirements.md` に書き込む：
 - [ ] 全要件がEARS形式で記述されているか
 - [ ] テスト可能・検証可能か（曖昧な表現がないか）
 - [ ] スコープの境界が明示されているか
@@ -49,8 +49,8 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion
 - [ ] 要件番号が連番になっているか（Requirement 1, 2, 3...）
 
 ### Step 5: 保存
-ユーザーが承認したら `specs/<feature>/requirements.md` に保存する。
-`specs/<feature>/` ディレクトリがなければ作成する。
+ユーザーが承認したら `.specs/<feature>/requirements.md` に保存する。
+`.specs/<feature>/` ディレクトリがなければ作成する。
 
 ## 出力フォーマット
 
@@ -82,5 +82,5 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion
 ```
 
 ## 完了条件
-ユーザーが承認し、`specs/<feature>/requirements.md` に保存できたら完了。
+ユーザーが承認し、`.specs/<feature>/requirements.md` に保存できたら完了。
 次は `/design` を起動する。

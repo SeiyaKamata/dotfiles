@@ -18,7 +18,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 - スコープの追加・削除がある
 - 「何を作るか」が変わる
 
-→ `specs/<feature>/requirements.md` を更新 → `/design` からやり直し
+→ `.specs/<feature>/requirements.md` を更新 → `/design` からやり直し
 
 ### 設計レベル
 以下に当てはまる場合：
@@ -26,7 +26,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 - コンポーネント構成・データ構造・APIが変わる
 - 「どう作るか」が変わる
 
-→ `specs/<feature>/design.md` を更新 → `/tasks` からやり直し
+→ `.specs/<feature>/design.md` を更新 → `/tasks` からやり直し
 
 ### タスクレベル（最下流）
 以下に当てはまる場合：
@@ -34,7 +34,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 - タスクの追加・削除・統合が必要
 - 「何から作るか」が変わる
 
-→ `specs/<feature>/tasks.md` を更新 → `/impl` に戻る
+→ `.specs/<feature>/tasks.md` を更新 → `/impl` に戻る
 
 ## 進め方
 
@@ -43,7 +43,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 不明な点があれば質問して変更レベルを確定させる。
 
 ### Step 2: 影響範囲の確認
-現在の `specs/<feature>/requirements.md`, `specs/<feature>/design.md`, `specs/<feature>/tasks.md` を読み込み、
+現在の `.specs/<feature>/requirements.md`, `.specs/<feature>/design.md`, `.specs/<feature>/tasks.md` を読み込み、
 変更がどのドキュメントに影響するかを確認する。
 
 ### Step 3: 変更レベルを提示して確認
@@ -52,7 +52,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 例：
 > この変更は**設計レベル**です。
 > 理由：要件（何を作るか）は変わらず、データ構造の変更のみのため。
-> `specs/<feature>/design.md` を更新して `/tasks` からやり直します。よろしいですか？
+> `.specs/<feature>/design.md` を更新して `/tasks` からやり直します。よろしいですか？
 
 ### Step 4: ドキュメントを更新
 承認後、該当レベルのドキュメントを更新する。

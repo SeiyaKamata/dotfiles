@@ -11,13 +11,13 @@ allowed-tools: Read, Write, Bash, AskUserQuestion
 技術的な詳細は書かず、**ビジネス価値とユーザー体験**に焦点を当てる。
 
 ## 出力先
-`specs/<feature>/stories.md`
+`.specs/<feature>/stories.md`
 
 ## 進め方
 
 ### Step 1: コンテキスト収集
-- 既存の `specs/<feature>/stories.md` があれば読み込む
-- `specs/<feature>/requirements.md` があれば参照する
+- 既存の `.specs/<feature>/stories.md` があれば読み込む
+- `.specs/<feature>/requirements.md` があれば参照する
 
 ### Step 2: ヒアリング
 ユーザーの要望を受け取り、以下を質問して詰める：
@@ -32,8 +32,8 @@ allowed-tools: Read, Write, Bash, AskUserQuestion
 ドラフトを作成してユーザーに確認を取る。
 
 ### Step 4: 保存
-承認されたら `specs/<feature>/stories.md` に保存する。
-`specs/<feature>/` ディレクトリがなければ作成する。
+承認されたら `.specs/<feature>/stories.md` に保存する。
+`.specs/<feature>/` ディレクトリがなければ作成する。
 
 ## 出力フォーマット
 
@@ -62,5 +62,5 @@ allowed-tools: Read, Write, Bash, AskUserQuestion
 ```
 
 ## 完了条件
-承認され `specs/<feature>/stories.md` に保存できたら完了。
+承認され `.specs/<feature>/stories.md` に保存できたら完了。
 次に `/spec` を使うと、このストーリーを元に要件を詳細化できる。

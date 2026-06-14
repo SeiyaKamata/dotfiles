@@ -1,6 +1,6 @@
 ---
 name: impl
-description: タスクリストを受け取り実装を行う。specs/<feature>/tasks.mdが出来上がったら使う。
+description: タスクリストを受け取り実装を行う。.specs/<feature>/tasks.mdが出来上がったら使う。
 allowed-tools: Read, Write, Edit, MultiEdit, Bash, Glob, Grep, Agent, WebSearch, WebFetch
 argument-hint: "[task-numbers]"
 ---
@@ -8,12 +8,12 @@ argument-hint: "[task-numbers]"
 # 実装スキル
 
 ## 役割
-`specs/<feature>/tasks.md` のタスクを実行し、コードを実装する。
+`.specs/<feature>/tasks.md` のタスクを実行し、コードを実装する。
 
 ## 入力
-- `specs/<feature>/requirements.md`
-- `specs/<feature>/design.md`
-- `specs/<feature>/tasks.md`
+- `.specs/<feature>/requirements.md`
+- `.specs/<feature>/design.md`
+- `.specs/<feature>/tasks.md`
 
 ## 実行モード
 - **自律モード**（タスク番号なし）: 全ての未完了タスクをサブエージェントで並列実行
@@ -23,7 +23,7 @@ argument-hint: "[task-numbers]"
 
 ### Step 1: コンテキスト収集
 以下を並行して読み込む：
-- `specs/<feature>/requirements.md`, `specs/<feature>/design.md`, `specs/<feature>/tasks.md`
+- `.specs/<feature>/requirements.md`, `.specs/<feature>/design.md`, `.specs/<feature>/tasks.md`
 - ステアリング文書（あれば）
 - 既存コードの関連パターン（Grep/Glob）
 
@@ -35,10 +35,10 @@ argument-hint: "[task-numbers]"
 ### Step 3: タスク実行
 
 #### 自律モード
-1. `specs/<feature>/tasks.md` から未完了タスク（サブタスク X.Y）を読み込む
+1. `.specs/<feature>/tasks.md` から未完了タスク（サブタスク X.Y）を読み込む
 2. `(P)` マーカーのあるタスクは並列サブエージェントで実行
 3. 依存関係（`_Depends:_`）を確認し、前提タスクが完了していることを確認
-4. 1タスク完了ごとに `specs/<feature>/tasks.md` の `[ ]` を `[x]` に更新
+4. 1タスク完了ごとに `.specs/<feature>/tasks.md` の `[ ]` を `[x]` に更新
 5. 実装後にテスト・ビルドを実行して確認
 
 #### 手動モード

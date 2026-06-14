@@ -1,6 +1,6 @@
 ---
 name: design
-description: 要件を受け取りアーキテクチャ設計を行う。specs/<feature>/requirements.mdが出来上がったら使う。
+description: 要件を受け取りアーキテクチャ設計を行う。.specs/<feature>/requirements.mdが出来上がったら使う。
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, WebSearch, WebFetch
 ---
 
@@ -10,16 +10,16 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, WebSearch, WebFetch
 要件（WHAT）を受け取り、実装者が迷わずコードを書けるレベルの技術設計（HOW）を作成する。
 
 ## 入力
-`specs/<feature>/requirements.md`
+`.specs/<feature>/requirements.md`
 
 ## 出力先
-`specs/<feature>/design.md`
+`.specs/<feature>/design.md`
 
 ## 進め方
 
 ### Step 1: コンテキスト収集
 以下を並行して読み込む：
-- `specs/<feature>/requirements.md`（必須）
+- `.specs/<feature>/requirements.md`（必須）
 - 既存コードベースの関連ファイル（Grep/Globで探索）
 - `.kiro/steering/tech.md`, `structure.md`（あれば）
 
@@ -41,7 +41,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, WebSearch, WebFetch
 - [ ] 既存コードとの整合性が取れているか
 
 ### Step 5: 保存
-ユーザーが承認したら `specs/<feature>/design.md` に保存する。
+ユーザーが承認したら `.specs/<feature>/design.md` に保存する。
 
 ## 出力フォーマット
 
@@ -79,5 +79,5 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, WebSearch, WebFetch
 ```
 
 ## 完了条件
-ユーザーが承認し、`specs/<feature>/design.md` に保存できたら完了。
+ユーザーが承認し、`.specs/<feature>/design.md` に保存できたら完了。
 次は `/tasks` を起動する。

@@ -1,6 +1,6 @@
 ---
 name: tasks
-description: 設計を受け取り実装タスクを生成する。specs/<feature>/design.mdが出来上がったら使う。
+description: 設計を受け取り実装タスクを生成する。.specs/<feature>/design.mdが出来上がったら使う。
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
@@ -10,11 +10,11 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 設計ドキュメントから、実装者が1〜3時間で完了できる粒度のタスクリストを生成する。
 
 ## 入力
-- `specs/<feature>/requirements.md`
-- `specs/<feature>/design.md`
+- `.specs/<feature>/requirements.md`
+- `.specs/<feature>/design.md`
 
 ## 出力先
-`specs/<feature>/tasks.md`
+`.specs/<feature>/tasks.md`
 
 ## タスク設計の原則
 - **粒度**: 1タスク = 1〜3時間で完了できる単一責任の作業
@@ -26,8 +26,8 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ## 進め方
 
 ### Step 1: コンテキスト収集
-- `specs/<feature>/requirements.md` と `specs/<feature>/design.md` を読み込む
-- 既存の `specs/<feature>/tasks.md` があればマージ対象として読み込む
+- `.specs/<feature>/requirements.md` と `.specs/<feature>/design.md` を読み込む
+- 既存の `.specs/<feature>/tasks.md` があればマージ対象として読み込む
 
 ### Step 2: タスク生成
 設計の各コンポーネントを実装タスクにマッピングする：
@@ -45,7 +45,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 - [ ] サブタスクが適切な粒度か（大きすぎ・小さすぎではないか）
 
 ### Step 4: 保存
-ユーザーに確認を取り、承認されたら `specs/<feature>/tasks.md` に保存する。
+ユーザーに確認を取り、承認されたら `.specs/<feature>/tasks.md` に保存する。
 
 ## 出力フォーマット
 
@@ -73,5 +73,5 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ```
 
 ## 完了条件
-ユーザーが承認し、`specs/<feature>/tasks.md` に保存できたら完了。
+ユーザーが承認し、`.specs/<feature>/tasks.md` に保存できたら完了。
 次は `/impl` を起動する。
