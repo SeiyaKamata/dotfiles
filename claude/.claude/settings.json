@@ -62,28 +62,6 @@
     "defaultMode": "auto"
   },
   "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/skills/agent-protocol/scripts/register.sh"
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/skills/agent-protocol/scripts/unregister.sh"
-          }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
@@ -96,7 +74,7 @@
       }
     ]
   },
-  "enableWorkflows": true,
+  "enableWorkflows": false,
   "statusLine": {
     "type": "command",
     "command": "~/.claude-p/statusline.sh"
@@ -123,7 +101,7 @@
   "theme": "dark",
   "editorMode": "normal",
   "preferredNotifChannel": "terminal_bell",
-  "autoCompactEnabled": false,
+  "autoCompactEnabled": true,
   "showTurnDuration": false,
   "skipAutoPermissionPrompt": true,
   "mcpServers": {
