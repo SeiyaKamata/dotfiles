@@ -31,16 +31,20 @@ response を待ち、結果を判定する：
 - `"status": "busy"` → ユーザーに報告して待機するか確認する
 
 ### Step 2: テストコマンド検出
-以下の優先順位でテストコマンドを探す：
+PJ ごとにテスト体系も実行方法も異なる（RSpec / go test / vitest / docker 経由など）ため、**プロジェクト CLAUDE.md の指定を最優先**で使う。
 
-1. `Makefile` に `test` ターゲットがあれば `make test`
-2. `package.json` に `test` スクリプトがあれば `npm test`
-3. `go.mod` があれば `go test ./...`
-4. `pyproject.toml` / `pytest.ini` があれば `pytest`
-5. `Cargo.toml` があれば `cargo test`
-6. `mix.exs` があれば `mix test`
-
-見つからない場合はユーザーに確認する。
+1. **プロジェクト CLAUDE.md のテスト節を読む**（`## テスト` / `### Testing` などの見出し）。テストコマンドが書かれていれば **そのまま採用する**。`docker compose exec web bundle exec rspec ...` のような実行ラッパや、複数コマンドの指定もそのまま従う（CLAUDE.md が PJ 固有のビルド手順の正）
+2. CLAUDE.md に記載が無ければ、リポジトリ構成からフォールバック検出する：
+   - `Gemfile` + `spec/`（または `.rspec`）→ `bundle exec rspec`
+   - `Makefile` に `test` ターゲット → `make test`
+   - `package.json` に `test` スクリプト → そのリポジトリのパッケージマネージャの test（`npm test` 等）
+   - `go.mod` → `go test ./...`
+   - `pyproject.toml` / `pytest.ini` → `pytest`
+   - `Cargo.toml` → `cargo test`
+   - `mix.exs` → `mix test`
+   - モノレポ・多言語で複数該当する場合は、変更されたファイルに対応するものを選ぶ
+   - 注: docker 等のラッパが要る PJ はフォールバックでは導けない。その場合は CLAUDE.md への記載が前提
+3. それでも確定できない場合は **推測でテストを実行しない**。確認を求める（単体起動ではユーザーに質問、orchestrator 自走時は「判断できない」として報告・停止する）
 
 ### Step 3: テスト実行
 検出したコマンドを実行する。
