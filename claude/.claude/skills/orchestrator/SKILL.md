@@ -25,11 +25,11 @@ argument-hint: "<feature>"
 ## 自走モードの起動（重要）
 人間承認を待つステップを持つスキルは **`auto` 引数**で起動して承認をスキップする。各スキルの `auto` 時の挙動は、それぞれの SKILL.md の「自走モード（`auto` 引数）」節に定義されている：
 
-- **`auto` つきで起動するスキル**: `/design auto` / `/tasks auto` / `/commit auto` / `/respond-pr-comments auto`。人間承認を待たず自己レビューゲートで進む
+- **`auto` つきで起動するスキル**: `/design auto` / `/tasks auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/respond-pr-comments auto`。人間承認を待たず自己レビューゲートで進む
 - **spec だけは `auto` を渡さない**: requirements は唯一の人間承認ゲート（下記 Step 3）。spec 通常挙動（ドラフト → 承認 → 保存）で人間の承認を取る
 - **prototype**: 目視承認の代わりに Playwright での操作確認＋スクショ取得。design.md へ書き戻したら次へ
-- **create-pr**: ベースブランチはリポジトリのデフォルトブランチを自動採用する。未コミット確認は通過扱い。Notion URL が最初の指示にあれば引数で渡す
-- **watch-ci**: CI green でも **Ready for review に自動で切り替えない**。draft のまま次へ
+- **create-pr**: `auto` 引数で起動する。ベースブランチはデフォルトを自動採用。未コミットがあれば `/commit auto` を自動で呼ぶ。Notion URL が最初の指示にあれば引数で渡す
+- **watch-ci**: `auto` 引数で起動する。CI green でも **Ready for review に自動で切り替えない**。draft のまま次へ
 
 ## 進め方
 1. `$ARGUMENTS[0]` を feature 名として使う。未指定なら「使い方: /orchestrator <feature>」を表示して終了
@@ -48,8 +48,8 @@ argument-hint: "<feature>"
 10. PASS → `/review <feature>` を起動する
 11. レビュー結果を判定する（NG なら下記「例外処理」のループへ。OK なら次へ）
 12. `/commit auto` を起動する（コミットプランを自動承認して実行）
-13. `/create-pr` を起動する（デフォルトブランチをベースに draft PR を作成）。draft でも CodeRabbit が自動でレビューを開始する
-14. `/watch-ci` を起動する（CI green まで監視。赤なら下記ループ）
+13. `/create-pr auto` を起動する（デフォルトブランチをベースに draft PR を作成）。draft でも CodeRabbit が自動でレビューを開始する
+14. `/watch-ci auto` を起動する（CI green まで監視。赤なら下記ループ）
 15. **最新コミットへの CodeRabbit レビューを待つ**: `/respond-pr-comments` の Step 2 のコマンドで PR のレビュー／コメントを取得し、**現在の HEAD コミットより後**の `coderabbitai[bot]` のレビューが届くまでポーリングする（1巡目は最初のレビュー、2巡目以降は push 後の再レビューを待つ。一定時間来なければ報告して停止）
 16. **CodeRabbit コメント対応ループ（最大2巡）**:
     - CodeRabbit は対応済みと判断したスレッドを**自分で resolve する**ため、`isResolved == false` の有無が終了シグナルになる

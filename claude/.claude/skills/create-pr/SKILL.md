@@ -1,7 +1,7 @@
 ---
 name: create-pr
 description: 変更内容をもとにdraftでPRを作成する。commit完了後に使う。
-argument-hint: "[notion-page-url]"
+argument-hint: "[notion-page-url] [auto]"
 allowed-tools: Bash(git *), Bash(gh *)
 ---
 
@@ -10,8 +10,16 @@ allowed-tools: Bash(git *), Bash(gh *)
 ## 役割
 コミット後にdraftのPRを作成する。
 
+## 自走モード（`auto` 引数）
+`$ARGUMENTS` に `auto` が含まれる場合：
+- Step 0: 未コミットの変更があれば `/commit auto` を呼んで完了後に続行する
+- Step 1: ベースブランチはデフォルトブランチを自動採用する（聞かない）
+
+引数なしの単体起動では Step 0 で `/commit` を呼び、Step 1 でユーザーに確認する。
+
 ## 引数
-- `$ARGUMENTS`: NotionページのURL（省略可）
+- `$ARGUMENTS` のうち URL 部分: NotionページのURL（省略可）
+- `auto`: 自走モードフラグ（省略可）
 
 ## 進め方
 
@@ -19,12 +27,11 @@ allowed-tools: Bash(git *), Bash(gh *)
 
 `git status` で未コミットの変更があるか確認する。
 
-未コミットの変更がある場合、ユーザーに以下を伝えて確認する：
+未コミットの変更がある場合：
+- **`auto` モード** → `/commit auto` を起動し、完了後に Step 1 へ進む
+- **単体起動** → `/commit` を起動し、完了後に Step 1 へ進む
 
-> 未コミットの変更があります。先に /commit を使ってコミットしますか？
-
-- 「はい」または「コミットする」→ 中断してユーザーに /commit を促す
-- 「このまま進める」→ Step 1 に進む
+変更がない場合はそのまま Step 1 へ進む。
 
 ### Step 1: ベースブランチを確認する
 
@@ -33,7 +40,9 @@ allowed-tools: Bash(git *), Bash(gh *)
 git remote show origin | grep 'HEAD branch' | awk '{print $NF}'
 ```
 
-ユーザーに以下を聞く：
+**`auto` モード**の場合は上記で取得したブランチをそのまま使用する。
+
+**単体起動**の場合はユーザーに確認する：
 
 > マージ先のブランチはどこにしますか？（デフォルト: 上記で取得したブランチ）
 
