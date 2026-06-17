@@ -11,7 +11,7 @@ allowed-tools: Bash(gh *), Bash(git *)
 PRのCIが完了するまで監視し、結果に応じて次のアクションへ分岐させる。
 
 - CI成功 + 未対応コメントなし → draftならReady for reviewに切り替える
-- CI成功 + 未対応コメントあり → `/resolve-pr-comments` を提案する
+- CI成功 + 未対応コメントあり → `/respond-pr-comments` を提案する
 - CI失敗 → 失敗ジョブのログを取得し、対応方針を人間と相談する
 
 ## 引数
@@ -59,7 +59,7 @@ gh pr checks <PR番号> --json name,state,conclusion,link
 gh pr view <PR番号> --json reviewThreads --jq '.reviewThreads[] | select(.isResolved == false)'
 ```
 
-- 未対応コメントが**あり** → 件数と概要を人間に提示し、`/resolve-pr-comments` の起動を提案する
+- 未対応コメントが**あり** → 件数と概要を人間に提示し、`/respond-pr-comments` の起動を提案する
 - 未対応コメントが**なし** → 4-2 へ
 
 #### 4-2: draftならReady for reviewに切り替える
@@ -105,7 +105,7 @@ gh run view <run-id> --log-failed
 
 ## 完了条件
 - CI成功 + 未対応コメントなし + Ready for reviewに切り替え完了 → 完了
-- CI成功 + 未対応コメントあり → `/resolve-pr-comments` への引き継ぎを提案したら完了
+- CI成功 + 未対応コメントあり → `/respond-pr-comments` への引き継ぎを提案したら完了
 - CI失敗 → 失敗内容を報告し、修正方針について人間に確認したら完了
 
 ## エラー処理
