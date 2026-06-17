@@ -2,12 +2,20 @@
 name: design
 description: 要件を受け取りアーキテクチャ設計を行う。.specs/<feature>/requirements.mdが出来上がったら使う。
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, WebSearch, WebFetch
+argument-hint: "<feature> [auto]"
 ---
 
 # 技術設計スキル
 
 ## 役割
 要件（WHAT）を受け取り、実装者が迷わずコードを書けるレベルの技術設計（HOW）を作成する。
+
+## 自走モード（`auto` 引数）
+`$ARGUMENTS[1]` が `auto` の場合、人間の承認を待たずに進める：
+- Step 4 の「ユーザーに確認を取る」をスキップする
+- Step 5 のレビューゲート（書き込み前チェックリスト）を通過したら保存し、制御を呼び出し元に返す
+
+引数なしの単体起動では従来どおり承認を待つ。
 
 ## 入力
 `.specs/<feature>/requirements.md`
@@ -17,13 +25,18 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, WebSearch, WebFetch
 
 ## 進め方
 
-### Step 1: コンテキスト収集
+### Step 1: 引数チェック
+- `$ARGUMENTS[0]` が未指定なら「使い方: /design <feature> [auto]」を表示して終了
+- feature 名と auto フラグを確定する（`auto` であれば Step 4 のユーザー確認をスキップ）
+- それ以外の値は無視する
+
+### Step 2: コンテキスト収集
 以下を並行して読み込む：
 - `.specs/<feature>/requirements.md`（必須）
 - 既存コードベースの関連ファイル（Grep/Globで探索）
 - `.kiro/steering/tech.md`, `structure.md`（あれば）
 
-### Step 2: 調査・分析
+### Step 3: 調査・分析
 機能の種別に応じて調査の深さを変える：
 - **新規機能**: アーキテクチャパターン・依存ライブラリを調査（必要ならWebSearch）
 - **既存機能の拡張**: 既存コードの統合ポイントをGrepで分析
@@ -31,17 +44,18 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, WebSearch, WebFetch
 
 不明点があればユーザーに質問する。
 
-### Step 3: 設計ドキュメント作成
+### Step 4: 設計ドキュメント作成
 要件を全てカバーする設計ドラフトを作成し、ユーザーに確認を取る。
 
-### Step 4: レビューゲート（書き込み前に実施）
+### Step 5: レビューゲート（書き込み前に実施）
 - [ ] 全要件（Requirement 1, 2, ...）が設計に対応しているか
 - [ ] コンポーネント間の責任境界が明確か
 - [ ] インターフェース・データフローが具体的に記述されているか
 - [ ] 既存コードとの整合性が取れているか
 
-### Step 5: 保存
+### Step 6: 保存・次ステップ提案
 ユーザーが承認したら `.specs/<feature>/design.md` に保存する。
+保存後、`/tasks <feature>` を起動するよう提案する。
 
 ## 出力フォーマット
 
@@ -80,4 +94,4 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, WebSearch, WebFetch
 
 ## 完了条件
 ユーザーが承認し、`.specs/<feature>/design.md` に保存できたら完了。
-次は `/tasks` を起動する。
+次は `/tasks <feature>` を起動する。

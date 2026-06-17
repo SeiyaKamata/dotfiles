@@ -2,6 +2,7 @@
 name: spec
 description: ユーザーから機能要望を受け取り、質問しながら要件を詳細化してEARS形式で出力する。新機能追加や新規開発の話が出たら使う。
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion
+argument-hint: "<feature> [auto]"
 ---
 
 # 要件策定スキル
@@ -24,11 +25,19 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion
 
 ## 進め方
 
-### Step 1: コンテキスト収集
+### Step 1: 引数チェック
+
+- `$ARGUMENTS[0]`: <feature>
+  - 未指定なら「使い方: /spec <feature> [auto]」を表示して終了
+- `$ARGUMENTS[1]`: autoフラグ
+  - `auto` であれば Step 5 のユーザー承認をスキップ（質問フェーズは実施する）
+  - それ以外の値は無視する
+
+### Step 2: コンテキスト収集
 - 既存の `.specs/<feature>/requirements.md` があれば読み込む
 - `.kiro/steering/` があればプロジェクト背景として参照する
 
-### Step 2: 要件の詳細化
+### Step 3: 要件の詳細化
 ユーザーの要望を受け取ったら、以下の観点で不明点を質問する：
 - **スコープ**: 何が含まれ、何が含まれないか
 - **ユーザー行動**: ユーザーがXをしたとき、何が起きるべきか
@@ -37,20 +46,22 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion
 
 技術的な実装方法（どのDB、どのフレームワーク）は聞かない。
 
-### Step 3: 要件ドキュメント作成
-十分な情報が集まったら要件ドキュメントのドラフトを作成し、ユーザーに確認を取る。
-
 ### Step 4: レビューゲート（書き込み前に実施）
-以下を自己チェックしてから `.specs/<feature>/requirements.md` に書き込む：
+以下を自己チェックし、**全項目が通ったら** `.specs/<feature>/requirements.md` に書き込む：
 - [ ] 全要件がEARS形式で記述されているか
 - [ ] テスト可能・検証可能か（曖昧な表現がないか）
 - [ ] スコープの境界が明示されているか
 - [ ] 実装の詳細（HOW）が混入していないか
 - [ ] 要件番号が連番になっているか（Requirement 1, 2, 3...）
 
-### Step 5: 保存
-ユーザーが承認したら `.specs/<feature>/requirements.md` に保存する。
-`.specs/<feature>/` ディレクトリがなければ作成する。
+チェックが通らない項目があれば Step 3 に戻って要件を修正する。
+
+### Step 5: ユーザーレビュー
+保存済みの `.specs/<feature>/requirements.md` をユーザーに確認してもらう。
+修正が入った場合は Step 3 に戻って要件を更新し、Step 4 を再実行する。
+
+### Step 6: 次ステップ提案
+承認されたら `/design <feature>` を起動するよう提案する。
 
 ## 出力フォーマット
 
@@ -82,5 +93,4 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion
 ```
 
 ## 完了条件
-ユーザーが承認し、`.specs/<feature>/requirements.md` に保存できたら完了。
-次は `/design` を起動する。
+`.specs/<feature>/requirements.md` に保存し、`/design <feature>` を提案できたら完了。
