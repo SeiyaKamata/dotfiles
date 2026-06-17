@@ -6,11 +6,10 @@ alias ga="git add"
 alias gaa="git add ."
 
 # Status alias (gb)
-alias gb="git-branch-name-show-and-copy"
+alias gb="git branch"
 
 # Commit aliases (gc)
 alias gc="git commit"
-alias gcm="git-commit-with-message"
 alias gca="git commit --amend --noedit"
 
 # Checkout aliases (gco)

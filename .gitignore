@@ -6,11 +6,5 @@ result-*
 .DS_Store
 **/.DS_Store
 
-# lazygit
-lazygit/.config/lazygit/state.yml
-
-# lazysql
-lazysql/.config/lazysql/history/
-
 # secret
 zsh/.zshenv.local
