@@ -40,7 +40,9 @@ argument-hint: "<feature>"
    - 必要 → `/prototype <feature>` を起動 → design.md 更新後に次へ
    - 不要 → そのまま次へ
 6. `/tasks <feature> auto` を起動し、`.specs/<feature>/tasks.md` を生成 → 承認を待たず次へ
-7. `/impl <feature>` を起動する
+7. tasks.md を読んでフェーズ構成を確認する
+   - シングルフェーズ → `/impl <feature>` を起動する
+   - マルチフェーズ → `/impl <feature> p1`, `/impl <feature> p2`, ... を順番に起動する（各フェーズ完了後に次フェーズへ）
 8. `/test` を起動し、判定（PASS / FAIL）を確認する
 9. FAIL → `/fix` を起動し、完了後に `/test` を再実行する
 10. PASS → `/review <feature>` を起動する
