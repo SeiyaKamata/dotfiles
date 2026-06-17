@@ -15,11 +15,11 @@ argument-hint: [YYYY-MM-DD]
 
 引数があればその日付、なければ今日を対象にする。
 
-Bashツールで以下を実行する（`CLAUDE_SKILL_DIR` と `ARGUMENTS` は実際の値に置き換える）：
+このSKILL.mdが置かれているディレクトリを `SKILL_DIR` として使う。Claude はこのファイルを読み込んだパスからディレクトリを導出すること（例: SKILL.md のパスが `/foo/skills/retro/SKILL.md` なら `SKILL_DIR=/foo/skills/retro`）。
 
 ```
-chmod +x "<CLAUDE_SKILL_DIR>/scripts/collect_logs.sh"
-bash "<CLAUDE_SKILL_DIR>/scripts/collect_logs.sh" --skill-dir "<CLAUDE_SKILL_DIR>" <ARGUMENTS>
+chmod +x "$SKILL_DIR/scripts/collect_logs.sh"
+bash "$SKILL_DIR/scripts/collect_logs.sh" --skill-dir "$SKILL_DIR" <ARGUMENTS>
 ```
 
 出力が `NO_LOGS_FOUND` の場合は「本日のセッションが見つかりませんでした」と伝えて終了する。
