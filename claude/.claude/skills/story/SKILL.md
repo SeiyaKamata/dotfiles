@@ -2,6 +2,7 @@
 name: story
 description: 機能要望をPdM共有用のユーザーストーリーとしてまとめる。PdMへの提案・共有が必要なときに使う。
 allowed-tools: Read, Write, Bash, AskUserQuestion
+argument-hint: "<feature>"
 ---
 
 # ユーザーストーリースキル
@@ -15,11 +16,15 @@ allowed-tools: Read, Write, Bash, AskUserQuestion
 
 ## 進め方
 
-### Step 1: コンテキスト収集
+### Step 1: 引数チェック
+- `$ARGUMENTS[0]` が未指定なら「使い方: /story <feature>」を表示して終了
+- feature 名を確定する
+
+### Step 2: コンテキスト収集
 - 既存の `.specs/<feature>/stories.md` があれば読み込む
 - `.specs/<feature>/requirements.md` があれば参照する
 
-### Step 2: ヒアリング
+### Step 3: ヒアリング
 ユーザーの要望を受け取り、以下を質問して詰める：
 - **誰が使うか**: ユーザーの役割・属性
 - **何をしたいか**: 達成したいゴール
@@ -28,10 +33,10 @@ allowed-tools: Read, Write, Bash, AskUserQuestion
 
 技術的な実装方法は聞かない。
 
-### Step 3: ユーザーストーリー作成
+### Step 4: ユーザーストーリー作成
 ドラフトを作成してユーザーに確認を取る。
 
-### Step 4: 保存
+### Step 5: 保存
 承認されたら `.specs/<feature>/stories.md` に保存する。
 `.specs/<feature>/` ディレクトリがなければ作成する。
 
@@ -63,4 +68,4 @@ allowed-tools: Read, Write, Bash, AskUserQuestion
 
 ## 完了条件
 承認され `.specs/<feature>/stories.md` に保存できたら完了。
-次に `/spec` を使うと、このストーリーを元に要件を詳細化できる。
+次に `/spec <feature>` を使うと、このストーリーを元に要件を詳細化できる。

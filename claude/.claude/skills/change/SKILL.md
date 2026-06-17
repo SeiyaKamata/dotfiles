@@ -2,6 +2,7 @@
 name: change
 description: 実装中に追加・変更が必要になったとき、影響範囲を判断して適切なフェーズに戻す。
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
+argument-hint: "<feature>"
 ---
 
 # 変更管理スキル
@@ -38,15 +39,19 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 ## 進め方
 
-### Step 1: 変更内容をヒアリング
+### Step 1: 引数チェック
+- `$ARGUMENTS[0]` が未指定なら「使い方: /change <feature>」を表示して終了
+- feature 名を確定する
+
+### Step 2: 変更内容をヒアリング
 ユーザーから変更内容を受け取る。
 不明な点があれば質問して変更レベルを確定させる。
 
-### Step 2: 影響範囲の確認
+### Step 3: 影響範囲の確認
 現在の `.specs/<feature>/requirements.md`, `.specs/<feature>/design.md`, `.specs/<feature>/tasks.md` を読み込み、
 変更がどのドキュメントに影響するかを確認する。
 
-### Step 3: 変更レベルを提示して確認
+### Step 4: 変更レベルを提示して確認
 判断した変更レベルとその理由をユーザーに提示し、承認を得る。
 
 例：
@@ -54,7 +59,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 > 理由：要件（何を作るか）は変わらず、データ構造の変更のみのため。
 > `.specs/<feature>/design.md` を更新して `/tasks` からやり直します。よろしいですか？
 
-### Step 4: ドキュメントを更新
+### Step 5: ドキュメントを更新
 承認後、該当レベルのドキュメントを更新する。
 **下流のドキュメントも影響を受ける場合は合わせて更新する。**
 
@@ -64,12 +69,12 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 | 設計 | design.md → tasks.md |
 | タスク | tasks.md のみ |
 
-### Step 5: 適切なスキルへ誘導
+### Step 6: 適切なスキルへ誘導
 更新完了後、再開するスキルをユーザーに案内する。
 
-- 要件レベル → `/design` を起動
-- 設計レベル → `/tasks` を起動
-- タスクレベル → `/impl` を起動
+- 要件レベル → `/design <feature>` を起動
+- 設計レベル → `/tasks <feature>` を起動
+- タスクレベル → `/impl <feature>` を起動
 
 ## 完了条件
 ドキュメントの更新が完了し、次のスキルへ誘導できたら完了。
