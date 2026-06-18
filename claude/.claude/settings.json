@@ -84,6 +84,7 @@
     ]
   },
   "enableWorkflows": false,
+  "workflowKeywordTriggerEnabled": false,
   "statusLine": {
     "type": "command",
     "command": "~/.claude-p/statusline.sh"
