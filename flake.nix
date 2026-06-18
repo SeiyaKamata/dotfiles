@@ -3,9 +3,10 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    llm-agents.url = "github:numtide/llm-agents.nix";
   };
 
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, llm-agents }:
     let
       mkPkgs = system: import nixpkgs { inherit system; config.allowUnfree = true; };
 
@@ -75,6 +76,10 @@
       macPackages = pkgs: with pkgs; [
         alacritty
       ];
+
+      aiPackages = system: [
+        llm-agents.packages.${system}.coderabbit-cli
+      ];
     in
     {
       packages = {
@@ -82,13 +87,13 @@
           let pkgs = mkPkgs "aarch64-darwin";
           in pkgs.buildEnv {
             name = "kamata-env";
-            paths = commonPackages pkgs ++ macPackages pkgs;
+            paths = commonPackages pkgs ++ macPackages pkgs ++ aiPackages "aarch64-darwin";
           };
         "x86_64-linux".default =
           let pkgs = mkPkgs "x86_64-linux";
           in pkgs.buildEnv {
             name = "kamata-env";
-            paths = commonPackages pkgs;
+            paths = commonPackages pkgs ++ aiPackages "x86_64-linux";
           };
       };
     };
