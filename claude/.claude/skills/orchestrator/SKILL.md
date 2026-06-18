@@ -56,7 +56,7 @@ argument-hint: "<feature>"
     - 未解決の CodeRabbit コメントが**あり** → `/respond-pr-comments auto` を起動（CodeRabbit のみ対応）→ 対応を `/commit auto` → push → **14 に戻る**（push で CI も CodeRabbit 再レビューも自動で再実行される）
     - 未解決の CodeRabbit コメントが**なし**（CodeRabbit が全スレッドを resolve した）→ 停止点へ
     - 2巡しても未解決コメントが残る → 報告して停止
-17. **停止点**: draft PR + CI green + CodeRabbit コメント解決済みの状態で、PR の URL と結果を人に報告して止まる
+17. **停止点**: draft PR + CI green + CodeRabbit コメント解決済みの状態で、PR の URL と結果を人に報告して止まる。「マージ後は `/cleanup <feature>` で後片付けできます」と一言添える
 
 ## prototype 分岐
 `/design` 完了後、`design.md` の内容から以下を判定する：
