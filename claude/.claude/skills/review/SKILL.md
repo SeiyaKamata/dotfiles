@@ -20,16 +20,25 @@ argument-hint: "<feature>"
 ## 進め方
 1. `$ARGUMENTS[0]` が未指定なら「使い方: /review <feature>」を表示して終了
 2. 仕様・設計と実装の整合性を確認する
-3. コード品質をレビューする
-4. 結果を `.specs/<feature>/review.md` に保存する
-5. オーケストレーターに結果を報告する
+3. `/coderabbit:review uncommitted` を起動してコード品質をレビューさせる
+4. CodeRabbit の指摘と仕様整合性の確認結果を合わせて OK/NG を判定する
+5. 結果を `.specs/<feature>/review.md` に保存する
+6. オーケストレーターに結果を報告する
+
+## OK/NG の判定基準
+- 仕様・設計との不整合がある → NG
+- CodeRabbit が重大な問題（バグ・セキュリティ・クラッシュ）を指摘した → NG
+- CodeRabbit の指摘がスタイル・軽微な改善のみ → OK（指摘は review.md に記録する）
 
 ## 出力フォーマット
 ### 判定
 OK / NG
 
-### 指摘事項
+### 仕様整合性
 - 指摘内容と該当箇所
+
+### CodeRabbit の指摘
+- 指摘内容と該当箇所（重大度付き）
 
 ### 推奨対応
 - 対応方針
