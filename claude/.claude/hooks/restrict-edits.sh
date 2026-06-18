@@ -27,6 +27,11 @@ PROJECT_DIR=$(realpath "$PWD" 2>/dev/null || echo "$PWD")
 # パスを正規化（realpath できない場合はそのまま）
 ABS_PATH=$(realpath "$FILE_PATH" 2>/dev/null || echo "$FILE_PATH")
 
+# 他リポジトリの .specs/ 配下への書き込みは許可（PJ間連携用）
+if [[ "$ABS_PATH" == */.specs || "$ABS_PATH" == */.specs/* ]]; then
+  exit 0
+fi
+
 if [[ "$ABS_PATH" != "$PROJECT_DIR"/* && "$ABS_PATH" != "$PROJECT_DIR" ]]; then
   echo "{\"decision\": \"block\", \"reason\": \"プロジェクトディレクトリ外のファイル編集はブロックされています。対象: $FILE_PATH\"}"
 fi

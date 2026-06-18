@@ -71,6 +71,15 @@
             "command": "~/.claude/hooks/guard.sh"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/restrict-edits.sh"
+          }
+        ]
       }
     ]
   },
