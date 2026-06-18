@@ -21,6 +21,27 @@
 
 ブランチを切らず、`main` に直接コミットしてよい。
 
+## worktree を使った開発と Docker
+
+各アプリリポジトリでは git worktree を使って複数ブランチを同時に作業できる。
+Docker でアプリを動かすとき、コンテナへのコードのマウント先が **今いる worktree のパス** になっているかを必ず確認すること。
+
+マウント先がずれている場合は `swws` コマンドで切り替える。
+
+### swws コマンドについて
+
+`~/.local/bin/swws` は、**現在いる git worktree を Docker のマウント先として docker compose を起動し直す**コマンド。
+実行すると環境変数 `APP_DIR` に現在の worktree パスが自動でセットされ、`compose.yaml` がそこをマウント先として使う。
+
+```
+swws          # web コンテナを起動（デフォルト）
+swws web      # 同上
+swws worker   # worker コンテナを起動
+swws worker-stop  # worker コンテナを停止
+```
+
+対応リポジトリ: `Seculio` / `user-dashboard` / `elearning-service` / `training-email-next`
+
 
 ## ファイル編集の制限
 
