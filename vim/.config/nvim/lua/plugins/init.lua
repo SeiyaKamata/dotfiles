@@ -1,5 +1,6 @@
 return {
 	require("plugins.auto-save"),
+	require("plugins.flash"),
 	require("plugins.autopairs"),
 	require("plugins.cmp"),
 	require("plugins.comment"),
