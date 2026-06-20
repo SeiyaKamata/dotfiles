@@ -27,13 +27,13 @@ return {
 				group_empty = true,
 				icons = { show = { git = true, folder = true, file = true } },
 			},
-			filters = { 
-        dotfiles = false,
-        git_clean = false,
-        exclude = {
-          "specs",
-        },
-      },
+			filters = {
+				dotfiles = false,
+				git_clean = false,
+				exclude = {
+					"specs",
+				},
+			},
 			git = { enable = true },
 			on_attach = function(bufnr)
 				local api = require("nvim-tree.api")
@@ -46,7 +46,5 @@ return {
 
 		vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<CR>",
 			{ noremap = true, silent = true, desc = "Toggle file tree" })
-
-
 	end,
 }
