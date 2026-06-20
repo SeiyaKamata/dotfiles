@@ -23,6 +23,7 @@ return {
 		require("nvim-treesitter").install(parsers)
 
 		local function try_start(buf)
+			if vim.b[buf].large_file then return end
 			local lang = vim.treesitter.language.get_lang(vim.bo[buf].filetype)
 			if not lang then return end
 			if not pcall(vim.treesitter.language.add, lang) then return end
