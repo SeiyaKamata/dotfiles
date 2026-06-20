@@ -119,5 +119,6 @@
       "disabled": true
     }
   },
-  "startupTipsEnabled": false
+  "startupTipsEnabled": false,
+  "awaySummaryEnabled": false
 }
