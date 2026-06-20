@@ -60,3 +60,17 @@ vim.api.nvim_create_autocmd("BufReadPre", {
 		end
 	end,
 })
+
+-- 長い行（10000文字以上）を含むバッファも大ファイルとして扱う
+vim.api.nvim_create_autocmd("BufReadPost", {
+	callback = function(ev)
+		if vim.b[ev.buf].large_file then return end
+		local has_long = vim.api.nvim_buf_call(ev.buf, function()
+			return vim.fn.search([[\%>10000v.]], "n", 0, 0) > 0
+		end)
+		if has_long then
+			vim.b[ev.buf].large_file = true
+			pcall(function() require("ibl").setup_buffer(ev.buf, { enabled = false }) end)
+		end
+	end,
+})
