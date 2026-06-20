@@ -1,0 +1,4 @@
+[[mgr.prepend_keymap]]
+on = "l"
+run = "open"
+desc = "Open file"
