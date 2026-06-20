@@ -49,13 +49,14 @@ vim.filetype.add({
 	},
 })
 
--- 大きいファイル（1MB以上）はundo無効化
+-- 大きいファイル（1MB以上）はundo無効化・大ファイルフラグを立てる
 vim.api.nvim_create_autocmd("BufReadPre", {
-	callback = function()
+	callback = function(ev)
 		local ok, stat = pcall(vim.uv.fs_stat, vim.fn.expand("<afile>"))
 		if ok and stat and stat.size > 1024 * 1024 then
 			vim.opt_local.undofile = false
 			vim.opt_local.foldmethod = "manual"
+			vim.b[ev.buf].large_file = true
 		end
 	end,
 })
