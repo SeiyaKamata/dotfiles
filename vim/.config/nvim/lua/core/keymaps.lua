@@ -7,6 +7,7 @@ vim.g.mapleader = " "
 map("i", "jj",         "<Esc>",                                            "jj でノーマルモード")
 map("n", "<leader>q",  "<cmd>x<CR>",                                       "保存して終了")
 map("n", "<leader>h",  "<cmd>nohlsearch<CR>",                              "検索ハイライト解除")
+map("n", "<C-f>",      "/",                                                "検索")
 map("n", "<leader>rp", "<cmd>RelPath<CR>",                                 "相対パスをコピー")
 map("n", "H",          "^",                                                "行頭")
 map("n", "L",          "$",                                                "行末")
