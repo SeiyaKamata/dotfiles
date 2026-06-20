@@ -27,6 +27,14 @@ return {
 			local lang = vim.treesitter.language.get_lang(vim.bo[buf].filetype)
 			if not lang then return end
 			if not pcall(vim.treesitter.language.add, lang) then return end
+			-- options.lua の BufReadPost より FileType が先に来た場合のフォールバック
+			local has_long = vim.api.nvim_buf_call(buf, function()
+				return vim.fn.search([[\%>10000v.]], "n", 0, 0) > 0
+			end)
+			if has_long then
+				vim.b[buf].large_file = true
+				return
+			end
 			pcall(vim.treesitter.start, buf)
 			vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
 		end
