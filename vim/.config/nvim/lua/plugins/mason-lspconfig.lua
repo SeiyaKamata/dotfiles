@@ -9,9 +9,9 @@ return {
 			map("n", "<leader>ca", vim.lsp.buf.code_action,                          { desc = "Code action" })
 			map("n", "<leader>gf", function() vim.lsp.buf.format({ async = true }) end, { desc = "Format" })
 			map("n", "<leader>rn", vim.lsp.buf.rename,                               { desc = "Rename" })
-			map("n", "<leader>gd", vim.lsp.buf.definition,                           { desc = "Go to definition" })
-			map("n", "<leader>gr", vim.lsp.buf.references,                           { desc = "References" })
-			map("n", "<leader>gk", function() vim.lsp.buf.hover({ border = "rounded" }) end, { desc = "Hover" })
+			map("n", "gd", vim.lsp.buf.definition,                           { desc = "Go to definition" })
+			map("n", "gr", vim.lsp.buf.references,                           { desc = "References" })
+			map("n", "gk", function() vim.lsp.buf.hover({ border = "rounded" }) end, { desc = "Hover" })
 		end
 
 		require("mason-lspconfig").setup({
