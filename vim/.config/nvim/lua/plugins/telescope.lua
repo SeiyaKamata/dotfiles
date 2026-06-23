@@ -11,6 +11,9 @@ return {
 				prompt_prefix = "❯ ",
 				selection_caret = "❯ ",
 				path_display = { "truncate" },
+				mappings = {
+					n = { ["q"] = { actions.close, type = "action", opts = { nowait = true } } },
+				},
 			},
 			extensions = {
 				fzf = {},
