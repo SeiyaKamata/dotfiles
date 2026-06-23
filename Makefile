@@ -20,9 +20,8 @@ help:
 	@grep -E '^[a-zA-Z_-]+:' Makefile | grep -v '^\s' | sed 's/:.*//' | sort | column
 
 DOTFILES_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-CLAUDE_DIR   := $(DOTFILES_DIR)claude/.claude
 
-STOW_PACKAGES_COMMON := zsh git tmux vim sheldon starship yazi
+STOW_PACKAGES_COMMON := zsh git tmux vim sheldon starship yazi claude
 STOW_PACKAGES_MAC    := alacritty
 ifeq ($(UNAME), Darwin)
   STOW_PACKAGES := $(STOW_PACKAGES_COMMON) $(STOW_PACKAGES_MAC)
@@ -95,12 +94,3 @@ clean-ds-store:
 	@find . -type f -name '.DS_Store' -delete
 	$(call log,Done)
 
-
-claude:
-	$(call log,Setting up)
-	@find $(CLAUDE_DIR) -maxdepth 1 -mindepth 1 | while read f; do \
-		ln -sfn "$$f" $(HOME)/.claude/$$(basename "$$f"); \
-		ln -sfn "$$f" $(HOME)/.claude-p/$$(basename "$$f"); \
-	done
-	$(call log,$(CLAUDE_DIR))
-	$(call log,Done)

@@ -27,12 +27,7 @@ done
 
 TARGET_DATE="${TARGET_DATE:-$(date +%Y-%m-%d)}"
 
-# skill-dir のパスから .claude-p か .claude かを判定する
-if [[ "$SKILL_DIR" == *".claude-p"* ]]; then
-  CLAUDE_PROJECTS="${HOME}/.claude-p/projects"
-else
-  CLAUDE_PROJECTS="${HOME}/.claude/projects"
-fi
+CLAUDE_PROJECTS="${HOME}/.claude/projects"
 
 if [[ ! -d "$CLAUDE_PROJECTS" ]]; then
   echo "ERROR: ${CLAUDE_PROJECTS} が見つかりません" >&2
