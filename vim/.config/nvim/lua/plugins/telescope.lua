@@ -5,6 +5,7 @@ return {
 		{ "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
 	},
 	config = function()
+		local actions = require("telescope.actions")
 		require("telescope").setup({
 			defaults = {
 				prompt_prefix = "❯ ",
@@ -16,6 +17,11 @@ return {
 			},
 			pickers = {
 				find_files = { find_command = { "fd", "--type", "f" } },
+				buffers = {
+					mappings = {
+						n = { ["d"] = actions.delete_buffer },
+					},
+				},
 			},
 		})
 
