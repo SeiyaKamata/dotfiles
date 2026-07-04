@@ -1,7 +1,7 @@
 
-alias cc="claude"
+alias cc="caffeinate -is claude"
 alias cca="claude agents"
-alias ccr="claude --resume"
+alias ccr="caffeinate -is claude --resume"
 
 
 # 個人用
