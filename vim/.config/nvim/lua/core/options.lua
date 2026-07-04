@@ -45,6 +45,19 @@ opt.clipboard = "unnamedplus"
 -- diff 系
 opt.diffopt:append({ "linematch:60", "algorithm:histogram", "indent-heuristic" })
 
+-- diff ハイライトの彩度を落とす
+local function dim_diff()
+  vim.api.nvim_set_hl(0, "DiffAdd",    { bg = "#1e3a2a" })  -- 追加: 暗めの緑
+  vim.api.nvim_set_hl(0, "DiffDelete", { bg = "#3a1e24", fg = "#3a1e24" })  -- 埋め行: 暗めの赤＋斜線を埋没
+  vim.api.nvim_set_hl(0, "DiffChange", { bg = "#2a2a3a" })  -- 変更行: 控えめ
+  vim.api.nvim_set_hl(0, "DiffText",   { bg = "#3a3a5a", bold = true })  -- 変更語: ここだけ目立たせる
+end
+
+dim_diff()
+
+-- colorscheme 読み込みで上書きされないよう再適用
+vim.api.nvim_create_autocmd("ColorScheme", { callback = dim_diff })
+
 -- tmux の conf ファイルを tmux filetype として認識
 vim.filetype.add({
 	pattern = {
