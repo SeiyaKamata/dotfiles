@@ -44,6 +44,7 @@
         nodejs
         uv
         go
+        gcc
 
         # インフラ
         terraform
