@@ -62,6 +62,7 @@
         delta
 
         # Git
+        git
         gh
 
         # shell
