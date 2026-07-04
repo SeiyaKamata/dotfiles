@@ -42,6 +42,9 @@ opt.pumheight = 10
 -- clipboard
 opt.clipboard = "unnamedplus"
 
+-- diff 系
+opt.diffopt:append({ "linematch:60", "algorithm:histogram", "indent-heuristic" })
+
 -- tmux の conf ファイルを tmux filetype として認識
 vim.filetype.add({
 	pattern = {
