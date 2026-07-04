@@ -54,7 +54,10 @@
       "Bash(docker compose logs *)",
       "Bash(docker compose ps *)",
       "Bash(docker compose exec *)",
-      "Read(~/Develop/*)"
+      "Read(~/Develop/*)",
+      "Write(.specs/**)",
+      "Edit(.specs/**)",
+      "MultiEdit(.specs/**)"
     ],
     "defaultMode": "auto"
   },
