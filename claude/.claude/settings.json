@@ -107,6 +107,7 @@
   "language": "Japanese",
   "spinnerTipsEnabled": false,
   "effortLevel": "high",
+  "awaySummaryEnabled": false,
   "tui": "fullscreen",
   "theme": "dark",
   "editorMode": "normal",
@@ -119,6 +120,5 @@
       "disabled": true
     }
   },
-  "startupTipsEnabled": false,
-  "awaySummaryEnabled": false
+  "startupTipsEnabled": false
 }
