@@ -23,6 +23,7 @@
         jq
         procs
         stow
+        gnumake
 
         # Docker
         docker
