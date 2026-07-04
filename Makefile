@@ -5,6 +5,7 @@ UNAME    := $(shell uname -s)
 .PHONY: \
 	setup \
 	nix-install \
+	nix-upgrade \
 	nix-update \
 	stow-install \
 	brew-install \
@@ -42,6 +43,11 @@ setup: brew-install nix-install stow-install
 nix-install:
 	$(call log,Installing Nix packages)
 	@nix profile install .#
+	$(call log,Done)
+
+nix-upgrade:
+	$(call log,Applying local flake.nix changes)
+	@nix profile upgrade dotfiles
 	$(call log,Done)
 
 nix-update:
