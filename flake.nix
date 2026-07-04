@@ -25,6 +25,7 @@
         stow
         gnumake
         unzip
+        duf
 
         # Docker
         docker
