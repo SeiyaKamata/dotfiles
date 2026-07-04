@@ -24,6 +24,7 @@
         procs
         stow
         gnumake
+        unzip
 
         # Docker
         docker
