@@ -114,4 +114,4 @@ gh pr create --draft --base <ベースブランチ> --title "<タイトル>" --b
 - `gh pr create` が「head branch is the same as base branch」エラーになった場合: Step 1.5 に戻り、新しいブランチを作成してから再試行する
 
 ## 完了条件
-draftのPR作成後にURLをユーザーに報告したら完了。
+draftのPR作成後にURLをユーザーに報告し、`/watch-ci` で CI 監視に進めることを提案したら完了。

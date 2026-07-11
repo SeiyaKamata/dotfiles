@@ -33,9 +33,9 @@ allowed-tools: Read, Write, Edit, MultiEdit, Bash, Glob, Grep
 ### Step 3: テスト再実行
 修正後にテストを再実行して確認する。
 
-- PASS → `/test` 完了扱いで `/review` へ
+- PASS → `/test` を起動（再実行して確定させる）
 - FAIL（別の原因）→ Step 1 に戻る（最大3回まで）
 - 3回試みても FAIL → ユーザーに状況を報告して指示を仰ぐ
 
 ## 完了条件
-テストが PASS になったら完了。`/review` を起動する。
+テストが PASS になったら完了。`/test` を起動して再実行する。
