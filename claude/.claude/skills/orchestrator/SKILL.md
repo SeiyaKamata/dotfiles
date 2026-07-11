@@ -13,11 +13,13 @@ argument-hint: "<feature>"
 
 ## パイプライン
 ```
-/spec →【要件承認ゲート】→ /design →(分岐)→ [/prototype] → /tasks → /impl → /test → /review → /commit → /create-pr(draft)
+/spec →【要件承認ゲート】→ /design →(分岐)→ [/prototype] → /tasks → /impl → /test → /review → /qa → /commit → /create-pr(draft)
   → /watch-ci → /respond-pr-comments(CodeRabbit のみ) → 停止
-                ↓FAIL              ↓NG                  ↺ 最大2巡
+                ↓FAIL              ↓NG        ↓FAIL       ↺ 最大2巡
                /fix → /test    /design or /impl に戻す
 ```
+
+qa FAIL → `/fix`（設計起因なら `/design`・`/impl`）。qa が収束しない場合は報告して停止する。
 
 承認ゲート: **requirements.md 完成後に人間の承認を待つ**（spec だけ人間判断を挟む）。承認後は自走。
 停止点: **draft PR + CI green + CodeRabbit の未解決コメントが無い状態**で人に報告して止まる。merge と Ready for review への切替は人が判断する（自走では行わない）。
@@ -25,7 +27,7 @@ argument-hint: "<feature>"
 ## 自走モードの起動（重要）
 人間承認を待つステップを持つスキルは **`auto` 引数**で起動して承認をスキップする。各スキルの `auto` 時の挙動は、それぞれの SKILL.md の「自走モード（`auto` 引数）」節に定義されている：
 
-- **`auto` つきで起動するスキル**: `/design auto` / `/tasks auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/respond-pr-comments auto`。人間承認を待たず自己レビューゲートで進む
+- **`auto` つきで起動するスキル**: `/design auto` / `/tasks auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/respond-pr-comments auto`。人間承認を待たず自己レビューゲートで進む
 - **spec だけは `auto` を渡さない**: requirements は唯一の人間承認ゲート（下記 Step 3）。spec 通常挙動（ドラフト → 承認 → 保存）で人間の承認を取る
 - **prototype**: 目視承認の代わりに Playwright での操作確認＋スクショ取得。design.md へ書き戻したら次へ
 - **create-pr**: `auto` 引数で起動する。ベースブランチはデフォルトを自動採用。未コミットがあれば `/commit auto` を自動で呼ぶ。Notion URL が最初の指示にあれば引数で渡す
@@ -47,6 +49,9 @@ argument-hint: "<feature>"
 9. FAIL → `/fix` を起動し、完了後に `/test` を再実行する
 10. PASS → `/review <feature>` を起動する
 11. レビュー結果を判定する（NG なら下記「例外処理」のループへ。OK なら次へ）
+11.5. `/qa <feature> auto` を起動する（ブラウザ動作確認の最終受け入れゲート）
+    - 全 pass → 次へ
+    - fail → `/fix` を起動（設計起因なら `/design`・`/impl`）→ `/test` から再合流。qa が収束しない（下記「例外処理」）なら報告して停止
 12. `/commit auto` を起動する（コミットプランを自動承認して実行）
 13. `/create-pr auto` を起動する（デフォルトブランチをベースに draft PR を作成）。draft でも CodeRabbit が自動でレビューを開始する
 14. `/watch-ci auto` を起動する（CI green まで監視。赤なら下記ループ）
@@ -74,6 +79,7 @@ argument-hint: "<feature>"
 - **レビュー NG**:
   - 「設計の根本的な問題」が含まれる → `/design` に戻す
   - それ以外（コード品質・実装ミス）→ `/impl` に戻す
+- **qa FAIL** → `/fix` に戻す（設計起因なら `/design`・`/impl`）→ `/test` から再合流。qa↔fix のループが2周しても収束しない → 報告して停止
 - **CI 失敗** → ログを取得し自己修正して push し直す。2回直しても green にならない → 報告して停止
 - **CodeRabbit コメント対応が2巡しても収束しない** → 報告して停止
 - **CodeRabbit のレビューが一定時間来ない** → 報告して停止

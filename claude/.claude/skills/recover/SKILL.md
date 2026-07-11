@@ -83,7 +83,9 @@ gh pr checks --json name,state,conclusion 2>/dev/null
 | requirements.md のみある | design 未完了 | `/design <feature>` |
 | design.md まであり tasks.md がない | tasks 未完了 | `/tasks <feature>` |
 | tasks.md はあるが未完了タスクが多い | impl 未完了 | `/impl <feature>` |
-| tasks.md が完了済みだが未コミット変更あり | test 未実施 | `/test` |
+| tasks.md が完了済みだが未コミット変更あり・test 未実施 | test 未実施 | `/test` |
+| test PASS 済みだが review 未実施 | review 中 | `/review <feature>` |
+| review OK だが qa.md に未チェックのシナリオあり | qa 中 | `/qa <feature>` |
 | コミット済みだが PR がない | commit 済み・PR 未作成 | `/create-pr` |
 | PR が draft で CI pending/unknown | CI 監視中 | `/watch-ci` |
 | PR が draft で CI 成功・未解決コメントあり | コメント対応中 | `/respond-pr-comments` |
