@@ -22,7 +22,8 @@ argument-hint: "<feature> [auto]"
 - `.specs/<feature>/design.md`
 
 ## 出力先
-`.specs/<feature>/tasks.md`
+- `.specs/<feature>/tasks.md`
+- `.specs/<feature>/qa.md`（受け入れ条件から導出した QA シナリオ。`/qa` が消費する）
 
 ## タスク設計の原則
 - **粒度**: 1タスク = 1〜3時間で完了できる単一責任の作業
@@ -53,6 +54,7 @@ argument-hint: "<feature> [auto]"
 2. 各大タスクをサブタスクに分解する
 3. 依存関係を確認し、並列実行可能なものに `(P)` を付ける
 4. 各サブタスクに「完了条件」を1行で記述する
+5. **QA シナリオを導出する** — `requirements.md` の受け入れ条件から `.specs/<feature>/qa.md` の QA シナリオ（`前提 / 手順 / 期待 / _Requirements: N_`）を起こす。**全ての受け入れ条件を網羅**するようシナリオを割り当てる
 
 全ての要件（Requirement 1, 2, ...）がいずれかのタスクにカバーされていることを確認する。
 
@@ -61,6 +63,7 @@ argument-hint: "<feature> [auto]"
 - [ ] 各タスクに完了条件が書かれているか
 - [ ] タスクの順序が論理的か（依存関係が正しいか）
 - [ ] サブタスクが適切な粒度か（大きすぎ・小さすぎではないか）
+- [ ] `qa.md` が全受け入れ条件を網羅しているか
 
 ### Step 5: ユーザーレビュー
 保存済みの `.specs/<feature>/tasks.md` をユーザーに確認してもらう。
@@ -94,6 +97,24 @@ argument-hint: "<feature> [auto]"
   - _Requirements: 4_
 ```
 
+### qa.md（`.specs/<feature>/qa.md`）
+
+```markdown
+# QAシナリオ: [機能名]
+
+## シナリオ一覧
+- [ ] S1. <シナリオタイトル>
+  - 前提: <開始状態>
+  - 手順: 1.<操作> 2.<操作> 3.<操作>
+  - 期待: <期待される結果>
+  - _Requirements: <対応する要件番号>_
+- [ ] S2. ...
+```
+
+- `S<n>`: 連番のシナリオ ID。`/qa` が `qa-browser` の結果配列とこの ID で対応づける。
+- チェックボックス: `/qa` が合否で `[x]`（pass）/`[ ]`（fail のまま）に更新する。
+- 各シナリオは requirements.md の受け入れ条件と対応づけ、シナリオ群で全受け入れ条件を網羅する。
+
 ## 完了条件
-ユーザーが承認し、`.specs/<feature>/tasks.md` に保存できたら完了。
+ユーザーが承認し、`.specs/<feature>/tasks.md` と `.specs/<feature>/qa.md` の両方を保存できたら完了。
 次は `/impl` を起動する。
