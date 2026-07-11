@@ -20,7 +20,7 @@ argument-hint: "<feature>"
 ## 進め方
 1. `$ARGUMENTS[0]` が未指定なら「使い方: /review <feature>」を表示して終了
 2. 仕様・設計と実装の整合性を確認する
-3. `/coderabbit:review uncommitted` を起動してコード品質をレビューさせる
+3. `coderabbit:code-review` を起動してコード品質をレビューさせる
 4. CodeRabbit の指摘と仕様整合性の確認結果を合わせて OK/NG を判定する
 5. 結果を `.specs/<feature>/review.md` に保存する
 6. オーケストレーターに結果を報告する
