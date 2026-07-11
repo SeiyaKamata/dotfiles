@@ -5,6 +5,10 @@ export LANG=en_US.UTF-8
 # zsh
 export SHELL_SESSIONS_DISABLE=1
 
+# zoxide doctor の誤検知を抑止（設定を分割ロードしており末尾判定が効かないため）。
+# Claude Code は Bash 呼び出しごとにシェルを立て直すので、非対話でも読まれる .zshenv に置く。
+export _ZO_DOCTOR=0
+
 
 # XDG
 export XDG_CONFIG_HOME="$HOME/.config"
