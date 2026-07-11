@@ -12,25 +12,7 @@ allowed-tools: Read, Write, Bash, Glob
 
 ## 進め方
 
-### Step 1: 環境ロック取得
-ユーザーに調停役のエージェント名を確認する：
-
-> テスト環境の調停役エージェント名を教えてください。（例: `Seculio`）
-
-エージェント名が分かったら `send-message` スキルで env-lock を要求する：
-
-```
-send-message で <エージェント名> に以下を送信:
-  type: request
-  action: env-lock
-  payload: {"worktree": "<現在のworktree名>"}
-```
-
-response を待ち、結果を判定する：
-- `"status": "ready"` → Step 2 へ進む
-- `"status": "busy"` → ユーザーに報告して待機するか確認する
-
-### Step 2: テストコマンド検出
+### Step 1: テストコマンド検出
 PJ ごとにテスト体系も実行方法も異なる（RSpec / go test / vitest / docker 経由など）ため、**プロジェクト CLAUDE.md の指定を最優先**で使う。
 
 1. **プロジェクト CLAUDE.md のテスト節を読む**（`## テスト` / `### Testing` などの見出し）。テストコマンドが書かれていれば **そのまま採用する**。`docker compose exec web bundle exec rspec ...` のような実行ラッパや、複数コマンドの指定もそのまま従う（CLAUDE.md が PJ 固有のビルド手順の正）
@@ -46,20 +28,10 @@ PJ ごとにテスト体系も実行方法も異なる（RSpec / go test / vites
    - 注: docker 等のラッパが要る PJ はフォールバックでは導けない。その場合は CLAUDE.md への記載が前提
 3. それでも確定できない場合は **推測でテストを実行しない**。確認を求める（単体起動ではユーザーに質問、orchestrator 自走時は「判断できない」として報告・停止する）
 
-### Step 3: テスト実行
+### Step 2: テスト実行
 検出したコマンドを実行する。
 
-### Step 4: 環境ロック解放
-テスト完了後（PASS/FAIL問わず）必ず env-unlock を送信する：
-
-```
-send-message で <エージェント名> に以下を送信:
-  type: request
-  action: env-unlock
-  payload: {"worktree": "<現在のworktree名>"}
-```
-
-### Step 5: 結果判定・報告
+### Step 3: 結果判定・報告
 結果をコンソールに出力し、PASS/FAILを明示する。
 
 **PASS の場合:** `/review` を起動する。
