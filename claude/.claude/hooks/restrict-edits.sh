@@ -42,6 +42,11 @@ if [[ "$ABS_PATH" == */.claude/projects/*/memory || "$ABS_PATH" == */.claude/pro
   exit 0
 fi
 
+# セッション用スクラッチパッドへの書き込みは許可（claude の一時ディレクトリ配下）
+if [[ "$ABS_PATH" == */claude-*/*/scratchpad || "$ABS_PATH" == */claude-*/*/scratchpad/* ]]; then
+  exit 0
+fi
+
 if [[ "$ABS_PATH" != "$PROJECT_DIR"/* && "$ABS_PATH" != "$PROJECT_DIR" ]]; then
   echo "{\"decision\": \"block\", \"reason\": \"プロジェクトディレクトリ外のファイル編集はブロックされています。対象: $FILE_PATH\"}"
 fi
