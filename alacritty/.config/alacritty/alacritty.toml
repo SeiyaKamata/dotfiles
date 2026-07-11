@@ -48,5 +48,5 @@ family = "HackGen Console NF"
 style = "Bold Italic"
 
 [terminal]
-shell = { program = "/bin/zsh", args = ["-l", "-c", "/Users/kamata_seiya/.nix-profile/bin/tmux new -A -s kmt"] }
+shell = { program = "/bin/zsh", args = ["-l", "-c", "/Users/kamata_seiya/.nix-profile/bin/herdr"] }
 
