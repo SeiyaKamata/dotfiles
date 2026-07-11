@@ -32,6 +32,16 @@ if [[ "$ABS_PATH" == */.specs || "$ABS_PATH" == */.specs/* ]]; then
   exit 0
 fi
 
+# CLAUDE.md への書き込みは許可（グローバル/各プロジェクト問わず）
+if [[ "$(basename "$ABS_PATH")" == "CLAUDE.md" ]]; then
+  exit 0
+fi
+
+# memory ディレクトリ配下への書き込みは許可（MEMORY.md・各メモリファイル）
+if [[ "$ABS_PATH" == */.claude/projects/*/memory || "$ABS_PATH" == */.claude/projects/*/memory/* ]]; then
+  exit 0
+fi
+
 if [[ "$ABS_PATH" != "$PROJECT_DIR"/* && "$ABS_PATH" != "$PROJECT_DIR" ]]; then
   echo "{\"decision\": \"block\", \"reason\": \"プロジェクトディレクトリ外のファイル編集はブロックされています。対象: $FILE_PATH\"}"
 fi
