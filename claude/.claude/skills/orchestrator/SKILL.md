@@ -27,7 +27,7 @@ qa FAIL → `/fix`（設計起因なら `/design`・`/impl`）。qa が収束し
 ## 自走モードの起動（重要）
 人間承認を待つステップを持つスキルは **`auto` 引数**で起動して承認をスキップする。各スキルの `auto` 時の挙動は、それぞれの SKILL.md の「自走モード（`auto` 引数）」節に定義されている：
 
-- **`auto` つきで起動するスキル**: `/design auto` / `/tasks auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/respond-pr-comments auto`。人間承認を待たず自己レビューゲートで進む
+- **`auto` つきで起動するスキル**: `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test auto` / `/fix auto` / `/review auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/respond-pr-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に次ステップの定型ブロックを出さず 1 行の簡易ログのみ残す）
 - **spec だけは `auto` を渡さない**: requirements は唯一の人間承認ゲート（下記 Step 3）。spec 通常挙動（ドラフト → 承認 → 保存）で人間の承認を取る
 - **prototype**: 目視承認の代わりに Playwright での操作確認＋スクショ取得。design.md へ書き戻したら次へ
 - **create-pr**: `auto` 引数で起動する。ベースブランチはデフォルトを自動採用。未コミットがあれば `/commit auto` を自動で呼ぶ。Notion URL が最初の指示にあれば引数で渡す
@@ -39,19 +39,19 @@ qa FAIL → `/fix`（設計起因なら `/design`・`/impl`）。qa が収束し
 3. **要件承認ゲート**: requirements.md を人間に提示し、**承認を待つ**。承認後に次へ（修正要望があれば spec に戻す）
 4. `/design <feature> auto` を起動し、`.specs/<feature>/design.md` を生成 → 承認を待たず次へ
 5. **prototype 分岐判定**（下記「prototype 分岐」参照）
-   - 必要 → `/prototype <feature>` を起動 → design.md 更新後に次へ
+   - 必要 → `/prototype <feature> auto` を起動 → design.md 更新後に次へ
    - 不要 → そのまま次へ
 6. `/tasks <feature> auto` を起動し、`.specs/<feature>/tasks.md` を生成 → 承認を待たず次へ
 7. tasks.md を読んでフェーズ構成を確認する
-   - シングルフェーズ → `/impl <feature>` を起動する
-   - マルチフェーズ → `/impl <feature> p1`, `/impl <feature> p2`, ... を順番に起動する（各フェーズ完了後に次フェーズへ）
-8. `/test` を起動し、判定（PASS / FAIL）を確認する
-9. FAIL → `/fix` を起動し、完了後に `/test` を再実行する
-10. PASS → `/review <feature>` を起動する
+   - シングルフェーズ → `/impl <feature> auto` を起動する
+   - マルチフェーズ → `/impl <feature> p1 auto`, `/impl <feature> p2 auto`, ... を順番に起動する（各フェーズ完了後に次フェーズへ）
+8. `/test auto` を起動し、判定（PASS / FAIL）を確認する
+9. FAIL → `/fix auto` を起動し、完了後に `/test auto` を再実行する
+10. PASS → `/review <feature> auto` を起動する
 11. レビュー結果を判定する（NG なら下記「例外処理」のループへ。OK なら次へ）
 11.5. `/qa <feature> auto` を起動する（ブラウザ動作確認の最終受け入れゲート）
     - 全 pass → 次へ
-    - fail → `/fix` を起動（設計起因なら `/design`・`/impl`）→ `/test` から再合流。qa が収束しない（下記「例外処理」）なら報告して停止
+    - fail → `/fix auto` を起動（設計起因なら `/design auto`・`/impl <feature> auto`）→ `/test auto` から再合流。qa が収束しない（下記「例外処理」）なら報告して停止
 12. `/commit auto` を起動する（コミットプランを自動承認して実行）
 13. `/create-pr auto` を起動する（デフォルトブランチをベースに draft PR を作成）。draft でも CodeRabbit が自動でレビューを開始する
 14. `/watch-ci auto` を起動する（CI green まで監視。赤なら下記ループ）
