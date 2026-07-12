@@ -2,7 +2,7 @@
 name: impl
 description: タスクリストを受け取り実装を行う。.specs/<feature>/tasks.mdが出来上がったら使う。
 allowed-tools: Read, Write, Edit, MultiEdit, Bash, Glob, Grep, Agent, WebSearch, WebFetch
-argument-hint: "<feature> [pN|task-numbers]"
+argument-hint: "<feature> [pN|task-numbers] [auto]"
 ---
 
 # 実装スキル
@@ -30,8 +30,10 @@ argument-hint: "<feature> [pN|task-numbers]"
 ## 進め方
 
 ### Step 1: 引数チェック
-- `$ARGUMENTS[0]` が未指定なら「使い方: /impl <feature> [pN|task-numbers]」を表示して終了
+- `$ARGUMENTS[0]` が未指定なら「使い方: /impl <feature> [pN|task-numbers] [auto]」を表示して終了
 - feature 名、フェーズ、手動タスク番号を確定する
+- 引数のいずれかに `auto` を含む場合は自律モード（ブロック抑制）とする。Step 7 の次ステップ提示で定型ブロックを出さず簡易ログのみ残す。
+  - 注: ここでの「自律モード」は**次ステップ提示の抑制**を指す合図であり、フェーズ指定なし時の「全タスクを並列実行する自律モード」（下記「実行モード」）とは別の意味なので混同しない。
 
 ### Step 2: ブランチ準備
 tasks.md のブランチ名ルールに従い、ブランチを作成して切り替える：
@@ -98,7 +100,7 @@ git checkout -b <ブランチ名>
 - [ ] 関連する要件（`_Requirements:_`）に対応しているか
 
 ### Step 7: 全タスク完了後
-全タスク完了後は `/test` を起動する。
+全タスク完了後、末尾の「次ステップ提示」の定型ブロックで次の手順（`/test`）を提示する。
 
 ## 例外処理
 - 判断できない場面や設計の曖昧さがある場合 → ユーザーに確認
@@ -106,3 +108,18 @@ git checkout -b <ブランチ名>
 
 ## 完了条件
 全タスクが `[x]` になり、テスト・ビルドがパスしたら完了。
+
+## 次ステップ提示
+単体起動で完了したら、次の定型ブロックを**コードフェンスで囲まず**プレーンテキストで出力し、次スキルは自動起動せずユーザーの実行を待って終了する。
+
+```
+────────────────────────────────
+✅ 全タスク実装完了
+📄 .specs/<feature>/tasks.md（チェックボックス更新）
+▶ 次のステップ
+   /test <feature>
+   理由: 実装が終わったのでテストで検証する
+────────────────────────────────
+```
+
+自律モード（起動引数に `auto` を含む）では上記ブロックを出さず、遷移先を 1 行の簡易ログだけ残す（例: `次: /test <feature>`）。次スキルの起動は呼び出し元（orchestrator）が行う。

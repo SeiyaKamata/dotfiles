@@ -2,7 +2,7 @@
 name: prototype
 description: design後、大きいUI修正のときにローカルで動くモックを作りdesignの精度を高める。.specs/<feature>/design.mdが出来上がり、UIを伴う大きな修正のときに使う。
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
-argument-hint: "<feature>"
+argument-hint: "<feature> [auto]"
 ---
 
 # プロトタイプスキル
@@ -29,8 +29,9 @@ argument-hint: "<feature>"
 ## 進め方
 
 ### Step 1: 引数チェック
-- `$ARGUMENTS[0]` が未指定なら「使い方: /prototype <feature>」を表示して終了
+- `$ARGUMENTS[0]` が未指定なら「使い方: /prototype <feature> [auto]」を表示して終了
 - feature 名を確定する
+- 引数のいずれかに `auto` を含む場合は自律モード（ブロック抑制）とする。末尾の次ステップ提示で定型ブロックを出さず、1 行の簡易ログのみ残す。
 
 ### Step 2: コンテキスト収集
 - `requirements.md` と `design.md` を読み込む
@@ -72,3 +73,18 @@ argument-hint: "<feature>"
 
 ## 完了条件
 design.md への書き戻しが完了したら完了。次は `/tasks` を起動する。
+
+## 次ステップ提示
+単体起動で完了したら、次の定型ブロックを**コードフェンスで囲まず**プレーンテキストで出力し、次スキルは自動起動せずユーザーの実行を待って終了する。設計が根本的に破綻していると分かった場合は、ブロックの代わりに design への差し戻しが必要な旨を報告する。
+
+```
+────────────────────────────────
+✅ モック検証と design 反映完了
+📄 .specs/<feature>/design.md（更新）
+▶ 次のステップ
+   /tasks <feature>
+   理由: 設計の精度が上がったので実装タスクに分解する
+────────────────────────────────
+```
+
+自律モード（起動引数に `auto` を含む）では上記ブロックを出さず、遷移先を 1 行の簡易ログだけ残す（例: `次: /tasks <feature>`）。次スキルの起動は呼び出し元（orchestrator）が行う。
