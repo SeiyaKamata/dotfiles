@@ -9,6 +9,9 @@ argument-hint: "[auto]"
 ## 役割
 自分のPRに付いた未解決のレビューコメントに対応し、各コメントに返信する。スレッドの「解決済み」化はしない（解決はレビュアーに委ねる）。
 
+## 用語（前提）
+用語は `claude/CLAUDE.md`「用語集」に従う。**フェーズ = 大タスク = ブランチ = 1 PR**。複数フェーズは stacked PR。stacked のときは **feature の全 PR を横断**して未解決コメントを集め、**指摘の付いた PR のブランチ（フェーズ）で修正**する。下位フェーズを直したら stack を rebase 伝播して上位ブランチに反映する（自走で安全に伝播できないと判断したら報告して停止）。
+
 ## 自走モード（`auto` 引数）
 `$ARGUMENTS` に `auto` が含まれる場合：
 - **CodeRabbit（author: `coderabbitai[bot]`）のコメントのみ**を対象にする
@@ -27,15 +30,23 @@ argument-hint: "[auto]"
 5. 各コメントに返信する
 6. 結果を報告する
 
-### Step 1: 対象PRを特定する
+### Step 1: 対象PRを特定する（単一 / stacked）
 
-現在のブランチに紐づくPRを自動検出する：
-```
-gh pr view --json number,title,url
-```
-検出できれば人間に確認する。検出できなければPR番号を聞く。
+現在のブランチから判定する：
+- 現在のブランチが `<feature>-pN`（末尾 `-p` + 数字）→ **stacked の可能性**。feature 名を求めてフェーズブランチの PR を番号順に列挙する：
+  ```
+  for b in $(git branch --list "<feature>-p*" | sed 's/^[ *]*//' | sort -t p -k2 -n); do
+    gh pr list --head "$b" --json number,title,url --jq '.[]'
+  done
+  ```
+  2 件以上ヒットしたら **stacked モード**（Step 2 以降を全 PR 横断で行い、各指摘はその PR のブランチで対応する）。
+- それ以外は単一 PR：
+  ```
+  gh pr view --json number,title,url
+  ```
+検出できれば人間に確認する（`auto` は確認不要）。検出できなければPR番号を聞く。
 
-**完了ゲート:** 対象PRを確定したか。
+**完了ゲート:** 対象PR（stacked なら全 PR）を確定したか。
 
 ### Step 2: 未解決コメントを集める
 
@@ -98,7 +109,9 @@ find . -path './.git' -prune -o -name 'tasks.md' -print | grep '\.specs/'
 
 対応すると決めたものを実装する。
 
-**完了ゲート:** 方針どおりに実装したか。
+**stacked の場合**: 各指摘は**それが付いた PR のブランチ（フェーズ）で修正・コミット**する。下位フェーズを直したら、上位フェーズのブランチへ stack を rebase 伝播して再 push する（`git rebase --onto` 等）。伝播でコンフリクトが多発する・自走で安全に行えないと判断したら、対応済みぶんを報告して停止する。
+
+**完了ゲート:** 方針どおりに実装し、stacked なら該当フェーズのブランチに反映（＋上位へ伝播）したか。
 
 ### Step 5: 各コメントに返信する
 
