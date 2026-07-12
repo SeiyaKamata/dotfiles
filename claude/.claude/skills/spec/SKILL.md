@@ -9,7 +9,7 @@ argument-hint: "<feature> [auto]"
 
 ## 役割
 ユーザーの要望を受け取り、EARS形式の要件ドキュメントを作成する。
-「何を作るか（WHAT）」を明確にする。「どう作るか（HOW）」は設計フェーズに委ねる。
+「何を作るか（WHAT）」を明確にする。「どう作るか（HOW）」は設計工程に委ねる。
 
 ## 出力先
 `.specs/<feature>/requirements.md`（プロジェクトルートの`.specs/`ディレクトリ）
@@ -30,7 +30,7 @@ argument-hint: "<feature> [auto]"
 - `$ARGUMENTS[0]`: <feature>
   - 未指定なら「使い方: /spec <feature> [auto]」を表示して終了
 - `$ARGUMENTS[1]`: autoフラグ
-  - `auto` であれば Step 5 のユーザー承認をスキップ（質問フェーズは実施する）
+  - `auto` であれば Step 5 のユーザー承認をスキップ（質問ステップは実施する）
   - それ以外の値は無視する
 
 ### Step 2: コンテキスト収集

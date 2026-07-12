@@ -1,6 +1,6 @@
 ---
 name: change
-description: 実装中に追加・変更が必要になったとき、影響範囲を判断して適切なフェーズに戻す。
+description: 実装中に追加・変更が必要になったとき、影響範囲を判断して適切な工程に戻す。
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 argument-hint: "<feature>"
 ---
@@ -9,7 +9,7 @@ argument-hint: "<feature>"
 
 ## 役割
 実装中に仕様・設計・タスクの変更が必要になったとき、影響範囲を判断して
-適切なフェーズに戻し、下流のドキュメントを更新する。
+適切な工程に戻し、下流のドキュメントを更新する。
 
 ## 変更レベルの判断基準
 
@@ -86,6 +86,6 @@ argument-hint: "<feature>"
    ・要件レベル → /design <feature>
    ・設計レベル → /tasks <feature>
    ・タスクレベル → /impl <feature>
-   理由: 変更レベルによって再開フェーズが変わる
+   理由: 変更レベルによって再開する工程が変わる
 ────────────────────────────────
 ```

@@ -69,7 +69,7 @@ argument-hint: "<feature> [auto]"
 ## 自走モード（orchestrator 経由）での振る舞い
 - 人の目視承認を待たず、モックの操作確認で設計の妥当性を判断する
 - UI の受け入れ確認は `/qa` に委ね、ここでは design.md の精度向上に専念する
-- design.md への書き戻しが終わったら次フェーズ（/tasks）へ進む
+- design.md への書き戻しが終わったら次工程（/tasks）へ進む
 
 ## 完了条件
 design.md への書き戻しが完了したら完了。次は `/tasks` を起動する。
