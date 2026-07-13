@@ -2,7 +2,7 @@
 name: handoff
 description: 作業ディレクトリ外の別PJに修正依頼を投げる。相手PJの.specs/配下に要望書(handoff.md)を書いて受け渡し、相手は/specで拾う。別PJのファイルを直接編集できずブロックされたとき使う。
 argument-hint: "[依頼先PJのパスまたは略称] [機能名]"
-allowed-tools: Bash(ls *), Bash(test *), Bash(git -C *), Read, Write, Glob
+allowed-tools: Bash(ls *), Bash(test *), Bash(git -C *), Read, Write, Edit, Glob, Grep
 ---
 
 # 他 PJ への修正依頼（handoff）
@@ -77,14 +77,31 @@ test -d <依頼先PJ>/.specs && echo writable || echo "(.specs なし)"
 
 **完了ゲート:** handoff.md を Write し、相手が `/spec` で拾える要望になっているか。
 
-### Step 4: 報告する
+### Step 4: 依頼元 tasks.md の handoff 項目をチェックする
+
+依頼元（＝今いる作業ディレクトリ）の feature が `tasks` 工程で `## 他 PJ への handoff` に
+この依頼を `H<n>` として洗い出している場合、依頼を投げたのでチェックを付ける。
+
+1. カレント PJ の `.specs/*/tasks.md` から `## 他 PJ への handoff` セクションを持つものを探す
+   （`grep -rl "## 他 PJ への handoff" .specs/*/tasks.md` 相当）。
+2. その中の**未チェック（`[ ]`）の `H<n>` 項目**で、依頼先 PJ が今回の handoff 先と一致するものを探す。
+3. 一致が1件 → `Edit` でその行の `[ ]` を `[x]` に更新する。
+4. 一致が0件 → 洗い出しに無い依頼（tasks を経ずに handoff した等）。チェックは行わず、その旨を報告に添える。
+5. 一致が複数 → どの `H<n>` を投げたか人間に確認してからチェックする。
+
+チェックが表すのは「相手 PJ 側の完了」ではなく「**依頼を投げた**」こと。相手 PJ での実装完了は別途追う。
+
+**完了ゲート:** 対応する `H<n>` があればチェック済みにしたか（無ければ「洗い出しに無し」と判断できたか）。
+
+### Step 5: 報告する
 
 書いた handoff.md のフルパスと、相手 PJ での拾い方（`cd <依頼先PJ> && claude` → `/spec` に
 handoff.md を渡す → requirements → design → tasks → impl）を人間に報告する。
 
 ## 完了条件
 
-依頼先 PJ の `.specs/<機能名>/handoff.md` に要望書を書き、`/spec` での拾い方を報告したら完了。
+依頼先 PJ の `.specs/<機能名>/handoff.md` に要望書を書き、依頼元 tasks.md に対応する
+`H<n>` があればチェック済みにし、`/spec` での拾い方を報告したら完了。
 
 ## エラー処理
 

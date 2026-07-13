@@ -81,6 +81,7 @@ git checkout -b <ブランチ名>
 ### Step 3: コンテキスト確認（メインが軽量に実施）
 実装のためではなく**配布とレビューのため**に、以下を最小限確認する：
 - `.specs/<feature>/tasks.md`: 対象フェーズ（＝対象の大タスク）のサブタスク一覧・完了条件・`_Requirements:_`・`_Depends:_` を把握する
+- **他 PJ への handoff 依存を確認する**：対象フェーズのタスクが `_Depends:_` に `H<n>`（`## 他 PJ への handoff` の項目）を含む場合、それは**別 PJ の変更前提**でこの PJ では実装できない。該当 `H<n>` が未チェック（`[ ]`）なら `/handoff` で依頼を投げる必要があるため、implementer に配布せず、未依頼の handoff があることを報告して止める（自律モードは orchestrator の分岐に委ねる）。`H<n>` はコーディングタスクではないので implementer には渡さない
 - テスト・ビルドコマンドをリポジトリの設定ファイルから確認する
   （`package.json`, `Makefile`, `go.mod`, `pyproject.toml` など）
 - `git status --porcelain` でベースラインを確認する
