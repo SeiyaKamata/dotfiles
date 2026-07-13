@@ -78,6 +78,14 @@ git branch -d <元のブランチ名>
 
 `-d` で削除できない（未マージ警告）場合、マージ済みであることを確認したうえで `-D` を使う。
 
+**prototype ブランチの後片付け:** prototype 工程を使った feature では `<feature>-proto` が残っている。これは PR にならない参照用ブランチで、impl が流用済みなら不要なので削除する（マージされていないため `-D`）：
+
+```
+git rev-parse --verify <feature>-proto >/dev/null 2>&1 && git branch -D <feature>-proto
+```
+
+存在しなければスキップする。
+
 ### Step 5: .specs/<feature> を削除する
 
 `.specs/<feature>` ディレクトリが存在するか確認し、存在すれば削除する：
@@ -95,6 +103,7 @@ rm -rf .specs/<feature>
 ## 完了条件
 - mainブランチに移動済み
 - 作業ブランチがローカルから削除済み（または削除不要と確認済み）
+- `<feature>-proto` が削除済み（または存在しなかった）
 - `.specs/<feature>` が削除済み（または存在しなかった）
 - `/clear` を提案したら完了
 
