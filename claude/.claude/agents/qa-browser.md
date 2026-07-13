@@ -6,7 +6,7 @@ mcpServers:
   - playwright:
       type: stdio
       command: npx
-      args: ["-y", "@playwright/mcp@latest"]
+      args: ["-y", "@playwright/mcp@latest", "--headless"]
 model: sonnet
 ---
 
