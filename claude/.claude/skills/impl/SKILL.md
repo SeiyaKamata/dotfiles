@@ -84,6 +84,7 @@ git checkout -b <ブランチ名>
 - テスト・ビルドコマンドをリポジトリの設定ファイルから確認する
   （`package.json`, `Makefile`, `go.mod`, `pyproject.toml` など）
 - `git status --porcelain` でベースラインを確認する
+- **prototype コードの有無**を確認する：`git rev-parse --verify <feature>-proto` が通れば、prototype 工程が動く参考実装を残している。あれば Step 4 で「参照して昇格」を implementer に指示する
 
 requirements.md / design.md の詳細はメインで読み込まない — `implementer` が自分で読む。
 
@@ -93,7 +94,18 @@ requirements.md / design.md の詳細はメインで読み込まない — `impl
 - 対象フェーズ（大タスク）の番号と、tasks.md から転記したサブタスクの説明・完了条件・`_Requirements:_`・`_Depends:_`
 - リポジトリのテスト／ビルドコマンド
 - 既存コードの関連パターンの手がかり（あれば）
+- **prototype コードがある場合の「参照して昇格」指示**（下記）
 - 「tasks.md に書かれた順に実装し、git・tasks.md には触れず、実装結果を報告フォーマットで返す」旨（`implementer` 側にも定義済みだが明示する）
+
+**参照して昇格（`<feature>-proto` が存在する場合のみ）:**
+prototype 工程が `<feature>-proto` ブランチに動く参考実装を残している。implementer に次を指示する：
+- 白紙から書き起こさず、prototype コードを**読んで流用**する。参照は**読み取り専用の git** で行う（ブランチ切り替え・作業ツリー変更をする git 操作は implementer に禁止されているため使わない）：
+  - ファイル一覧: `git diff --stat $(git merge-base HEAD <feature>-proto) <feature>-proto`
+  - 中身の参照: `git show <feature>-proto:<path>`
+  - 流用は「参照して自分で書く」＝ `git show` で読んだ内容を Write/Edit で現ブランチに書き起こす（`git checkout -- <path>` 等での取り込みはしない）
+- prototype コードは**品質を問わない捨て実装**なので、そのまま写さない。**本番品質に整形して昇格**する（命名・責務分割・エラーハンドリング・型・テスト・本リポジトリのコード規約に合わせる）
+- **正典は `design.md`**。prototype コードと design.md が食い違う場合は design.md を優先する（prototype は速く実装するための参考実装にすぎない）
+- 対象フェーズのサブタスクに対応する範囲だけを流用・整形する（フェーズ外は取り込まない。stacked 運用ではフェーズごとに必要な部分だけ昇格する）
 
 手動モード（タスク番号指定）の場合は、指定サブタスクだけを 1 つの implementer に配布する。
 
