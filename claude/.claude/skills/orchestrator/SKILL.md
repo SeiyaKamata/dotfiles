@@ -39,7 +39,7 @@ argument-hint: "<feature>"
 
 - **`auto` つきで起動するスキル**: `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test auto` / `/fix auto` / `/review auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/respond-pr-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に次ステップの定型ブロックを出さず 1 行の簡易ログのみ残す）
 - **spec だけは `auto` を渡さない**: requirements は唯一の人間承認ゲート（下記 Step 3）。spec 通常挙動（ドラフト → 承認 → 保存）で人間の承認を取る
-- **prototype**: 目視承認の代わりに Playwright での操作確認＋スクショ取得。design.md へ書き戻したら次へ
+- **prototype**: 目視承認の代わりに Playwright での操作確認＋スクショ取得。**動くコードを `<feature>-proto` ブランチに残す**（後段の impl が「参照して昇格」で流用する）。design.md へ書き戻したら次へ
 - **commit**: フェーズループの中で各フェーズのブランチにコミットする。**stacked 運用では PR をまだ作らない**（次フェーズの作業へ移る）
 - **create-pr**: `auto` 引数で起動する。単一フェーズは通常の 1 PR（ベース = デフォルトブランチ）。**複数フェーズは stacked PR を一斉作成**（p1 の base = デフォルトブランチ、pN の base = `<feature>-p(N-1)`）。未コミットがあれば `/commit auto` を自動で呼ぶ。Notion URL が最初の指示にあれば引数で渡す
 - **watch-ci**: `auto` 引数で起動する。複数 PR なら全 PR を対象にする。CI green でも **Ready for review に自動で切り替えない**。draft のまま次へ
