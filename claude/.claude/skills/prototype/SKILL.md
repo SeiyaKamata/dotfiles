@@ -30,7 +30,8 @@ argument-hint: "<feature> [auto]"
 
 ## 出力先
 - `.specs/<feature>/design.md`（作り切って得た気づきを書き戻す＝仕様の記録）
-- `<feature>-proto` ブランチにコミットして残す動くコード（impl の流用元）
+- `<feature>-proto` ブランチに 1 コミットして残す動くコード（impl の流用元）
+- `<feature>-proto` を head にした実サーバー検証用 draft PR（`@coderabbitai ignore` 入りで CodeRabbit を走らせない。マージ前提ではない）
 
 ## 進め方
 
@@ -72,36 +73,59 @@ argument-hint: "<feature> [auto]"
 
 **設計が根本的に破綻していると分かった場合**は、orchestrator に「design への差し戻しが必要」と報告する。
 
-### Step 6: prototype コードを残す
+### Step 6: prototype コードを残す（1 コミット）
 - 動くコードを `<feature>-proto` ブランチにコミットして**残す**。impl がここから流用する
   ```
   git add -A
   git commit -m "proto: <feature> 流用元の動作確認済み捨て実装"
   ```
-  > この 1 コミットは PR にならない参照用ブランチへの捨て実装なので、`/commit` スキルは通さず直接コミットしてよい（グローバル規約「必ず /commit を使う」の明示的な例外）。
+  > この 1 コミットは PR にならない参照用ブランチへの捨て実装なので、`/commit` スキルも commit-planner も通さず直接 1 コミットしてよい（グローバル規約「必ず /commit を使う」の明示的な例外）。分割せず 1 コミットにまとめる。
 - prototype コードは正典ではない。impl が正典として参照するのは `design.md`。コードはそれを速く実装するための参考実装。
+
+### Step 7: 実サーバー検証用の PR を作成する
+proto ブランチを push し、**実サーバーでの動作検証用**に draft PR を作成する。この PR は**マージされない前提**（proto は捨て実装であり、正典は `design.md`）。
+
+- **CodeRabbit を動かさないこと**。普通に PR を作ると CodeRabbit が自動レビューを走らせてしまうので、PR 本文に必ず `@coderabbitai ignore` を入れる。このコマンドが本文にあると CodeRabbit はその PR のレビューをスキップする（リポジトリ側の設定に依らず効く）。
+- `/commit`・commit-planner・`/create-pr` スキルは**経由しない**（Step 6 で直接 1 コミット済みのため）。ここでは push と `gh pr create` を直接行う。
+
+  ```
+  DEFAULT=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
+  git push -u origin <feature>-proto
+  gh pr create --draft --base "$DEFAULT" --head <feature>-proto --assignee @me \
+    --title "[proto/DO NOT MERGE] <feature> 実サーバー検証" \
+    --body "$(cat <<'EOF'
+## Summary
+実サーバーでの動作検証用の proto PR。**マージしない**（動作確認用の捨て実装で、品質は問わない）。正典は `design.md`。
+
+@coderabbitai ignore
+EOF
+)"
+  ```
+- 作成した PR の URL を報告する。
 
 ## 完了ゲート
 - [ ] 対象機能がローカルで本物として動き、要件どおりのフローを通せた
 - [ ] 作り切って得た気づきを `design.md` に書き戻した
-- [ ] 動くコードを `<feature>-proto` ブランチにコミットして残した
+- [ ] 動くコードを `<feature>-proto` ブランチに 1 コミットして残した
+- [ ] `@coderabbitai ignore` 入りの実サーバー検証用 draft PR を作成した（CodeRabbit が走らないこと）
 
 ## 自走モード（orchestrator 経由）での振る舞い
 - 人の目視承認を待たず、作り切って動いたことで設計の妥当性を判断する
 - UI の受け入れ確認は `/qa` に委ね、ここでは design.md の精度向上に専念する
-- design.md への書き戻しと proto ブランチへのコミットが終わったら次工程（/tasks）へ進む
+- design.md への書き戻し・proto ブランチへの 1 コミット・実サーバー検証用 PR 作成が終わったら次工程（/tasks）へ進む
 
 ## 完了条件
-design.md への書き戻しと `<feature>-proto` へのコミットが完了したら完了。次は `/tasks` を起動する。
+design.md への書き戻し・`<feature>-proto` への 1 コミット・`@coderabbitai ignore` 入りの実サーバー検証用 draft PR 作成が完了したら完了。次は `/tasks` を起動する。
 
 ## 次ステップ提示
 単体起動で完了したら、次の定型ブロックを**コードフェンスで囲まず**プレーンテキストで出力し、次スキルは自動起動せずユーザーの実行を待って終了する。設計が根本的に破綻していると分かった場合は、ブロックの代わりに design への差し戻しが必要な旨を報告する。
 
 ```
 ────────────────────────────────
-✅ 作り切り検証・design 反映・proto コード保存 完了
+✅ 作り切り検証・design 反映・proto コード保存・実サーバー検証用 PR 作成 完了
 📄 .specs/<feature>/design.md（更新）
 🌿 <feature>-proto（流用元コードを保存）
+🔗 <実サーバー検証用 draft PR の URL>（CodeRabbit なし／マージ前提ではない）
 ▶ 次のステップ
    /tasks <feature>
    理由: 設計の精度が上がったので実装タスクに分解する
