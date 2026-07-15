@@ -1,8 +1,8 @@
 ---
 name: create-pr
 description: 変更内容をもとにdraftでPRを作成する。commit完了後に使う。
-argument-hint: "[notion-page-url] [auto]"
-allowed-tools: Bash(git *), Bash(gh *)
+argument-hint: "[auto]"
+allowed-tools: Bash(git *), Bash(gh *), Read
 ---
 
 # PRエージェント
@@ -22,7 +22,6 @@ allowed-tools: Bash(git *), Bash(gh *)
 引数なしの単体起動では Step 0 で `/commit` を呼び、Step 1 でユーザーに確認する。
 
 ## 引数
-- `$ARGUMENTS` のうち URL 部分: NotionページのURL（省略可）
 - `auto`: 自走モードフラグ（省略可）
 
 ## 進め方
@@ -58,6 +57,8 @@ git branch --show-current
   ```
   2 本以上あれば **stacked モード**（`p1`, `p2`, ... を番号順に並べる）。1 本だけなら単一 PR として扱う。
 - 末尾が `-pN` でない（`<feature>` などの単一ブランチ） → **単一 PR モード**
+
+判定後、feature 名（ブランチ名から `-pN` を除いたもの）で `.specs/<feature>/tasks.md`（各フェーズの PR タイトル）を読む。あれば PR タイトルは tasks.md の対応表を使い、無ければ従来どおりコミットメッセージから生成する。
 
 ### Step 1.5: 作業ブランチを確認・作成する（単一 PR モードのみ）
 
@@ -114,12 +115,8 @@ gh pr create --draft --base <base> --head <feature>-pN \
 
 ## 変更内容
 （git diffの結果をもとに変更ファイルと変更内容を箇条書き）
-
-## 関連リンク
-（$ARGUMENTSが渡された場合のみ）
-- Notion: $ARGUMENTS
 ```
-タイトルはそのフェーズ（単一なら全体）の最初のコミットメッセージをベースに作成する。
+タイトルは **tasks.md の対応表で確定した各フェーズの PR タイトル**をそのまま使う（`【鎌田QA】…（PR N/M）` の形）。tasks.md が無い／未記載の場合のみ、そのフェーズ（単一なら全体）の最初のコミットメッセージをベースに作成する。
 
 ### Step 5: URL を報告し次ステップを提示する
 
