@@ -5,6 +5,9 @@ export LANG=en_US.UTF-8
 # zsh
 export SHELL_SESSIONS_DISABLE=1
 
+# Playwright MCP をヘッドレス起動（管理版は --headless 未指定のため env で上書き）
+export PLAYWRIGHT_MCP_HEADLESS=true
+
 # zoxide doctor の誤検知を抑止（設定を分割ロードしており末尾判定が効かないため）。
 # Claude Code は Bash 呼び出しごとにシェルを立て直すので、非対話でも読まれる .zshenv に置く。
 export _ZO_DOCTOR=0
