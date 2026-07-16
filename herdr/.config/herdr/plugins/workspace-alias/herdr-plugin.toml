@@ -1,6 +1,6 @@
 # workspace-alias — space のラベルをプロジェクト略称へ自動リネームする
 #
-# 略称表は lrm-corp/CLAUDE.md「## プロジェクト略称」を alias.py が動的に読む。
+# 略称表は lrm-corp/.project-aliases.toml を alias.py が動的に読む（唯一の source）。
 #   worktrees/<SLOT>/<repo> → 略称(SLOT) 例: EV2(WS1)
 #   repos/<repo>            → 略称       例: EV2
 #   表に無いディレクトリ（dotfiles / repos 自体など）は変更しない。

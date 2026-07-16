@@ -6,7 +6,7 @@
   .../repos/<repo>/...             → <repo> のプロジェクト。ラベル = 略称       例 EV2
   上記以外（worktrees/repos の外）  → 触らない（None）
 
-略称表は <root>/CLAUDE.md（worktrees/repos の親）の「## プロジェクト略称」を動的に読む。
+略称表は <root>/.project-aliases.toml（worktrees/repos の親）を動的に読む。
 表に無いプロジェクトはディレクトリ名をそのまま使う（+ worktree なら (SLOT)）。
 
 呼び出しモード:
@@ -20,8 +20,10 @@ import re
 import subprocess
 import sys
 import time
+import tomllib
 
 HERDR = os.environ.get("HERDR_BIN_PATH") or "herdr"
+ALIAS_FILE = ".project-aliases.toml"
 
 
 def sh(args):
@@ -68,29 +70,23 @@ def project_of(cwd):
 
 
 def load_aliases(root):
-    """<root>/CLAUDE.md の「## プロジェクト略称」表を dir名 -> 略称(小文字) に変換。"""
+    """<root>/.project-aliases.toml の [aliases] を dir名 -> 略称(小文字) に変換。
+
+    形式: 略称 = ["ディレクトリ名", ...]（1 略称に複数リポジトリを割り当て可）。
+    ファイルが無い・壊れているときは {}（＝略称なし）。
+    """
     try:
-        with open(os.path.join(root, "CLAUDE.md"), encoding="utf-8") as f:
-            text = f.read()
-    except OSError:
+        with open(os.path.join(root, ALIAS_FILE), "rb") as f:
+            data = tomllib.load(f)
+    except (OSError, tomllib.TOMLDecodeError):
         return {}
-    m = re.search(r"##\s*プロジェクト略称(.*?)(?:\n##\s|\Z)", text, re.S)
-    section = m.group(1) if m else text
     mapping = {}
-    for line in section.splitlines():
-        line = line.strip()
-        if not line.startswith("|"):
-            continue
-        cells = [c.strip() for c in line.strip("|").split("|")]
-        if len(cells) < 2:
-            continue
-        alias, projects = cells[0], cells[1]
-        if alias in ("略称", "") or set(alias) <= set("-: "):
-            continue
-        for proj in projects.split(","):
-            name = re.split(r"[（(]", proj)[0].replace("`", "").strip()
-            if name:
-                mapping[name] = alias
+    for alias, projects in (data.get("aliases") or {}).items():
+        if isinstance(projects, str):
+            projects = [projects]
+        for proj in projects:
+            if proj:
+                mapping[proj] = alias.lower()
     return mapping
 
 
