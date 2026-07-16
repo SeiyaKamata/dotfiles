@@ -145,7 +145,7 @@ argument-hint: "<feature> [auto]"
 
 `## 他 PJ への handoff`:
 - `H<n>`: 連番の handoff ID。ブロックされるタスクの `_Depends:_` から参照する。
-- チェックボックス: `/handoff` が依頼書（handoff.md）を書いたら `[x]` に更新する（＝依頼済みの印。相手 PJ 側の完了ではなく「投げた」ことを表す）。
+- チェックボックス: `/handoff` が依頼書（seed.md）を書いたら `[x]` に更新する（＝依頼済みの印。相手 PJ 側の完了ではなく「投げた」ことを表す）。
 - 他 PJ への依存が無ければこのセクションは省略してよい。
 
 ### qa.md（`.specs/<feature>/qa.md`）

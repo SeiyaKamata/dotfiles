@@ -35,6 +35,9 @@ argument-hint: "<feature> [auto]"
 
 ### Step 2: コンテキスト収集
 - 既存の `.specs/<feature>/requirements.md` があれば読み込む
+- `.specs/<feature>/seed.md` があれば、新 feature の機能要望（入力）として読み込む
+  （`/spinoff` `/handoff` が切り出した種文書）。無ければ `.specs/<feature>/handoff.md`
+  （旧名）を後方互換フォールバックとして読み込む。seed.md は消化後も削除しない。
 - `.kiro/steering/` があればプロジェクト背景として参照する
 
 ### Step 3: 要件の詳細化
