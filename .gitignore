@@ -8,3 +8,7 @@ result-*
 
 # secret
 zsh/.zshenv.local
+
+# Python
+__pycache__/
+*.pyc
