@@ -1,12 +1,7 @@
 ---
 name: qa-browser
 description: qa.md のシナリオを Playwright でブラウザ操作し合否を返す。/qa 専用。
-tools: Read, Grep, Glob, Bash, mcp__playwright
-mcpServers:
-  - playwright:
-      type: stdio
-      command: npx
-      args: ["-y", "@playwright/mcp@latest", "--headless"]
+tools: Read, Grep, Glob, Bash, mcp__plugin_playwright_playwright__*
 model: sonnet
 ---
 
