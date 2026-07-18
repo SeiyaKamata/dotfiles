@@ -83,9 +83,7 @@
   "enabledPlugins": {
     "serena@claude-plugins-official": false,
     "context7@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": false,
-    "figma@claude-plugins-official": false,
-    "notion@claude-plugins-official": false
+    "gopls-lsp@claude-plugins-official": false
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
