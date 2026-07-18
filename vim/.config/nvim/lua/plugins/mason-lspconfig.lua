@@ -67,5 +67,20 @@ return {
 			-- モノレポ内で誤って大量ファイルを拾った場合のピークメモリ・CPU負荷を抑える
 			cmd = { "clangd", "--background-index", "--background-index-priority=background", "-j=2", "--pch-storage=disk" },
 		})
+
+		-- Neovim標準LSPはバッファを閉じてもクライアントを自動停止しないため、
+		-- 別プロジェクト（別 root_dir）を渡り歩く長時間セッションでクライアントが積み上がり続ける。
+		-- 添付バッファが0になったクライアントはその都度停止してメモリ膨張を防ぐ。
+		vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
+			callback = function()
+				vim.schedule(function()
+					for _, client in ipairs(vim.lsp.get_clients()) do
+						if vim.tbl_isempty(client.attached_buffers) then
+							client:stop()
+						end
+					end
+				end)
+			end,
+		})
 	end,
 }
