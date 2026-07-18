@@ -1,5 +1,6 @@
 return {
 	"nvim-lualine/lualine.nvim",
+	event = "VeryLazy",
 	config = function()
 		-- ===== leader（prefix）待ち検知 =====
 		-- Vim/Neovim には「leader待ち」を知らせる autocmd が無いため、

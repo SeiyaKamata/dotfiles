@@ -1,6 +1,7 @@
 return {
 	"williamboman/mason-lspconfig.nvim",
 	dependencies = { "neovim/nvim-lspconfig", "williamboman/mason.nvim" },
+	event = { "BufReadPre", "BufNewFile" },
 	config = function()
 		local buf_map = require("core.utils").buf_map
 
