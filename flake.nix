@@ -15,7 +15,6 @@
 
       commonPackages = pkgs: with pkgs; [
         # CLI
-        tmux
         tree-sitter
         bat
         bottom
