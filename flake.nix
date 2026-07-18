@@ -7,9 +7,11 @@
     # coderabbit-cli を取り出すためだけに 2 本目のフル nixpkgs を
     # フェッチ・評価するのを避け、本体の nixpkgs に揃える（評価高速化）
     llm-agents.inputs.nixpkgs.follows = "nixpkgs";
+    herdr.url = "github:ogulcancelik/herdr";
+    herdr.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, llm-agents }:
+  outputs = { self, nixpkgs, llm-agents, herdr }:
     let
       mkPkgs = system: import nixpkgs { inherit system; config.allowUnfree = true; };
 
@@ -98,7 +100,7 @@
           let pkgs = mkPkgs "x86_64-linux";
           in pkgs.buildEnv {
             name = "kamata-env";
-            paths = commonPackages pkgs ++ aiPackages "x86_64-linux";
+            paths = commonPackages pkgs ++ aiPackages "x86_64-linux" ++ [ herdr.packages."x86_64-linux".default ];
           };
       };
     };
