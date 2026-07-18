@@ -31,6 +31,14 @@ return {
 		})
 
 		vim.lsp.config("gopls", {
+			settings = {
+				gopls = {
+					-- 大きい Go モノレポでの常駐メモリ膨張を抑制（開いていないファイルの情報を積極的に破棄）
+					["build.memoryMode"] = "DegradeClosed",
+					-- 依存物・生成物ディレクトリをワークスペーススキャン対象から除外
+					directoryFilters = { "-node_modules", "-vendor", "-**/node_modules", "-**/vendor" },
+				},
+			},
 			on_attach = function(client, bufnr)
 				on_attach(client, bufnr)
 				local augroup = vim.api.nvim_create_augroup("LspFormatting_" .. bufnr, { clear = true })
@@ -43,11 +51,21 @@ return {
 		})
 
 		vim.lsp.config("pyright", {
-			settings = { python = { analysis = { typeCheckingMode = "basic" } } },
+			settings = {
+				python = {
+					analysis = {
+						typeCheckingMode = "basic",
+						-- 依存物・生成物ディレクトリを解析対象から除外
+						exclude = { "**/node_modules", "**/.venv", "**/venv", "**/vendor", "**/dist", "**/build" },
+					},
+				},
+			},
 		})
 
 		vim.lsp.config("clangd", {
-			cmd = { "clangd", "--background-index" },
+			-- competitive programming 等の単発ファイル用途。ワーカー数とインデックス優先度を下げ
+			-- モノレポ内で誤って大量ファイルを拾った場合のピークメモリ・CPU負荷を抑える
+			cmd = { "clangd", "--background-index", "--background-index-priority=background", "-j=2", "--pch-storage=disk" },
 		})
 	end,
 }
