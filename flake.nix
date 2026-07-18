@@ -19,7 +19,6 @@
         tree-sitter
         bat
         bottom
-        chafa
         eza
         fd
         fzf
@@ -62,7 +61,6 @@
 
         # TUI
         yazi
-        lazydocker
 
         # 検索・差分
         ripgrep
