@@ -6,7 +6,6 @@ alias vis="nvim .specs"
 alias q="exit"
 
 # Rust command
-alias ls='eza'
 alias ps='procs'
 alias cat='bat'
 alias du='dust'
@@ -17,4 +16,6 @@ alias grep='rg'
 
 
 
-alias lss="ls .specs"
+alias ls='eza'
+alias lsl='eza -al'
+alias lss="eza .specs"
