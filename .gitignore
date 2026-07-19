@@ -9,6 +9,10 @@ result-*
 # secret
 zsh/.zshenv.local
 
+# herdr runtime files
+herdr/.config/herdr/*.log
+herdr/.config/herdr/session.json
+
 # Python
 __pycache__/
 *.pyc

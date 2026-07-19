@@ -42,6 +42,21 @@ opt.pumheight = 10
 -- clipboard
 opt.clipboard = "unnamedplus"
 
+-- SSH 経由 (herdr --remote 含む) は xclip/wl-copy 等が無いため OSC52 でホスト側クリップボードへ転送する
+if vim.env.SSH_TTY or vim.env.SSH_CONNECTION then
+  vim.g.clipboard = {
+    name = "OSC 52",
+    copy = {
+      ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+    },
+    paste = {
+      ["+"] = require("vim.ui.clipboard.osc52").paste("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").paste("*"),
+    },
+  }
+end
+
 -- diff 系
 opt.diffopt:append({ "linematch:60", "algorithm:histogram", "indent-heuristic" })
 
