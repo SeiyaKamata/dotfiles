@@ -4,6 +4,14 @@ return {
 		"nvim-lua/plenary.nvim",
 		{ "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
 	},
+	cmd = "Telescope",
+	keys = {
+		{ "<leader>ff", desc = "Find files" },
+		{ "<leader>fb", desc = "Find buffers" },
+		{ "<leader>fg", desc = "Live grep" },
+		{ "<leader>fF", desc = "Find files (all)" },
+		{ "<leader>fG", desc = "Live grep (all)" },
+	},
 	config = function()
 		local actions = require("telescope.actions")
 		require("telescope").setup({

@@ -15,11 +15,9 @@
 
       commonPackages = pkgs: with pkgs; [
         # CLI
-        tmux
         tree-sitter
         bat
         bottom
-        chafa
         eza
         fd
         fzf
@@ -62,7 +60,6 @@
 
         # TUI
         yazi
-        lazydocker
 
         # 検索・差分
         ripgrep
@@ -101,7 +98,7 @@
           let pkgs = mkPkgs "x86_64-linux";
           in pkgs.buildEnv {
             name = "kamata-env";
-            paths = commonPackages pkgs ++ aiPackages "x86_64-linux";
+            paths = commonPackages pkgs ++ aiPackages "x86_64-linux" ++ [ pkgs.herdr ];
           };
       };
     };

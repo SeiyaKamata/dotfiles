@@ -11,7 +11,6 @@ UNAME    := $(shell uname -s)
 	brew-install \
 	brew-dump \
 	reload-zsh \
-	reload-tmux \
 	reload-sheldon \
 	clean-ds-store \
 	claude \
@@ -22,7 +21,7 @@ help:
 
 DOTFILES_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-STOW_PACKAGES_COMMON := zsh git tmux vim sheldon starship yazi claude herdr
+STOW_PACKAGES_COMMON := zsh git vim sheldon starship yazi claude herdr
 STOW_PACKAGES_MAC    := alacritty
 ifeq ($(UNAME), Darwin)
   STOW_PACKAGES := $(STOW_PACKAGES_COMMON) $(STOW_PACKAGES_MAC)
@@ -80,12 +79,6 @@ brew-dump:
 reload-zsh: # このコマンドは検証用。makeで設定ファイルの再読み込みは不可
 	$(call log,Reloading config ~/.zshrc)
 	@zsh -lc 'source ~/.zshrc'
-	$(call log,Done)
-
-TMUX_CONF := $(HOME)/.config/tmux/tmux.conf
-reload-tmux:
-	$(call log,Reloading config $(TMUX_CONF))
-	@tmux source-file $(TMUX_CONF)
 	$(call log,Done)
 
 reload-sheldon:
