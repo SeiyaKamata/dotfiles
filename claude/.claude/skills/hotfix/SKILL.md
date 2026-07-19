@@ -168,11 +168,11 @@ gh pr create \
   --title "hotfix: <subject>" \
   --body "<本文>" \
   --assignee @me \
-  --label "<該当ラベル>"
+  --label "<該当ラベル>" \
+  --draft
 ```
 
-draftにはしない（hotfixは即レビュー対象）。
-ユーザーがdraft希望と明示した場合のみ `--draft` を付ける。
+draftで作成する。レビュー準備が整ったらユーザーがready化する。
 
 ### Step 11: main宛のPRを作成する
 
@@ -185,7 +185,8 @@ gh pr create \
   --title "hotfix: <subject> (to main)" \
   --body "<本文>" \
   --assignee @me \
-  --label "<該当ラベル>"
+  --label "<該当ラベル>" \
+  --draft
 ```
 
 main宛PRの本文には冒頭に以下を加える:
