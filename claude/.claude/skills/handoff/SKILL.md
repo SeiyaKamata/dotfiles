@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: 作業ディレクトリ外の別PJに修正依頼を投げる。相手PJの.specs/配下に要望書(handoff.md)を書いて受け渡し、相手は/specで拾う。別PJのファイルを直接編集できずブロックされたとき使う。
+description: 作業ディレクトリ外の別PJに修正依頼を投げる。相手PJの.specs/配下に要望書(seed.md)を書いて受け渡し、相手は/specで拾う。別PJのファイルを直接編集できずブロックされたとき使う。
 argument-hint: "[依頼先PJのパスまたは略称] [機能名]"
 allowed-tools: Bash(ls *), Bash(test *), Bash(git -C *), Read, Write, Edit, Glob, Grep
 ---
@@ -10,12 +10,12 @@ allowed-tools: Bash(ls *), Bash(test *), Bash(git -C *), Read, Write, Edit, Glob
 ## 役割
 
 今のセッションから直接編集できない別 PJ に対し、修正依頼を `.specs/` 経由で受け渡す。
-相手 PJ の `.specs/<機能名>/handoff.md` に要望書を書き、相手はそれを `/spec` の入力として拾う。
+相手 PJ の `.specs/<機能名>/seed.md` に要望書を書き、相手はそれを `/spec` の入力として拾う。
 
 **前提**: ハーネスは作業ディレクトリ外のファイル編集をブロックする。例外は各 PJ の `.specs/`
 配下のみ。よって本体ファイルの編集は試みず、必ず相手 PJ の `.specs/` に書く。
 
-**位置づけ**: handoff.md は「機能要望」であって実装指示ではない。相手 PJ で `/spec` に渡すと、
+**位置づけ**: seed.md は「機能要望」であって実装指示ではない。相手 PJ で `/spec` に渡すと、
 質問しながら requirements.md に詳細化され、その後 design → tasks → impl と正規フローに乗る。
 よって実装手順・受け入れ条件などを先回りして書かない（spec→design→tasks が生成する）。
 書くのは「何を・なぜ・どこまで」に絞る。
@@ -53,7 +53,7 @@ test -d <依頼先PJ>/.specs && echo writable || echo "(.specs なし)"
 
 ### Step 3: 要望書を書く
 
-`<依頼先PJ>/.specs/<機能名>/handoff.md` に Write する。テンプレート:
+`<依頼先PJ>/.specs/<機能名>/seed.md` に Write する。テンプレート:
 
 ```markdown
 # <タイトル: 何をしたい依頼か 1 行で>
@@ -72,10 +72,11 @@ test -d <依頼先PJ>/.specs && echo writable || echo "(.specs なし)"
 
 ## 拾い方
 この依頼書は依頼元セッションでは編集できないため、本体は手付かず。相手 PJ で
-`cd <依頼先PJ> && claude` を起動し、`/spec` に本ファイルを渡して要件詳細化から始める。
+`cd <依頼先PJ> && claude` を起動し、`/spec <機能名>` を実行して要件詳細化から始める
+（`.specs/<機能名>/seed.md` は `/spec` が自動で読み込む）。
 ```
 
-**完了ゲート:** handoff.md を Write し、相手が `/spec` で拾える要望になっているか。
+**完了ゲート:** seed.md を Write し、相手が `/spec` で拾える要望になっているか。
 
 ### Step 4: 依頼元 tasks.md の handoff 項目をチェックする
 
@@ -95,12 +96,12 @@ test -d <依頼先PJ>/.specs && echo writable || echo "(.specs なし)"
 
 ### Step 5: 報告する
 
-書いた handoff.md のフルパスと、相手 PJ での拾い方（`cd <依頼先PJ> && claude` → `/spec` に
-handoff.md を渡す → requirements → design → tasks → impl）を人間に報告する。
+書いた seed.md のフルパスと、相手 PJ での拾い方（`cd <依頼先PJ> && claude` → `/spec <機能名>`
+（seed.md は自動で読み込まれる）→ requirements → design → tasks → impl）を人間に報告する。
 
 ## 完了条件
 
-依頼先 PJ の `.specs/<機能名>/handoff.md` に要望書を書き、依頼元 tasks.md に対応する
+依頼先 PJ の `.specs/<機能名>/seed.md` に要望書を書き、依頼元 tasks.md に対応する
 `H<n>` があればチェック済みにし、`/spec` での拾い方を報告したら完了。
 
 ## エラー処理

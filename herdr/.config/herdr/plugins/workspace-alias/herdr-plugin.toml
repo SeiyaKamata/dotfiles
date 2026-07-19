@@ -1,0 +1,30 @@
+# workspace-alias — space のラベルをプロジェクト略称へ自動リネームする
+#
+# 略称表は lrm-corp/.project-aliases.toml を alias.py が動的に読む（唯一の source）。
+#   worktrees/<SLOT>/<repo> → 略称(SLOT) 例: EV2(WS1)
+#   repos/<repo>            → 略称       例: EV2
+#   表に無いディレクトリ（dotfiles / repos 自体など）は変更しない。
+#
+# 登録: herdr plugin link <このディレクトリ>
+# 全 space に手動反映: python3 alias.py --all
+id = "workspace-alias"
+name = "Workspace Alias"
+version = "0.1.0"
+min_herdr_version = "0.7.0"
+description = "space のラベルをプロジェクト略称(WSn 付き)へ自動リネーム"
+platforms = ["macos"]
+
+# 新しい space ができたとき
+[[events]]
+on = "workspace.created"
+command = ["sh", "-c", "python3 \"$HERDR_PLUGIN_ROOT/alias.py\""]
+
+# worktree から space を開いたとき（cwd がこの時点で確定していることが多い）
+[[events]]
+on = "worktree.opened"
+command = ["sh", "-c", "python3 \"$HERDR_PLUGIN_ROOT/alias.py\""]
+
+# cwd 変化を拾う保険（idempotent なのでループしない）
+[[events]]
+on = "workspace.updated"
+command = ["sh", "-c", "python3 \"$HERDR_PLUGIN_ROOT/alias.py\""]
