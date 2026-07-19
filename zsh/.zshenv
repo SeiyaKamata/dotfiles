@@ -12,11 +12,13 @@ export PLAYWRIGHT_MCP_HEADLESS=true
 # Claude Code は Bash 呼び出しごとにシェルを立て直すので、非対話でも読まれる .zshenv に置く。
 export _ZO_DOCTOR=0
 
-
 # XDG
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_STATE_HOME="$HOME/.local/state"
+
+typeset -U path PATH
 
 # My Scripts
 path=("$HOME/.local/bin" $path)
@@ -24,11 +26,11 @@ path=("$HOME/.local/bin" $path)
 # workspace root
 export WORKSPACE="$HOME/Develop/workspace"
 
-mkdir -p "$WORKSPACE"
+[[ -d "$WORKSPACE" ]] || mkdir -p "$WORKSPACE"
 
 # Go
 export GOPATH="$WORKSPACE/go"
-export PATH="$GOPATH/bin:$PATH"
+path=("$GOPATH/bin" $path)
 
 # nvm
 export NVM_DIR="$WORKSPACE/nvm"
@@ -45,5 +47,4 @@ node() { _nvm_load; node "$@"; }
 npm()  { _nvm_load; npm  "$@"; }
 npx()  { _nvm_load; npx  "$@"; }
 
-
-source $HOME/.zshenv.local
+[[ -f "$HOME/.zshenv.local" ]] && source "$HOME/.zshenv.local"
