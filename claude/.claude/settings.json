@@ -55,9 +55,7 @@
       "Bash(docker compose ps *)",
       "Bash(docker compose exec *)",
       "Read(~/Develop/*)",
-      "Write(.specs/**)",
-      "Edit(.specs/**)",
-      "MultiEdit(.specs/**)"
+      "Edit(.specs/**)"
     ],
     "defaultMode": "auto"
   },
