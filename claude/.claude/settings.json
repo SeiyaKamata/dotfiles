@@ -83,7 +83,8 @@
   "enabledPlugins": {
     "serena@claude-plugins-official": false,
     "context7@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": false
+    "gopls-lsp@claude-plugins-official": false,
+    "playwright@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
