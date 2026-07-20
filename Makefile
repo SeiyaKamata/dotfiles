@@ -10,6 +10,7 @@ UNAME    := $(shell uname -s)
 	stow-install \
 	brew-install \
 	brew-dump \
+	sshd-restrict-locale-env \
 	reload-zsh \
 	reload-sheldon \
 	clean-ds-store \
@@ -34,7 +35,7 @@ define log
 endef
 
 # ===== setup =====
-setup: brew-install nix-install stow-install
+setup: brew-install nix-install stow-install sshd-restrict-locale-env
 	$(call log,Done)
 
 
@@ -74,7 +75,14 @@ brew-dump:
 	@brew bundle dump --file homebrew/.Brewfile --force
 	$(call log,Done)
 
- 
+
+# ===== sshd =====
+sshd-restrict-locale-env:
+	$(call log,Restricting sshd AcceptEnv LC_* forwarding)
+	@$(DOTFILES_DIR)scripts/sshd-restrict-locale-env.sh
+	$(call log,Done)
+
+
 # ===== apply setting file =====
 reload-zsh: # このコマンドは検証用。makeで設定ファイルの再読み込みは不可
 	$(call log,Reloading config ~/.zshrc)
