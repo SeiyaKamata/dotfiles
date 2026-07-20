@@ -80,6 +80,10 @@ focus_pane_down = ""
 focus_pane_up = ""
 focus_pane_right = ""
 
+# herdr 既定の edit_scrollback(prefix+e) を無効化。
+# 下の [[keys.command]] で prefix+e を nvim 起動popupに割り当てるため衝突を避ける。
+edit_scrollback = ""
+
 # ===== 補足（tmux から素直に移せない項目）=====
 # - リサイズ: tmux は C-Left/Right/Up/Down に直接割り当てていたが、
 #   herdr は prefix+r（resize_mode 既定）で入ってから矢印/hjkl で調整する方式。
@@ -101,3 +105,12 @@ type = "popup"
 command = '''export PATH="$HOME/.nix-profile/bin:$PATH"; nvim .specs'''
 width = "80%"
 height = "80%"
+
+# ===== popup: nvim 起動ショートカット =====
+# prefix+e: カレントディレクトリを nvim で開く
+[[keys.command]]
+key = "prefix+e"
+type = "popup"
+command = '''export PATH="$HOME/.nix-profile/bin:$PATH"; nvim .'''
+width = "95%"
+height = "95%"
