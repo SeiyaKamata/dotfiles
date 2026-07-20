@@ -33,3 +33,9 @@
 [include]
     path = ~/.gitconfig.local
 
+[credential "https://github.com"]
+	helper = 
+	helper = !/home/ubuntu/.nix-profile/bin/.gh-wrapped auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !/home/ubuntu/.nix-profile/bin/.gh-wrapped auth git-credential
