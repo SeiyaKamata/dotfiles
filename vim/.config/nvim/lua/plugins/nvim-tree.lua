@@ -45,6 +45,17 @@ return {
 				local opts = { buffer = bufnr, noremap = true, silent = true, nowait = true }
 				vim.keymap.set("n", "l", api.node.open.edit, opts)
 				vim.keymap.set("n", "h", api.node.navigate.parent_close, opts)
+				vim.keymap.set("n", "<CR>", function()
+					local node = api.tree.get_node_under_cursor()
+					if node and node.type == "directory" then
+						vim.fn.setreg('"', node.name)
+						vim.fn.setreg("+", node.name)
+						vim.notify(node.name)
+						vim.cmd("quit")
+					else
+						api.node.open.edit()
+					end
+				end, opts)
 			end,
 		})
 
