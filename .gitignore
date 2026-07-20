@@ -16,3 +16,4 @@ herdr/.config/herdr/session.json
 # Python
 __pycache__/
 *.pyc
+.specs
