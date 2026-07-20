@@ -92,3 +92,20 @@ focus_pane_right = ""
 agent_panel_sort = "spaces"
 # tab を使わない運用。1 tab のときは上部タブバーを隠す（space 内は基本 1 tab なので常に非表示）。
 hide_tab_bar_when_single_tab = true
+
+# ===== popup: .specs 関連ショートカット =====
+# prefix+l: .specs 配下の feature ディレクトリを fzf で選び、選択した名前を OSC52 でクリップボードにコピーする
+[[keys.command]]
+key = "prefix+l"
+type = "popup"
+command = '''export PATH="$HOME/.nix-profile/bin:$PATH"; sel=$(eza -1 -D .specs | fzf) && [ -n "$sel" ] && printf '\033]52;c;%s\a' "$(printf %s "$sel" | base64 | tr -d '\n')" > /dev/tty'''
+width = "80%"
+height = "80%"
+
+# prefix+t: .specs を nvim で開く（zsh エイリアス vis と同等の実体コマンド）
+[[keys.command]]
+key = "prefix+t"
+type = "popup"
+command = '''export PATH="$HOME/.nix-profile/bin:$PATH"; nvim .specs'''
+width = "80%"
+height = "80%"
