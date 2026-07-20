@@ -33,8 +33,6 @@ argument-hint: "<feature> [auto]"
 ### Step 2: コンテキスト収集
 以下を並行して読み込む：
 - `.specs/<feature>/requirements.md`（必須）
-- 既存コードベースの関連ファイル（Grep/Globで探索）
-- `.kiro/steering/tech.md`, `structure.md`（あれば）
 
 ### Step 3: 調査・分析
 機能の種別に応じて調査の深さを変える：
