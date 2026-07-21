@@ -59,7 +59,8 @@ OK / NG
 
 ```
 ✅ レビュー完了 — .specs/<feature>/review.md
-OK：/qa <feature>
+OK（QAあり）：/qa <feature>
+OK（QAなし）：/commit <feature>
 NG（設計の問題）：/design <feature>
 NG（実装の問題）：/impl <feature>
 ```
