@@ -16,6 +16,7 @@ argument-hint: "<feature> [auto]"
 
 ## 入力（すべて .specs / 実行から。会話に依存しない）
 - `.specs/<feature>/test-report.md`（`/test` が書いた失敗レポート。失敗テスト名・エラー・疑わしいファイル・実行コマンド）
+- `.specs/<feature>/qa-report.md`（存在すれば。`/qa` が書いたブラウザ受け入れの失敗シナリオ・原因・スクショパス。qa 起因で呼ばれたときの入力源）
 - `.specs/<feature>/{requirements,design,tasks}.md`（仕様の文脈。「実装バグか設計の穴か」を判断するのに使う）
 - レポートが無い／コードと食い違うと判断したときは、**自分でテストを走らせて失敗を観測する**（コールド起動時のフォールバック）
 
@@ -28,7 +29,7 @@ argument-hint: "<feature> [auto]"
 - `$ARGUMENTS[0]` が未指定なら「使い方: /fix <feature> [auto]」を表示して終了
 
 ### Step 2: 根本原因の診断
-`test-report.md`・`.specs/<feature>/` の仕様・失敗に関連するコードを読み、原因を特定して分類する：
+`test-report.md`（qa 起因なら `qa-report.md`）・`.specs/<feature>/` の仕様・失敗に関連するコードを読み、原因を特定して分類する：
 - **実装バグ** → Step 3 で最小修正
 - **テストの期待値ずれ** → 仕様（requirements.md）と照合してから Step 3 で修正
 - **設計の問題** → コードを触らず `/design <feature>`（編集モード）に戻す。前進カスケードで design→tasks→impl→test を回し直す（NG 分岐）
@@ -41,6 +42,7 @@ argument-hint: "<feature> [auto]"
 
 ### Step 4: テスト再実行で確認
 修正後にテストを走らせて確認する（この 1 回が修正の検証）。結果は `.specs/<feature>/test-report.md` に反映する。
+qa 起因の失敗（ブラウザでしか観測できない挙動）は、ここではユニットテストで最小限の確認に留め、**最終確認は下流の `/qa` 再実行に委ねる**（fix は Playwright を持たない）。
 - PASS → 末尾「次ステップ提示」の定型ブロックで `/test <feature>` の再ゲートを提示する
 - FAIL（別の原因）→ Step 2 に戻る（最大3回まで）
 - 3回試みても FAIL → ユーザーに状況を報告して指示を仰ぐ
