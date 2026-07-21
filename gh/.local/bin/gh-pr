@@ -1,0 +1,200 @@
+#!/usr/bin/env bash
+# lrm-corp 配下の PR を gh でチェックし、標準出力 + macOS 通知するツール。
+#
+#   gh-pr review   自分がレビュアーに指定された open PR を一覧し、
+#                  レビューに入る `gh pr checkout <url>` を出力する。
+#   gh-pr mine     自分が作った open PR のレビュー状況を一覧し、
+#                  approve 済みなら merge コマンドを出力する。
+#
+# 共通オプション:
+#   -w            watch モード（一定間隔で繰り返し実行）
+#   -i SECONDS    watch の間隔（デフォルト 300 秒）
+#   -o ORG        対象 org（デフォルト lrm-corp）
+#   -h            ヘルプ
+#
+# 使用例:
+#   gh-pr review           # 1 回だけチェック
+#   gh-pr review -w        # watch（300 秒間隔）
+#   gh-pr mine -w -i 120   # 自分の PR を 120 秒間隔で watch
+#
+# 前提: gh にログイン済み（gh auth status で確認）。通知は macOS の osascript。
+set -euo pipefail
+
+# --- 設定 ---
+ORG="lrm-corp"
+INTERVAL=300
+WATCH=0
+# approve 済み PR に出力する merge コマンド。repo の設定に合わせて調整可
+# （例: --merge / --rebase）。
+MERGE_CMD="gh pr merge %s --squash --delete-branch"
+
+usage() {
+  cat <<EOF
+Usage: ${0##*/} <review|mine> [-w] [-i SECONDS] [-o ORG]
+
+Commands:
+  review   自分がレビュアーに指定された open PR を一覧 + \`gh pr checkout\` を出力
+  mine     自分の open PR のレビュー状況を一覧、approve 済みは merge コマンドを出力
+
+Options:
+  -w            watch モード（一定間隔で繰り返し実行）
+  -i SECONDS    watch の間隔（デフォルト ${INTERVAL} 秒）
+  -o ORG        対象 org（デフォルト ${ORG}）
+  -h            このヘルプ
+EOF
+}
+
+# macOS 通知（osascript）。特殊文字はエスケープ。通知不可でも本体は継続。
+notify() {
+  local title="$1" msg="$2"
+  title=${title//\\/\\\\}; title=${title//\"/\\\"}
+  msg=${msg//\\/\\\\}; msg=${msg//\"/\\\"}
+  osascript -e "display notification \"$msg\" with title \"$title\"" >/dev/null 2>&1 || true
+}
+
+# --- review: 自分がレビュアーに指定された open PR ---
+cmd_review() {
+  # 取得する PR フィールド（この直後の gh search prs で使う）
+  local fields="number,title,url,repository,author,isDraft"
+
+  local out
+  out=$(gh search prs --owner "$ORG" --review-requested=@me --state open \
+    --json "$fields" \
+    --jq '.[] | select(.isDraft | not)
+          | [.repository.nameWithOwner, (.number|tostring), .author.login, .url, .title] | @tsv' \
+    2>/dev/null) || {
+      echo "gh search に失敗しました（gh auth status を確認してください）" >&2
+      return 1
+    }
+
+  if [ -z "$out" ]; then
+    echo "レビュー依頼された open PR はありません（org: $ORG）"
+    return 0
+  fi
+
+  local count=0
+  echo "=== レビュー依頼された open PR (org: $ORG) ==="
+  echo
+  while IFS=$'\t' read -r repo number author url title; do
+    count=$((count + 1))
+    printf '● %s  #%s  by @%s\n' "$repo" "$number" "$author"
+    printf '  %s\n' "$title"
+    printf '  %s\n' "$url"
+    printf '  gh pr checkout %s\n\n' "$url"
+  done <<< "$out"
+
+  notify "レビュー依頼 (${ORG})" "${count} 件のレビュー待ち PR があります"
+}
+
+# --- mine: 自分が作った open PR のレビュー状況 ---
+cmd_mine() {
+  # 自分の PR を検索して URL だけ取り、詳細は後段で 1 件ずつ引く
+  local search_fields="url"
+  # 各 PR のレビュー状況を取得するフィールド
+  local view_fields="title,reviewDecision,reviews"
+
+  local urls
+  urls=$(gh search prs --owner "$ORG" --author=@me --state open \
+    --json "$search_fields" --jq '.[].url' 2>/dev/null) || {
+      echo "gh search に失敗しました（gh auth status を確認してください）" >&2
+      return 1
+    }
+
+  if [ -z "$urls" ]; then
+    echo "自分の open PR はありません（org: $ORG）"
+    return 0
+  fi
+
+  local reviewed_count=0 approved_count=0
+  echo "=== 自分の open PR のレビュー状況 (org: $ORG) ==="
+  echo
+
+  while IFS= read -r url; do
+    [ -z "$url" ] && continue
+
+    # reviewDecision / 着いたレビュー state / タイトルを 1 行ずつ取得する。
+    # （タブ区切りだと bash の read がタブを空白扱いして空フィールドを畳み込み、
+    #   reviewDecision が空の PR で列がずれるため、改行区切りで個別に読む）
+    # 末尾の `|| true`: gh pr view 失敗で出力が空だと read が EOF で非 0 を返し、
+    #   set -e でスクリプト全体が落ちるのを防ぐ（この PR だけスキップさせる）。
+    local decision="" states="" title=""
+    {
+      IFS= read -r decision
+      IFS= read -r states
+      IFS= read -r title
+    } < <(gh pr view "$url" --json "$view_fields" --jq '
+      (.reviewDecision // "" | if . == "" then "NONE" else . end),
+      ([.reviews[].state] | unique | join(",")),
+      .title' 2>/dev/null) || true
+
+    # レビューが何も着いていない PR（や取得失敗）はスキップ。
+    [ -z "$states" ] && continue
+
+    reviewed_count=$((reviewed_count + 1))
+    printf '● %s\n' "$title"
+    printf '  %s\n' "$url"
+    printf '  レビュー: %s / 判定: %s\n' "$states" "$decision"
+
+    # マージ可否: reviewDecision が APPROVED、または（レビュー必須でない repo で）
+    # 承認が着いていて変更要求が無い場合。
+    local approvable=0
+    if [ "$decision" = "APPROVED" ]; then
+      approvable=1
+    elif [ "$decision" = "NONE" ] \
+      && [[ ",$states," == *",APPROVED,"* ]] \
+      && [[ ",$states," != *",CHANGES_REQUESTED,"* ]]; then
+      approvable=1
+    fi
+
+    if [ "$approvable" -eq 1 ]; then
+      approved_count=$((approved_count + 1))
+      printf '  ✅ approve 済み → マージ可能:\n'
+      # shellcheck disable=SC2059
+      printf "  ${MERGE_CMD}\n" "$url"
+    fi
+    echo
+  done <<< "$urls"
+
+  if [ "$reviewed_count" -eq 0 ]; then
+    echo "レビューが着いた PR はまだありません（org: $ORG）"
+    return 0
+  fi
+
+  local msg="レビューが着いた PR: ${reviewed_count} 件"
+  [ "$approved_count" -gt 0 ] && msg="${msg} / approve 済み: ${approved_count} 件（マージ可）"
+  notify "自分の PR にレビュー (${ORG})" "$msg"
+}
+
+main() {
+  local cmd="${1:-}"
+  case "$cmd" in
+    review|mine) shift ;;
+    -h|--help|"") usage; exit 0 ;;
+    *) echo "不明なコマンド: $cmd" >&2; usage; exit 1 ;;
+  esac
+
+  while getopts "wi:o:h" opt; do
+    case "$opt" in
+      w) WATCH=1 ;;
+      i) INTERVAL="$OPTARG" ;;
+      o) ORG="$OPTARG" ;;
+      h) usage; exit 0 ;;
+      *) usage; exit 1 ;;
+    esac
+  done
+
+  local runner="cmd_${cmd}"
+  if [ "$WATCH" -eq 1 ]; then
+    while true; do
+      clear
+      date '+%Y-%m-%d %H:%M:%S'
+      echo
+      "$runner" || true
+      sleep "$INTERVAL"
+    done
+  else
+    "$runner"
+  fi
+}
+
+main "$@"
