@@ -27,11 +27,15 @@ argument-hint: "<feature> [auto]"
 - feature 名と auto フラグを確定する
 
 ### Step 2: アプリ到達性確認
-`/qa` はアプリ起動済みを前提に**到達性のみ確認**する（自身ではアプリを起動しない）。
 ベース URL に到達できるか確認する（`curl -sSf <baseURL>` など）。
 
 - 到達できる → Step 3 へ進む
-- **到達できない（未起動）** → プロジェクト CLAUDE.md の起動手順（docker compose / `swws` / dev server）を案内して停止する。
+- **到達できない（未起動）**:
+  - **手動モード** → 自身では起動せず、プロジェクト CLAUDE.md の起動手順（docker compose / `swws` / dev server）を案内して停止する。
+  - **auto モード** → 自走を止めないため、自動起動を 1 回だけ試みる:
+    1. `/swws -loop <profile>`（既定 `web`。別プロファイルが要るなら CLAUDE.md に従う）を **`run_in_background` で**起動する。`-loop` は**別 worktree を奪わず**空くまで待つので事故にならない。
+    2. 起動後、ベース URL への到達性を数秒間隔で再確認する。
+    3. 到達できたら Step 3 へ。**起動できない／到達しない／別 worktree 使用中で `-loop` が失敗したとき**は、qa を回さず `## QA結果: BLOCKED`（起動不可）として qa-report.md に記録し、オーケストレータ（または `/fix`）に返して停止する。人間承認は待たない。
 
 ### Step 3: シナリオ実行の委譲
 `.specs/<feature>/qa.md` を読み、`qa-browser` を Agent で起動する。**全シナリオを1回の委譲で**渡す（ブラウザセッション共有・メインのコンテキスト消費最小）。
@@ -68,7 +72,7 @@ argument-hint: "<feature> [auto]"
 # QA結果: [機能名]
 
 ## サマリ
-- 判定: PASS / FAIL
+- 判定: PASS / FAIL / BLOCKED（BLOCKED=アプリ未起動で検証未実施）
 - シナリオ数 / pass / fail: N / N / N
 
 ## 失敗シナリオ（FAIL のとき）
