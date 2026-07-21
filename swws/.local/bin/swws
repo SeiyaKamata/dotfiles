@@ -1,0 +1,175 @@
+#!/bin/bash
+set -euo pipefail
+
+INFISICAL="infisical run --env=dev --path=/ --recursive --domain=https://app.infisical.com/api --"
+
+# -loop: up 系が別 worktree と競合したら空くまでリトライする。付けなければ即失敗。
+LOOP=0
+args=()
+for a in "$@"; do
+  case "$a" in
+    -loop|--loop) LOOP=1 ;;
+    *) args+=("$a") ;;
+  esac
+done
+PROFILE="${args[0]:-web}"
+
+current_worktree() {
+  git rev-parse --show-toplevel 2>/dev/null
+}
+
+APP_DIR=$(current_worktree)
+[ -n "$APP_DIR" ] || { echo "git worktree 内で実行してください" >&2; exit 1; }
+
+dir=$(basename "$APP_DIR")
+project_dir="${dir%%@*}"
+
+case "$project_dir" in
+  Seculio)
+    project_root="/Users/kamata_seiya/Develop/lrm-corp/repos/Seculio"
+    project_name="seculio"
+    ;;
+  user-dashboard)
+    project_root="/Users/kamata_seiya/Develop/lrm-corp/repos/user-dashboard"
+    project_name="user-dashboard"
+    ;;
+  elearning-service)
+    project_root="/Users/kamata_seiya/Develop/lrm-corp/repos/elearning-service"
+    project_name="elearning-service"
+    ;;
+  training-email-next)
+    project_root="/Users/kamata_seiya/Develop/lrm-corp/repos/training-email-next"
+    project_name="training-email-next"
+    ;;
+  automated-training-service)
+    project_root="/Users/kamata_seiya/Develop/lrm-corp/repos/automated-training-service"
+    project_name="automated-training-service"
+    ;;
+  cross-company-management)
+    project_root="/Users/kamata_seiya/Develop/lrm-corp/repos/cross-company-management"
+    project_name="cross-company-management"
+    ;;
+  *)
+    echo "未対応: $project_dir" >&2; exit 1
+    ;;
+esac
+
+COMPOSE="docker compose -p $project_name -f $APP_DIR/compose.yaml -f $project_root/compose.kmt.yaml"
+LOCKFILE="/tmp/swws-${project_name}.lock"
+
+# このプロジェクトで稼働中のコンテナがマウントしている worktree 一覧（distinct）。
+# 何も無ければ空文字＝空き。停止済みは解放とみなす（稼働中のみ対象）。
+running_worktrees() {
+  docker ps \
+    --filter "label=com.docker.compose.project=$project_name" \
+    --format '{{.Label "com.docker.compose.project.working_dir"}}' \
+    2>/dev/null | grep -v '^$' | sort -u
+}
+
+# 自分の worktree 以外で稼働している worktree 一覧（あれば競合 or 混在）。
+other_worktrees() {
+  running_worktrees | grep -vxF "$APP_DIR" || true
+}
+
+# 「使用中チェック → up」を flock 下でアトミックに 1 回試行する。
+# チェックと up の間に別プロセスが割り込めないので、複数セッションが同時に
+# 叩いても status が警告する「混在」状態にならない。
+# 戻り値: 0=起動した / 2=別 worktree が使用中 / それ以外=起動コマンドの失敗。
+# SWWS_FORCE=1 のときはチェックを飛ばして必ず起動する。
+attempt_up() {
+  (
+    flock -x 9 || { echo "ロック取得に失敗しました: $LOCKFILE" >&2; exit 3; }
+    if [ "${SWWS_FORCE:-0}" != "1" ]; then
+      [ -z "$(other_worktrees)" ] || exit 2
+    fi
+    run_up
+  ) 9>"$LOCKFILE"
+}
+
+# up 系の起動ドライバ。別 worktree が使用中なら、-loop 指定時のみ
+# 5分 → 10分 → 10分 の間隔で最大 3 回リトライする。
+# 3 回リトライしても空かなければ失敗（exit 2）。他 worktree は奪わない。
+# sleep 中はロックを解放しているので、待機中でも他 worktree の 'swws stop' を妨げない。
+launch() {
+  local waits=(300 600 600) i=0 rc
+  while true; do
+    if attempt_up; then return 0; fi
+    rc=$?
+    [ "$rc" = 2 ] || return "$rc"
+
+    echo "⚠️  $project_name は別の worktree で使用中です:" >&2
+    printf '      %s\n' $(other_worktrees) >&2
+    echo "    今ここ: $APP_DIR" >&2
+
+    if [ "$LOOP" = "1" ] && [ "$i" -lt "${#waits[@]}" ]; then
+      local w=${waits[$i]}
+      i=$((i + 1))
+      echo "    → ${w}秒待って再試行します（$i/${#waits[@]}）" >&2
+      sleep "$w"
+      continue
+    fi
+
+    echo "    解放するには使用中の worktree で 'swws stop' を実行してください。" >&2
+    if [ "$LOOP" != "1" ]; then
+      echo "    自動でリトライするなら: swws -loop $PROFILE" >&2
+    fi
+    echo "    どうしても今すぐ奪うなら: SWWS_FORCE=1 swws $PROFILE" >&2
+    return 2
+  done
+}
+
+case "$PROFILE" in
+  status)
+    all=$(running_worktrees)
+    if [ -z "$all" ]; then
+      echo "空き: $project_name は稼働中コンテナなし"
+    else
+      others=$(printf '%s\n' "$all" | grep -vxF "$APP_DIR" || true)
+      mine=$(printf '%s\n' "$all" | grep -xF "$APP_DIR" || true)
+      if [ -z "$others" ]; then
+        echo "使用中(自分): $project_name <- $APP_DIR"
+      elif [ -z "$mine" ]; then
+        echo "使用中(別worktree): $project_name"
+        printf '  <- %s\n' $others
+        echo "  今ここ: $APP_DIR"
+      else
+        echo "⚠️ 混在: $project_name に複数 worktree が同居しています"
+        echo "  自分: $APP_DIR"
+        printf '  別 : %s\n' $others
+        echo "  'swws stop' でいったん全停止して起動し直すのを推奨します。"
+      fi
+    fi
+    ;;
+  web)
+    run_up() { echo "→ $(basename "$APP_DIR") (web) に切り替えます"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE up -d; }
+    launch
+    ;;
+  full)
+    run_up() { echo "→ $(basename "$APP_DIR") (full) 全サービスを起動します"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE --profile extra --profile worker up -d; }
+    launch
+    ;;
+  api)
+    run_up() { echo "→ $(basename "$APP_DIR") (api) を起動します"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE up api -d; }
+    launch
+    ;;
+  sec-web)
+    run_up() { echo "→ $(basename "$APP_DIR") (web+traefik) に切り替えます"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE up web traefik -d; }
+    launch
+    ;;
+  worker)
+    run_up() { echo "→ $(basename "$APP_DIR") (worker) を起動します"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE --profile worker up heavy worker -d; }
+    launch
+    ;;
+  worker-stop)
+    echo "→ worker を停止します"
+    $COMPOSE --profile worker stop heavy worker
+    ;;
+  stop)
+    echo "→ $project_name を停止します（解放）"
+    $COMPOSE --profile extra --profile worker stop
+    ;;
+  *)
+    echo "使い方: $(basename "$0") [-loop] [status|web|full|api|sec-web|worker|worker-stop|stop]" >&2
+    exit 1
+    ;;
+esac
