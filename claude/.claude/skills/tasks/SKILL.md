@@ -178,13 +178,9 @@ argument-hint: "<feature> [auto]"
 単体起動で完了したら、次の定型ブロックを**コードフェンスで囲まず**プレーンテキストで出力し、次スキルは自動起動せずユーザーの実行を待って終了する。
 
 ```
-────────────────────────────────
-✅ タスク分解完了
-📄 .specs/<feature>/tasks.md（QA シナリオは .specs/<feature>/qa.md）
-▶ 次のステップ
-   /impl <feature>
-   理由: タスクが揃ったので実装に着手する
-────────────────────────────────
+✅ タスク分解完了 — .specs/<feature>/tasks.md（QA シナリオは .specs/<feature>/qa.md）
+OK：/impl <feature>
+NG：/tasks <feature>
 ```
 
 自律モード（起動引数に `auto` を含む）では上記ブロックを出さず、遷移先を 1 行の簡易ログだけ残す（例: `次: /impl <feature>`）。次スキルの起動は呼び出し元（orchestrator）が行う。

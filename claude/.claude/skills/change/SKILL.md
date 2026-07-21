@@ -79,13 +79,8 @@ argument-hint: "<feature>"
 完了したら、確定した変更レベルに対応する次の分岐ブロックを**コードフェンスで囲まず**プレーンテキストで出力し、次スキルは自動起動せずユーザーの実行を待って終了する。Step 4 で変更レベルが確定しているので、該当する 1 つを提示する（`📄` は実際に更新した md のパスにする）。
 
 ```
-────────────────────────────────
-✅ ドキュメント更新完了
-📄 <更新した md（requirements.md / design.md / tasks.md）>
-▶ 次のステップ
-   ・要件レベル → /design <feature>
-   ・設計レベル → /tasks <feature>
-   ・タスクレベル → /impl <feature>
-   理由: 変更レベルによって再開する工程が変わる
-────────────────────────────────
+✅ ドキュメント更新完了 — <更新した md（requirements.md / design.md / tasks.md）>
+OK（要件レベル）：/design <feature>
+OK（設計レベル）：/tasks <feature>
+OK（タスクレベル）：/impl <feature>
 ```
