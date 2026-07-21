@@ -18,6 +18,9 @@ argument-hint: "<feature>"
 - **test / review / commit はフェーズ単位**（PR 単位で閉じる）だが、**qa は feature 全体の受け入れゲート**なので**全フェーズ実装後に 1 回だけ**回す。
 
 ## パイプライン
+
+> **フロー正本**: 各工程の done（完了条件）・next（次工程）・戻し先・scope・human_gate は `~/.claude/dev_flow.yml` を**唯一の正本**とする。下の図とこの SKILL.md の各所は、その正本を人が読むための**要約**であって定義ではない（食い違ったら dev_flow.yml が勝つ）。工程を進める／戻すときは dev_flow.yml を参照して判断する。
+
 ```
 /spec →【要件承認ゲート(人)】→ /design →(分岐)→ [/prototype] → /tasks
   → フェーズループ（大タスクごと・依存順・stacked）:
