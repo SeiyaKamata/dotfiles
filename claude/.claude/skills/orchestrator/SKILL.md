@@ -40,7 +40,7 @@ argument-hint: "<feature>"
 ## 自走モードの起動（重要）
 人間承認を待つステップを持つスキルは **`auto` 引数**で起動して承認をスキップする。各スキルの `auto` 時の挙動は、それぞれの SKILL.md の「自走モード（`auto` 引数）」節に定義されている：
 
-- **`auto` つきで起動するスキル**: `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test auto` / `/fix auto` / `/review auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/respond-pr-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に次ステップの定型ブロックを出さず 1 行の簡易ログのみ残す）
+- **`auto` つきで起動するスキル**: `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test <feature> auto` / `/fix <feature> auto` / `/review auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/respond-pr-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に次ステップの定型ブロックを出さず 1 行の簡易ログのみ残す）
 - **spec だけは `auto` を渡さない**: requirements は唯一の人間承認ゲート（下記 Step 3）。spec 通常挙動（ドラフト → 承認 → 保存）で人間の承認を取る
 - **prototype**: 目視承認の代わりに Playwright での操作確認＋スクショ取得。**動くコードを `<feature>-proto` ブランチに残す**（後段の impl が「参照して昇格」で流用する）。design.md へ書き戻したら次へ
 - **commit**: フェーズループの中で各フェーズのブランチにコミットする。**stacked 運用では PR をまだ作らない**（次フェーズの作業へ移る）
@@ -59,13 +59,13 @@ argument-hint: "<feature>"
 7. tasks.md を読んで**フェーズ構成（大タスク数）**を確認する。大タスク = フェーズ = 1 PR = 1 ブランチ。複数フェーズは依存順に並べる（stacked PR になる）
 8. **フェーズループ**: 各フェーズ pN を依存順に、以下のフルサイクルで回す（単一フェーズなら 1 周だけ）。**test / review / commit はこのループ内＝PR 単位**：
    1. `/impl <feature> [pN] auto` を起動（単一は `<feature>`、複数は `pN`。`pN` のブランチは `p(N-1)` にスタック）
-   2. `/test auto` を起動し PASS / FAIL を確認。FAIL → `/fix auto` → `/test auto` を再実行（test FAIL 3連続で停止）
+   2. `/test <feature> auto` を起動し PASS / FAIL を確認。FAIL → `/fix <feature> auto` → `/test <feature> auto` を再実行（test FAIL 3連続で停止）
    3. `/review <feature> auto` を起動。NG は下記「例外処理」（設計起因は `/design auto`→`/impl`、それ以外は `/impl` に戻す）
    4. `/commit auto` を起動し、**このフェーズのブランチにコミットする**（stacked 運用なので PR はまだ作らない）
    5. 次フェーズへ（前フェーズが commit 済みなので clean に stack できる）
 9. **全フェーズ完了後の受け入れゲート**: 最終スタックブランチ（＝全実装が乗った状態）で `/qa <feature> auto` を起動する（ブラウザ動作確認。feature 全体の受け入れを 1 回で確認）
    - 全 pass → 次へ
-   - fail → qa の指摘から**原因フェーズを特定**し、そのフェーズのブランチに戻って `/fix auto`（設計起因なら `/design auto`・`/impl <feature> [pN] auto`）→ 該当フェーズの `/test`→`/review`→`/commit` を通し、**上位フェーズへ変更を反映（stack を rebase 伝播）**してから `/qa` に再合流。qa↔fix が2周しても収束しない、または rebase 伝播を自走で安全に行えないと判断したら報告して停止
+   - fail → qa の指摘から**原因フェーズを特定**し、そのフェーズのブランチに戻って `/fix <feature> auto`（設計起因なら `/design auto`・`/impl <feature> [pN] auto`）→ 該当フェーズの `/test <feature>`→`/review`→`/commit` を通し、**上位フェーズへ変更を反映（stack を rebase 伝播）**してから `/qa` に再合流。qa↔fix が2周しても収束しない、または rebase 伝播を自走で安全に行えないと判断したら報告して停止
 10. `/create-pr auto` を起動する。**単一フェーズは 1 PR、複数フェーズは stacked PR を一斉作成**（各 PR の base は前フェーズのブランチ、p1 は デフォルトブランチ）。draft でも CodeRabbit が自動でレビューを開始する
 11. `/watch-ci auto` を起動する（全 PR の CI green まで監視。赤なら下記ループ）
 12. **最新コミットへの CodeRabbit レビューを待つ**: `/respond-pr-comments` の Step 2 のコマンドで PR のレビュー／コメントを取得し、**現在の HEAD コミットより後**の `coderabbitai[bot]` のレビューが届くまでポーリングする（1巡目は最初のレビュー、2巡目以降は push 後の再レビューを待つ。一定時間来なければ報告して停止）
@@ -92,7 +92,7 @@ argument-hint: "<feature>"
 - **レビュー NG**:
   - 「設計の根本的な問題」が含まれる → `/design` に戻す
   - それ以外（コード品質・実装ミス）→ `/impl` に戻す
-- **qa FAIL** → 原因フェーズを特定してそのフェーズで `/fix`（設計起因なら `/design`・`/impl`）→ そのフェーズの `/test`→`/review`→`/commit` を通し、stack を rebase 伝播してから `/qa` に再合流。qa↔fix が2周しても収束しない、または rebase 伝播を自走で安全に行えない → 報告して停止
+- **qa FAIL** → 原因フェーズを特定してそのフェーズで `/fix <feature>`（設計起因なら `/design`・`/impl`）→ そのフェーズの `/test <feature>`→`/review`→`/commit` を通し、stack を rebase 伝播してから `/qa` に再合流。qa↔fix が2周しても収束しない、または rebase 伝播を自走で安全に行えない → 報告して停止
 - **CI 失敗** → ログを取得し自己修正して push し直す。2回直しても green にならない → 報告して停止
 - **CodeRabbit コメント対応が2巡しても収束しない** → 報告して停止
 - **CodeRabbit のレビューが一定時間来ない** → 報告して停止
