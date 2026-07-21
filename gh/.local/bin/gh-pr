@@ -17,7 +17,9 @@
 #   gh-pr review -w        # watch（300 秒間隔）
 #   gh-pr mine -w -i 120   # 自分の PR を 120 秒間隔で watch
 #
-# 前提: gh にログイン済み（gh auth status で確認）。通知は macOS の osascript。
+# 前提: gh にログイン済み（gh auth status で確認）。
+# 通知は herdr があれば herdr notification（リモート越しでも手元に届く）、
+# 無ければ macOS の osascript にフォールバックする。
 set -euo pipefail
 
 # --- 設定 ---
@@ -44,9 +46,21 @@ Options:
 EOF
 }
 
-# macOS 通知（osascript）。特殊文字はエスケープ。通知不可でも本体は継続。
+# 通知。herdr があれば herdr notification（herdr サーバー経由でアタッチ中の
+# クライアントに出るため、リモートで watch させても手元に届く）。無ければ
+# macOS の osascript にフォールバック。いずれも通知不可でも本体は継続。
 notify() {
   local title="$1" msg="$2"
+  # herdr は通知が無効 (delivery=off) でも exit 0 で {"shown":false} を返すため、
+  # exit code ではなく shown:true を確認してから成功扱いにする。
+  if command -v herdr >/dev/null 2>&1; then
+    local res
+    res=$(herdr notification show "$title" --body "$msg" --sound request 2>/dev/null) || res=""
+    case "$res" in
+      *'"shown":true'*) return ;;
+    esac
+  fi
+  # フォールバック: osascript。特殊文字はエスケープ。
   title=${title//\\/\\\\}; title=${title//\"/\\\"}
   msg=${msg//\\/\\\\}; msg=${msg//\"/\\\"}
   osascript -e "display notification \"$msg\" with title \"$title\"" >/dev/null 2>&1 || true
