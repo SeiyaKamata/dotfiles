@@ -101,3 +101,12 @@ type = "popup"
 command = '''export PATH="$HOME/.nix-profile/bin:$PATH"; nvim .specs'''
 width = "80%"
 height = "80%"
+
+# prefix+o: hp（プロンプトランチャー）で fzf 選択 → popup を開いたワークスペースの
+# 主 Claude セッションへリテラル注入（Enter は送らない、submit は人手）
+[[keys.command]]
+key = "prefix+o"
+type = "popup"
+command = '''export PATH="$HOME/.nix-profile/bin:$HOME/.local/bin:$PATH"; name=$(hp list | fzf --prompt="prompt> ") && hp send "$name" && echo "送信: $name"; sleep 0.5'''
+width = "60%"
+height = "60%"
