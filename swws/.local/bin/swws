@@ -54,7 +54,9 @@ case "$project_dir" in
     ;;
 esac
 
-COMPOSE="docker compose -p $project_name -f $APP_DIR/compose.yaml -f $project_root/compose.kmt.yaml"
+COMPOSE="docker compose -p $project_name -f $APP_DIR/compose.yaml"
+overlay="$project_root/compose.kmt.yaml"
+[ -f "$overlay" ] && COMPOSE="$COMPOSE -f $overlay"
 LOCKFILE="/tmp/swws-${project_name}.lock"
 
 # このプロジェクトで稼働中のコンテナがマウントしている worktree 一覧（distinct）。
