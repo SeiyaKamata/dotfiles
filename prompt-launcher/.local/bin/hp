@@ -1,0 +1,241 @@
+#!/usr/bin/env bash
+# hp (herdr prompt) - プロンプトの保管・取り出し・稼働中 Claude セッションへの注入
+set -euo pipefail
+
+# ===== prompts_dir 解決 =====
+# 実体パス（symlink 解決後）を求める。macOS bash 3.2 互換のため readlink -f は使わない。
+resolve_self() {
+  local src="${BASH_SOURCE[0]}"
+  while [ -L "$src" ]; do
+    local dir
+    dir=$(cd -P "$(dirname "$src")" && pwd)
+    src=$(readlink "$src")
+    case "$src" in
+      /*) ;;
+      *) src="$dir/$src" ;;
+    esac
+  done
+  local final_dir
+  final_dir=$(cd -P "$(dirname "$src")" && pwd)
+  echo "$final_dir/$(basename "$src")"
+}
+
+self_path=$(resolve_self)
+# self_path = <repo>/prompt-launcher/.local/bin/hp
+bin_dir=$(dirname "$self_path")               # <repo>/prompt-launcher/.local/bin
+local_dir=$(dirname "$bin_dir")               # <repo>/prompt-launcher/.local
+pl_dir=$(dirname "$local_dir")                # <repo>/prompt-launcher
+repo_root=$(dirname "$pl_dir")                # <repo>
+prompts_dir="${HP_PROMPT_DIR:-$repo_root/prompts}"
+
+# ===== 共通ヘルパー =====
+err() {
+  echo "hp: $*" >&2
+}
+
+require_cmd() {
+  command -v "$1" >/dev/null 2>&1 || { err "コマンドが見つかりません: $1"; exit 1; }
+}
+
+resolve_prompt() {
+  local name="$1"
+  local path="$prompts_dir/$name.md"
+  if [ ! -f "$path" ]; then
+    err "プロンプトが見つかりません: $name ($path)"
+    exit 1
+  fi
+  printf '%s' "$path"
+}
+
+list_prompts() {
+  local found=0
+  local f name
+  if [ -d "$prompts_dir" ]; then
+    for f in "$prompts_dir"/*.md; do
+      [ -e "$f" ] || continue
+      name=$(basename "$f" .md)
+      echo "$name"
+      found=1
+    done
+  fi
+  if [ "$found" -eq 0 ]; then
+    err "プロンプトがありません ($prompts_dir)"
+  fi
+}
+
+cmd_show() {
+  local name="$1"
+  local path
+  path=$(resolve_prompt "$name")
+  cat "$path"
+}
+
+cmd_copy() {
+  require_cmd pbcopy
+  local name="$1"
+  local path
+  path=$(resolve_prompt "$name")
+  pbcopy < "$path"
+  err "クリップボードにコピーしました: $name"
+}
+
+# ===== 送信先解決 =====
+# resolve_target: 標準出力に terminal_id を返す。参考情報（経路等）は stderr に出す。
+resolve_target() {
+  require_cmd herdr
+  require_cmd jq
+
+  local agents
+  if ! agents=$(herdr agent list 2>/dev/null); then
+    err "herdr に接続できません（herdr agent list に失敗）"
+    exit 1
+  fi
+
+  # 手順1: HERDR_ACTIVE_PANE_ID から agent get
+  if [ -n "${HERDR_ACTIVE_PANE_ID:-}" ]; then
+    local get_json
+    if get_json=$(herdr agent get "$HERDR_ACTIVE_PANE_ID" 2>/dev/null); then
+      local is_claude terminal_id
+      is_claude=$(echo "$get_json" | jq -r '.result.agent.agent // empty')
+      if [ "$is_claude" = "claude" ]; then
+        terminal_id=$(echo "$get_json" | jq -r '.result.agent.terminal_id // empty')
+        if [ -n "$terminal_id" ]; then
+          err "解決経路: 1 (HERDR_ACTIVE_PANE_ID -> agent get)"
+          printf '%s' "$terminal_id"
+          return 0
+        fi
+      fi
+    fi
+  fi
+
+  # 手順2: agent list を workspace_id で絞り込み
+  local ws="${HERDR_ACTIVE_WORKSPACE_ID:-${HERDR_WORKSPACE_ID:-}}"
+  if [ -n "$ws" ]; then
+    local candidates count terminal_id
+    candidates=$(echo "$agents" | jq -r --arg ws "$ws" \
+      '.result.agents[] | select(.agent=="claude" and .workspace_id==$ws)')
+    count=$(echo "$candidates" | jq -s 'length')
+    if [ "$count" -gt 0 ]; then
+      # origin pane と一致するものを優先
+      if [ -n "${HERDR_ACTIVE_PANE_ID:-}" ]; then
+        terminal_id=$(echo "$candidates" | jq -r --arg pane "$HERDR_ACTIVE_PANE_ID" \
+          'select(.pane_id==$pane) | .terminal_id' | head -n1)
+        if [ -n "$terminal_id" ]; then
+          err "解決経路: 2 (agent list -> workspace 絞り込み -> pane 一致)"
+          printf '%s' "$terminal_id"
+          return 0
+        fi
+      fi
+      if [ "$count" -gt 1 ]; then
+        err "workspace 内に claude セッションが複数あり、送信先を一意に特定できません（誤送信防止のため中止）"
+        err "popup から起動して origin ペインを渡すか、対象を1つに絞ってください"
+        exit 1
+      fi
+      terminal_id=$(echo "$candidates" | jq -r '.terminal_id' | head -n1)
+      if [ -n "$terminal_id" ]; then
+        err "解決経路: 2 (agent list -> workspace 絞り込み)"
+        printf '%s' "$terminal_id"
+        return 0
+      fi
+    fi
+  fi
+
+  # 手順3: focused ワークスペースをフォールバック origin とみなす
+  local ws_json focused_ws
+  if ws_json=$(herdr workspace list 2>/dev/null); then
+    focused_ws=$(echo "$ws_json" | jq -r '.result.workspaces[] | select(.focused==true) | .workspace_id' | head -n1)
+    if [ -n "$focused_ws" ]; then
+      local candidates count terminal_id
+      candidates=$(echo "$agents" | jq -r --arg ws "$focused_ws" \
+        '.result.agents[] | select(.agent=="claude" and .workspace_id==$ws)')
+      count=$(echo "$candidates" | jq -s 'length')
+      if [ "$count" -gt 0 ]; then
+        if [ "$count" -gt 1 ]; then
+          err "focused workspace 内に claude セッションが複数あり、送信先を一意に特定できません（誤送信防止のため中止）"
+          err "popup から起動して origin ペインを渡すか、対象を1つに絞ってください"
+          exit 1
+        fi
+        terminal_id=$(echo "$candidates" | jq -r '.terminal_id' | head -n1)
+        if [ -n "$terminal_id" ]; then
+          err "解決経路: 3 (focused workspace フォールバック)"
+          printf '%s' "$terminal_id"
+          return 0
+        fi
+      fi
+    fi
+  fi
+
+  err "送信先の Claude セッションを解決できませんでした"
+  exit 1
+}
+
+cmd_target() {
+  echo "HERDR_ACTIVE_PANE_ID=${HERDR_ACTIVE_PANE_ID:-}"
+  echo "HERDR_ACTIVE_WORKSPACE_ID=${HERDR_ACTIVE_WORKSPACE_ID:-}"
+  echo "HERDR_WORKSPACE_ID=${HERDR_WORKSPACE_ID:-}"
+  local terminal_id
+  terminal_id=$(resolve_target)
+  echo "resolved terminal_id=$terminal_id"
+}
+
+cmd_send() {
+  require_cmd herdr
+  local name="$1"
+  local path body terminal_id
+  path=$(resolve_prompt "$name")
+  # command substitution が末尾の改行を自動的にトリムする
+  body=$(cat "$path")
+  terminal_id=$(resolve_target)
+  if ! herdr agent send "$terminal_id" "$body"; then
+    err "送信に失敗しました（送信先が存在しない/終了している可能性）: $terminal_id"
+    exit 1
+  fi
+  err "注入しました: $terminal_id"
+}
+
+usage() {
+  cat <<'EOF'
+使い方:
+  hp [list]        プロンプト名一覧を表示
+  hp show <name>    プロンプト本文を標準出力へ
+  hp copy <name>    プロンプト本文をクリップボードへコピー
+  hp send <name>    プロンプト本文を送信先 Claude セッションへリテラル注入（Enter なし）
+  hp target         送信先解決の診断（resolve_target の経路と結果を表示）
+EOF
+}
+
+main() {
+  local sub="${1:-list}"
+  [ $# -gt 0 ] && shift || true
+
+  case "$sub" in
+    list)
+      list_prompts
+      ;;
+    show)
+      [ $# -ge 1 ] || { err "使い方: hp show <name>"; exit 1; }
+      cmd_show "$1"
+      ;;
+    copy)
+      [ $# -ge 1 ] || { err "使い方: hp copy <name>"; exit 1; }
+      cmd_copy "$1"
+      ;;
+    send)
+      [ $# -ge 1 ] || { err "使い方: hp send <name>"; exit 1; }
+      cmd_send "$1"
+      ;;
+    target)
+      cmd_target
+      ;;
+    -h|--help|help)
+      usage
+      ;;
+    *)
+      err "不明なサブコマンド: $sub"
+      usage
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"
