@@ -21,42 +21,8 @@ current_worktree() {
 APP_DIR=$(current_worktree)
 [ -n "$APP_DIR" ] || { echo "git worktree 内で実行してください" >&2; exit 1; }
 
-dir=$(basename "$APP_DIR")
-project_dir="${dir%%@*}"
-
-case "$project_dir" in
-  Seculio)
-    project_root="/Users/kamata_seiya/Develop/lrm-corp/repos/Seculio"
-    project_name="seculio"
-    ;;
-  user-dashboard)
-    project_root="/Users/kamata_seiya/Develop/lrm-corp/repos/user-dashboard"
-    project_name="user-dashboard"
-    ;;
-  elearning-service)
-    project_root="/Users/kamata_seiya/Develop/lrm-corp/repos/elearning-service"
-    project_name="elearning-service"
-    ;;
-  training-email-next)
-    project_root="/Users/kamata_seiya/Develop/lrm-corp/repos/training-email-next"
-    project_name="training-email-next"
-    ;;
-  automated-training-service)
-    project_root="/Users/kamata_seiya/Develop/lrm-corp/repos/automated-training-service"
-    project_name="automated-training-service"
-    ;;
-  cross-company-management)
-    project_root="/Users/kamata_seiya/Develop/lrm-corp/repos/cross-company-management"
-    project_name="cross-company-management"
-    ;;
-  security-awareness-front)
-    project_root="/Users/kamata_seiya/Develop/lrm-corp/repos/security-awareness-front"
-    project_name="security-awareness-front"
-    ;;
-  *)
-    echo "未対応: $project_dir" >&2; exit 1
-    ;;
-esac
+project_root=$(git worktree list --porcelain | sed -n '1s/^worktree //p')
+project_name=$(basename "$project_root" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]//g')
 
 COMPOSE="docker compose -p $project_name -f $APP_DIR/compose.yaml"
 overlay="$project_root/compose.kmt.yaml"
