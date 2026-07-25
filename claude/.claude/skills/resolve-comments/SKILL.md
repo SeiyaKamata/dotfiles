@@ -1,5 +1,5 @@
 ---
-name: respond-pr-comments
+name: resolve-comments
 description: 自分のPRに付いた未解決コメントに対応する。CI完了後に使う。
 argument-hint: "[auto]"
 ---
