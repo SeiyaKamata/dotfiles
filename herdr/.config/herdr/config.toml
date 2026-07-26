@@ -111,7 +111,7 @@ height = "80%"
 [[keys.command]]
 key = "prefix+e"
 type = "popup"
-command = '''export PATH="$HOME/.nix-profile/bin:$PATH"; nvim .'''
+command = '''export PATH="$HOME/.nix-profile/bin:$PATH"; nvim'''
 width = "95%"
 height = "95%"
 
