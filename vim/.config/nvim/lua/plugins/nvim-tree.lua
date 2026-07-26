@@ -39,6 +39,7 @@ return {
 				},
 			},
 			git = { enable = true },
+			update_focused_file = { enable = true },
 			on_attach = function(bufnr)
 				local api = require("nvim-tree.api")
 				api.config.mappings.default_on_attach(bufnr)
@@ -47,14 +48,20 @@ return {
 				vim.keymap.set("n", "h", api.node.navigate.parent_close, opts)
 				vim.keymap.set("n", "<CR>", function()
 					local node = api.tree.get_node_under_cursor()
-					if node and node.type == "directory" then
+					if not node then
+						return
+					end
+					if node.type == "directory" then
 						vim.fn.setreg('"', node.name)
 						vim.fn.setreg("+", node.name)
 						vim.notify(node.name)
-						vim.cmd("quit")
 					else
-						api.node.open.edit()
+						local relpath = vim.fn.fnamemodify(node.absolute_path, ":.")
+						vim.fn.setreg('"', relpath)
+						vim.fn.setreg("+", relpath)
+						vim.notify(relpath)
 					end
+					vim.cmd("quit")
 				end, opts)
 			end,
 		})
