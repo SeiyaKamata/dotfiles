@@ -8,7 +8,7 @@ return {
 		local function on_attach(_, bufnr)
 			local map = buf_map(bufnr)
 			map("n", "<leader>ca", vim.lsp.buf.code_action,                          { desc = "Code action" })
-			map("n", "<leader>gf", function() vim.lsp.buf.format({ async = true }) end, { desc = "Format" })
+			map("n", "<leader>cf", function() vim.lsp.buf.format({ async = true }) end, { desc = "Format" })
 			map("n", "<leader>rn", vim.lsp.buf.rename,                               { desc = "Rename" })
 			map("n", "gd", vim.lsp.buf.definition,                           { desc = "Go to definition" })
 			map("n", "gr", vim.lsp.buf.references,                           { desc = "References" })
