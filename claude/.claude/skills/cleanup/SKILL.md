@@ -27,6 +27,10 @@ PRがマージされた後、作業ブランチと `.specs/<feature>` を削除�
 ls -1 .specs/
 ```
 
+**`proposals` は候補から除外する。** `.specs/proposals/` はスキル自己改善の提案キュー（永続・
+全 app repo/feature 集約先）であり feature ではないため、cleanup の削除候補として絶対に
+掴んではならない。
+
 候補が1件もない場合は「`.specs/` にディレクトリが見つかりません。feature名を直接入力してください」と伝えて入力を待つ。
 
 候補がある場合は番号付きで提示する：
@@ -95,6 +99,10 @@ rm -rf .specs/<feature>
 ```
 
 存在しない場合はスキップする。
+
+**`<feature>` が `proposals` のときは絶対に実行しない。** `.specs/proposals/` は feature では
+なく提案キュー（cleanup 対象外）。誤って `proposals` が feature 名として渡された場合は削除
+せず、その旨を伝えて中断する。
 
 ### Step 6: 完了を報告して次ステップを提示する
 
