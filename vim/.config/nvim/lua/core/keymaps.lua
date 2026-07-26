@@ -3,6 +3,14 @@ local function map(mode, lhs, rhs, desc)
 end
 
 vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+
+-- <leader>XY 系（3打鍵以上）のグループ先頭キー。タイポ・タイムアウト時に
+-- 生キー（o→insert突入、s→置換してinsert突入 等）へフォールバックしない
+-- ための安全弁。新しく <leader>X* のグループを増やしたらここにも追記する。
+for _, prefix in ipairs({ "o", "f", "r", "s", "g", "c" }) do
+	map("n", "<leader>" .. prefix, "<Nop>", "no-op")
+end
 
 map("i", "jj",         "<Esc>",                                            "jj でノーマルモード")
 map("n", "<leader>q",  "<cmd>x<CR>",                                       "保存して終了")
