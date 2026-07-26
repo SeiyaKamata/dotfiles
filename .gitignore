@@ -12,6 +12,7 @@ zsh/.zshenv.local
 # herdr runtime files
 herdr/.config/herdr/*.log
 herdr/.config/herdr/session.json
+herdr/.config/herdr/release-notes.json
 
 # Python
 __pycache__/
