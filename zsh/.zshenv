@@ -47,4 +47,7 @@ node() { _nvm_load; node "$@"; }
 npm()  { _nvm_load; npm  "$@"; }
 npx()  { _nvm_load; npx  "$@"; }
 
+# npm private registry token（未定義だと .npmrc の ${NPM_TOKEN} で npm が落ちるため空デフォルト。実体は .zshenv.local で上書き）
+export NPM_TOKEN=""
+
 [[ -f "$HOME/.zshenv.local" ]] && source "$HOME/.zshenv.local"

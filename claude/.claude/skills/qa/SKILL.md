@@ -27,11 +27,15 @@ argument-hint: "<feature> [auto]"
 - feature 名と auto フラグを確定する
 
 ### Step 2: アプリ到達性確認
-`/qa` はアプリ起動済みを前提に**到達性のみ確認**する（自身ではアプリを起動しない）。
 ベース URL に到達できるか確認する（`curl -sSf <baseURL>` など）。
 
 - 到達できる → Step 3 へ進む
-- **到達できない（未起動）** → プロジェクト CLAUDE.md の起動手順（docker compose / `swws` / dev server）を案内して停止する。
+- **到達できない（未起動）**:
+  - **手動モード** → 自身では起動せず、プロジェクト CLAUDE.md の起動手順（docker compose / `swws` / dev server）を案内して停止する。
+  - **auto モード** → 自走を止めないため、自動起動を 1 回だけ試みる:
+    1. `/swws -loop <profile>`（既定 `web`。別プロファイルが要るなら CLAUDE.md に従う）を **`run_in_background` で**起動する。`-loop` は**別 worktree を奪わず**空くまで待つので事故にならない。
+    2. 起動後、ベース URL への到達性を数秒間隔で再確認する。
+    3. 到達できたら Step 3 へ。**起動できない／到達しない／別 worktree 使用中で `-loop` が失敗したとき**は、qa を回さず `## QA結果: BLOCKED`（起動不可）として qa-report.md に記録し、オーケストレータ（または `/fix`）に返して停止する。人間承認は待たない。
 
 ### Step 3: シナリオ実行の委譲
 `.specs/<feature>/qa.md` を読み、`qa-browser` を Agent で起動する。**全シナリオを1回の委譲で**渡す（ブラウザセッション共有・メインのコンテキスト消費最小）。
@@ -39,14 +43,15 @@ argument-hint: "<feature> [auto]"
 
 `qa-browser` から `S<n>: pass|fail`＋原因1行＋スクショパスの配列だけを受領する。
 
-### Step 4: 集約・更新・報告
+### Step 4: 集約・レポート保存・報告
 - 結果配列で `.specs/<feature>/qa.md` のチェックボックスを更新する（pass → `[x]` / fail → `[ ]` のまま）
-- `## QA結果: PASS / FAIL` ＋ シナリオ別内訳（fail は原因）を出力する
-- スクショは PR 添付用に保持する
+- **最新の結果を `.specs/<feature>/qa-report.md` に必ず書き出す**（fail シナリオの ID・原因・スクショパス・`_Requirements:_`）。これが下流 `/fix` の入力源になり、qa の失敗原因を会話に依存させない（`/test` の `test-report.md` と同じパターン）。
+- `## QA結果: PASS / FAIL` ＋ シナリオ別内訳（fail は原因）をコンソールにも出力する
+- スクショは PR 添付用に保持し、保存先パスを qa-report.md に記録する
 
 ### Step 5: 分岐
 - **全シナリオ pass** → `/commit` を起動する（コミット工程へ）
-- **fail がある** → 失敗シナリオと原因を添えて `/fix` に渡す（設計起因なら `/design`・`/impl`）
+- **fail がある** → `/fix <feature>` に渡す。fix は `.specs/<feature>/qa-report.md` を読んで失敗原因を特定する（設計起因なら `/design`・`/impl`）
 
 ## 出力フォーマット
 ```
@@ -58,6 +63,21 @@ argument-hint: "<feature> [auto]"
 
 ### 失敗シナリオ（FAILの場合）
 - S<n> [タイトル]: [原因1行] — [スクショパス]
+```
+
+### qa-report.md（`.specs/<feature>/qa-report.md`）
+`/fix` が読むブラウザ受け入れの失敗レポート。最新の実行結果で毎回上書きする。
+
+```
+# QA結果: [機能名]
+
+## サマリ
+- 判定: PASS / FAIL / BLOCKED（BLOCKED=アプリ未起動で検証未実施）
+- シナリオ数 / pass / fail: N / N / N
+
+## 失敗シナリオ（FAIL のとき）
+- S<n> [タイトル]: [原因] — スクショ: <path>
+  - _Requirements: N_
 ```
 
 ## 完了条件

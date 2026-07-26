@@ -60,13 +60,8 @@ branch_name: <feature/SEC-16005/atm-auth0-migration>
 単体起動で完了したら、次の定型ブロックを**コードフェンスで囲まず**プレーンテキストで出力して終了する。
 
 ```
-────────────────────────────────
-✅ 命名メタ保存完了
-📄 .specs/<feature>/meta.md
-▶ 次のステップ
-   /tasks <feature>（design 完了後）
-   理由: pr_title が保存できたので、tasks が PR タイトルに使える
-────────────────────────────────
+✅ 命名メタ保存完了 — .specs/<feature>/meta.md
+OK：/tasks <feature>（design 完了後）
 ```
 
 自律モード（起動引数に `auto` を含む）では上記ブロックを出さず、遷移先を 1 行の簡易ログだけ残す。

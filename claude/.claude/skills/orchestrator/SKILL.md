@@ -18,6 +18,9 @@ argument-hint: "<feature>"
 - **test / review / commit はフェーズ単位**（PR 単位で閉じる）だが、**qa は feature 全体の受け入れゲート**なので**全フェーズ実装後に 1 回だけ**回す。
 
 ## パイプライン
+
+> **フロー正本**: パイプライン全体の流れ（各工程の順序・次工程・戻し先・承認ゲート・scope）は、下のフロー図とこの SKILL.md の「進め方」「例外処理」を正本とする。各工程の完了条件（done）は各スキルの「## 完了条件」を正本とする。工程を進める／戻すときはここを参照して判断する。
+
 ```
 /spec →【要件承認ゲート(人)】→ /design →(分岐)→ [/prototype] → /tasks
   → フェーズループ（大タスクごと・依存順・stacked）:
@@ -37,7 +40,7 @@ argument-hint: "<feature>"
 ## 自走モードの起動（重要）
 人間承認を待つステップを持つスキルは **`auto` 引数**で起動して承認をスキップする。各スキルの `auto` 時の挙動は、それぞれの SKILL.md の「自走モード（`auto` 引数）」節に定義されている：
 
-- **`auto` つきで起動するスキル**: `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test auto` / `/fix auto` / `/review auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/respond-pr-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に次ステップの定型ブロックを出さず 1 行の簡易ログのみ残す）
+- **`auto` つきで起動するスキル**: `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test <feature> auto` / `/fix <feature> auto` / `/review auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/respond-pr-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に次ステップの定型ブロックを出さず 1 行の簡易ログのみ残す）
 - **spec だけは `auto` を渡さない**: requirements は唯一の人間承認ゲート（下記 Step 3）。spec 通常挙動（ドラフト → 承認 → 保存）で人間の承認を取る
 - **prototype**: 目視承認の代わりに Playwright での操作確認＋スクショ取得。**動くコードを `<feature>-proto` ブランチに残す**（後段の impl が「参照して昇格」で流用する）。design.md へ書き戻したら次へ
 - **commit**: フェーズループの中で各フェーズのブランチにコミットする。**stacked 運用では PR をまだ作らない**（次フェーズの作業へ移る）
@@ -56,13 +59,13 @@ argument-hint: "<feature>"
 7. tasks.md を読んで**フェーズ構成（大タスク数）**を確認する。大タスク = フェーズ = 1 PR = 1 ブランチ。複数フェーズは依存順に並べる（stacked PR になる）
 8. **フェーズループ**: 各フェーズ pN を依存順に、以下のフルサイクルで回す（単一フェーズなら 1 周だけ）。**test / review / commit はこのループ内＝PR 単位**：
    1. `/impl <feature> [pN] auto` を起動（単一は `<feature>`、複数は `pN`。`pN` のブランチは `p(N-1)` にスタック）
-   2. `/test auto` を起動し PASS / FAIL を確認。FAIL → `/fix auto` → `/test auto` を再実行（test FAIL 3連続で停止）
+   2. `/test <feature> auto` を起動し PASS / FAIL を確認。FAIL → `/fix <feature> auto` → `/test <feature> auto` を再実行（test FAIL 3連続で停止）
    3. `/review <feature> auto` を起動。NG は下記「例外処理」（設計起因は `/design auto`→`/impl`、それ以外は `/impl` に戻す）
    4. `/commit auto` を起動し、**このフェーズのブランチにコミットする**（stacked 運用なので PR はまだ作らない）
    5. 次フェーズへ（前フェーズが commit 済みなので clean に stack できる）
 9. **全フェーズ完了後の受け入れゲート**: 最終スタックブランチ（＝全実装が乗った状態）で `/qa <feature> auto` を起動する（ブラウザ動作確認。feature 全体の受け入れを 1 回で確認）
    - 全 pass → 次へ
-   - fail → qa の指摘から**原因フェーズを特定**し、そのフェーズのブランチに戻って `/fix auto`（設計起因なら `/design auto`・`/impl <feature> [pN] auto`）→ 該当フェーズの `/test`→`/review`→`/commit` を通し、**上位フェーズへ変更を反映（stack を rebase 伝播）**してから `/qa` に再合流。qa↔fix が2周しても収束しない、または rebase 伝播を自走で安全に行えないと判断したら報告して停止
+   - fail → qa の指摘から**原因フェーズを特定**し、そのフェーズのブランチに戻って `/fix <feature> auto`（設計起因なら `/design auto`・`/impl <feature> [pN] auto`）→ 該当フェーズの `/test <feature>`→`/review`→`/commit` を通し、**上位フェーズへ変更を反映（stack を rebase 伝播）**してから `/qa` に再合流。qa↔fix が2周しても収束しない、または rebase 伝播を自走で安全に行えないと判断したら報告して停止
 10. `/create-pr auto` を起動する。**単一フェーズは 1 PR、複数フェーズは stacked PR を一斉作成**（各 PR の base は前フェーズのブランチ、p1 は デフォルトブランチ）。draft でも CodeRabbit が自動でレビューを開始する
 11. `/watch-ci auto` を起動する（全 PR の CI green まで監視。赤なら下記ループ）
 12. **最新コミットへの CodeRabbit レビューを待つ**: `/respond-pr-comments` の Step 2 のコマンドで PR のレビュー／コメントを取得し、**現在の HEAD コミットより後**の `coderabbitai[bot]` のレビューが届くまでポーリングする（1巡目は最初のレビュー、2巡目以降は push 後の再レビューを待つ。一定時間来なければ報告して停止）
@@ -89,7 +92,7 @@ argument-hint: "<feature>"
 - **レビュー NG**:
   - 「設計の根本的な問題」が含まれる → `/design` に戻す
   - それ以外（コード品質・実装ミス）→ `/impl` に戻す
-- **qa FAIL** → 原因フェーズを特定してそのフェーズで `/fix`（設計起因なら `/design`・`/impl`）→ そのフェーズの `/test`→`/review`→`/commit` を通し、stack を rebase 伝播してから `/qa` に再合流。qa↔fix が2周しても収束しない、または rebase 伝播を自走で安全に行えない → 報告して停止
+- **qa FAIL** → 原因フェーズを特定してそのフェーズで `/fix <feature>`（設計起因なら `/design`・`/impl`）→ そのフェーズの `/test <feature>`→`/review`→`/commit` を通し、stack を rebase 伝播してから `/qa` に再合流。qa↔fix が2周しても収束しない、または rebase 伝播を自走で安全に行えない → 報告して停止
 - **CI 失敗** → ログを取得し自己修正して push し直す。2回直しても green にならない → 報告して停止
 - **CodeRabbit コメント対応が2巡しても収束しない** → 報告して停止
 - **CodeRabbit のレビューが一定時間来ない** → 報告して停止
@@ -97,8 +100,13 @@ argument-hint: "<feature>"
 - 各スキルが判断できない（要件の曖昧さ等）→ 報告して指示を仰ぐ
 
 ## 実装中の変更
-実装中に仕様・設計・タスクの変更が必要になった場合は `/change <feature>` を使う。
-`/change` が影響範囲を判断し、適切な工程に戻してドキュメントを更新する。
+実装中に仕様・設計・タスクの変更が必要になった場合は、**変更が生じた工程から編集モードで再入し、OK の前進チェーンを辿り直す**（前進カスケード）。どの工程から再入するか（＝影響範囲の判断）はここで決める：
+
+- 要件が変わる → `/spec <feature>`（編集）→ `/design`（編集）→ `/tasks`（編集）→ 実装へ
+- 設計だけ変わる → `/design <feature>`（編集）→ `/tasks`（編集）→ 実装へ
+- タスクだけ変わる → `/tasks <feature>`（編集）→ 実装へ
+
+各スキルは編集モードの再入時に上流 doc との整合を自分で再チェックし、ズレがあれば差分だけを patch する。
 
 ## 完了条件
 draft PR（複数フェーズなら stacked PR 群）が作られ、CI が green、CodeRabbit の未解決コメントが無い状態を、PR の URL とともに人に報告したら完了。

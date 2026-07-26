@@ -22,7 +22,7 @@ help:
 
 DOTFILES_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-STOW_PACKAGES_COMMON := zsh git vim sheldon starship yazi claude herdr npm gh
+STOW_PACKAGES_COMMON := zsh git vim sheldon starship yazi claude herdr npm gh swws
 STOW_PACKAGES_MAC    := alacritty
 ifeq ($(UNAME), Darwin)
   STOW_PACKAGES := $(STOW_PACKAGES_COMMON) $(STOW_PACKAGES_MAC)

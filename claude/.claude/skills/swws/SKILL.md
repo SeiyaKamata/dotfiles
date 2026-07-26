@@ -1,7 +1,7 @@
 ---
 name: swws
 description: git worktree を Docker のマウント先として起動し直す。切り替え前に使用中の worktree を調べ、別 worktree が使用中なら勝手に奪わず確認する。並列開発の事故防止用。
-argument-hint: "[web|full|api|sec-web|worker|stop|status]"
+argument-hint: "[-loop] [web|full|api|sec-web|worker|stop|status]"
 allowed-tools: Bash(swws *), Bash(docker ps *), Bash(git rev-parse *)
 ---
 
@@ -10,7 +10,7 @@ allowed-tools: Bash(swws *), Bash(docker ps *), Bash(git rev-parse *)
 ## 役割
 現在いる git worktree を Docker のマウント先にして compose を起動し直す（`swws` コマンドのラッパー）。
 compose プロジェクトは 1 リポジトリ 1 つしかなく、`swws` で `up` すると **他の worktree で稼働中の同プロジェクトを黙って奪ってしまう**。別セッションが別 worktree で作業中だと事故になる。
-そのため **切り替え前に必ず使用中の worktree を調べ、自分以外が使用中なら勝手に切り替えず人間に確認する**。
+使用中判定は `swws` コマンド本体のガード（別 worktree 稼働中なら exit 2）に任せ、**この skill は「exit 2 が返ったら勝手に奪わず人間に確認する」という判断ポリシーだけを担う**。
 
 ## 前提（状態の持ち方）
 状態は自前で持たない。**Docker の稼働中コンテナが唯一の真実**。
@@ -19,6 +19,7 @@ compose プロジェクトは 1 リポジトリ 1 つしかなく、`swws` で `
 
 ## 引数
 - `$ARGUMENTS`: 起動プロファイル（`web` / `full` / `api` / `sec-web` / `worker`）、または `stop`（解放）/ `status`（確認のみ）。省略時は `web`。
+- `-loop`: 併せて指定すると、別 worktree が使用中のとき **5分 → 10分 → 10分 で最大 3 回まで空くのを待って**切り替える（`swws -loop <profile>`）。空かなければ失敗し、**別 worktree は奪わない**。ユーザーが `/swws -loop <profile>` と明示した場合はそれを尊重する。
 
 ## 進め方
 
@@ -30,16 +31,21 @@ compose プロジェクトは 1 リポジトリ 1 つしかなく、`swws` で `
 - `$ARGUMENTS` が `status` → `swws status` を実行して結果を伝えるだけ（切り替えない）。ここで終了。
 - `$ARGUMENTS` が `stop` → `swws stop` を実行して「解放しました」と伝える。ここで終了。
 
-### Step 3: 切り替え前に使用中を調べる（up 系のときのみ）
-`swws status` を実行し、出力で分岐する：
+### Step 3: 切り替える（up 系）
+使用中判定はコマンド側のガードに任せ、そのまま叩く：
+```
+swws <profile>
+```
+`swws` 本体が **自分以外の worktree が稼働中なら exit 2 で止まる**（空き・自分の worktree のときはそのまま起動）。exit コードで分岐する：
 
-- **`空き:`** → 誰も使っていない。Step 5 へ進んで切り替える。
-- **`使用中(自分):`** → 自分の worktree が既に稼働中。同じ worktree なので安全。Step 5 へ進んで再起動する。
-- **`使用中(別worktree):`** → **別の worktree が使用中**。勝手に切り替えない。Step 4 へ。
-- **`⚠️ 混在:`** → 同一プロジェクトに複数 worktree が同居している異常状態。勝手に切り替えない。Step 4 へ。
+- **exit 0** → 切り替え成功。Step 5 へ。
+- **exit 2**（別 worktree 使用中 or 混在）→ 勝手に奪わない。Step 4 へ。
+- **exit 1 / `未対応:`** → エラー処理へ。
 
-### Step 4: 別 worktree が使用中／混在のときは人間に確認する
-どの worktree が使っているかを提示し、番号で選ばせる（勝手に進めない）：
+ユーザーが `-loop` を明示していた場合は `swws -loop <profile>` を **`run_in_background` で**実行する（最大 25分待ちうるため）。
+
+### Step 4: exit 2（別 worktree 使用中）のときは人間に確認する
+コマンドが stderr に出した使用中 worktree を提示し、番号で選ばせる（勝手に進めない）：
 
 ```
 ⚠️ <project> は別の worktree で使用中です:
@@ -47,24 +53,20 @@ compose プロジェクトは 1 リポジトリ 1 つしかなく、`swws` で `
   今ここ: <自分の worktree パス>
 
 どうしますか？
-1: 中止する（別セッションが作業中かもしれない）
-2: 使用中側を止めてから自分に切り替える（SWWS_FORCE=1 で強制切り替え）
-3: 状態だけ見て何もしない
+1: 空くのを待って切り替える（swws -loop <profile>・最大25分・別worktreeは奪わない）
+2: 中止する（別セッションが作業中かもしれない）
+3: 今すぐ強制的に奪って切り替える（SWWS_FORCE=1・別セッションの環境を止める）
+4: 状態だけ見て何もしない
 ```
 
-- **1** を選んだら何もせず終了する。
-- **2** を選んだら `SWWS_FORCE=1 swws <profile>` で強制的に切り替える。混在の場合は先に `swws stop` で全停止してから起動し直すときれいになる旨を添える。
-- **3** を選んだら `swws status` の内容を再掲して終了する。
+- **1** を選んだら `swws -loop <profile>` で空くまで待って切り替える。**最大 25分（5+10+10）待ちうるため、Bash ツールのタイムアウトを超える。必ず `run_in_background` で実行する**こと。空かずに失敗（exit 2）したら Step 4 に戻って再度確認する。
+- **2** を選んだら何もせず終了する。
+- **3** を選んだら `SWWS_FORCE=1 swws <profile>` で強制的に切り替える。
+- **4** を選んだら `swws status` を実行して状態を再掲し終了する。
 
-**混在（`⚠️ 混在:`）のとき**は、まず `swws stop` で全停止 → 自分の worktree で起動し直す、を推奨として提示する。
+`swws status` が **`⚠️ 混在:`**（同一プロジェクトに複数 worktree が同居）を示したときは、まず `swws stop` で全停止 → 自分の worktree で起動し直す、を推奨として添える。
 
-### Step 5: 切り替える
-```
-swws <profile>
-```
-swws 本体にも同じガードが入っているため、万一別 worktree が使用中なら exit 2 で止まる。その場合は Step 4 に戻って人間に確認する。
-
-### Step 6: 結果を報告する
+### Step 5: 結果を報告する
 どの worktree のどのプロファイルに切り替えたか（または解放したか）を 1 行で報告する。
 
 ## 完了条件
