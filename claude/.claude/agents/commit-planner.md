@@ -2,6 +2,7 @@
 name: commit-planner
 description: Git コミット計画の専門エージェント。diff を徹底分析し、Inside-out の原則に従って最適なコミット分割計画を作成する。コミット、commit、変更をコミット、などのキーワードで呼び出す。
 model: opus
+effort: low
 tools: Bash, Read, Glob, Grep
 maxTurns: 30
 ---
