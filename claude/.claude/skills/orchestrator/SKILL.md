@@ -31,7 +31,7 @@ argument-hint: "<feature>"
         /qa → /create-pr(draft, 複数なら stacked PR を一斉作成)
          ↓FAIL(qa)
         原因フェーズを特定し /fix（設計起因なら /design・/impl）→ 再合流
-  → /watch-ci → /respond-pr-comments(CodeRabbit のみ) → 停止(人に報告)
+  → /watch-ci → /resolve-comments(CodeRabbit のみ) → 停止(人に報告)
 ```
 
 承認ゲート: **requirements.md 完成後に人間の承認を待つ**（spec だけ人間判断を挟む）。承認後は自走。
@@ -40,7 +40,7 @@ argument-hint: "<feature>"
 ## 自走モードの起動（重要）
 人間承認を待つステップを持つスキルは **`auto` 引数**で起動して承認をスキップする。各スキルの `auto` 時の挙動は、それぞれの SKILL.md の「自走モード（`auto` 引数）」節に定義されている：
 
-- **`auto` つきで起動するスキル**: `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test <feature> auto` / `/fix <feature> auto` / `/review auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/respond-pr-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に次ステップの定型ブロックを出さず 1 行の簡易ログのみ残す）
+- **`auto` つきで起動するスキル**: `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test <feature> auto` / `/fix <feature> auto` / `/review auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/resolve-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に次ステップの定型ブロックを出さず 1 行の簡易ログのみ残す）
 - **spec だけは `auto` を渡さない**: requirements は唯一の人間承認ゲート（下記 Step 3）。spec 通常挙動（ドラフト → 承認 → 保存）で人間の承認を取る
 - **prototype**: 目視承認の代わりに Playwright での操作確認＋スクショ取得。**動くコードを `<feature>-proto` ブランチに残す**（後段の impl が「参照して昇格」で流用する）。design.md へ書き戻したら次へ
 - **commit**: フェーズループの中で各フェーズのブランチにコミットする。**stacked 運用では PR をまだ作らない**（次フェーズの作業へ移る）
@@ -68,10 +68,10 @@ argument-hint: "<feature>"
    - fail → qa の指摘から**原因フェーズを特定**し、そのフェーズのブランチに戻って `/fix <feature> auto`（設計起因なら `/design auto`・`/impl <feature> [pN] auto`）→ 該当フェーズの `/test <feature>`→`/review`→`/commit` を通し、**上位フェーズへ変更を反映（stack を rebase 伝播）**してから `/qa` に再合流。qa↔fix が2周しても収束しない、または rebase 伝播を自走で安全に行えないと判断したら報告して停止
 10. `/create-pr auto` を起動する。**単一フェーズは 1 PR、複数フェーズは stacked PR を一斉作成**（各 PR の base は前フェーズのブランチ、p1 は デフォルトブランチ）。draft でも CodeRabbit が自動でレビューを開始する
 11. `/watch-ci auto` を起動する（全 PR の CI green まで監視。赤なら下記ループ）
-12. **最新コミットへの CodeRabbit レビューを待つ**: `/respond-pr-comments` の Step 2 のコマンドで PR のレビュー／コメントを取得し、**現在の HEAD コミットより後**の `coderabbitai[bot]` のレビューが届くまでポーリングする（1巡目は最初のレビュー、2巡目以降は push 後の再レビューを待つ。一定時間来なければ報告して停止）
+12. **最新コミットへの CodeRabbit レビューを待つ**: `/resolve-comments` の Step 2 のコマンドで PR のレビュー／コメントを取得し、**現在の HEAD コミットより後**の `coderabbitai[bot]` のレビューが届くまでポーリングする（1巡目は最初のレビュー、2巡目以降は push 後の再レビューを待つ。一定時間来なければ報告して停止）
 13. **CodeRabbit コメント対応ループ（最大2巡）**:
     - CodeRabbit は対応済みと判断したスレッドを**自分で resolve する**ため、`isResolved == false` の有無が終了シグナルになる
-    - 未解決の CodeRabbit コメントが**あり** → `/respond-pr-comments auto` を起動（CodeRabbit のみ対応）→ 対応を `/commit auto` → push → **11 に戻る**（push で CI も CodeRabbit 再レビューも自動で再実行される）
+    - 未解決の CodeRabbit コメントが**あり** → `/resolve-comments auto` を起動（CodeRabbit のみ対応）→ 対応を `/commit auto` → push → **11 に戻る**（push で CI も CodeRabbit 再レビューも自動で再実行される）
     - 未解決の CodeRabbit コメントが**なし**（CodeRabbit が全スレッドを resolve した）→ 停止点へ
     - 2巡しても未解決コメントが残る → 報告して停止
 14. **停止点**: draft PR（複数なら stacked PR 群）+ CI green + CodeRabbit コメント解決済みの状態で、PR の URL と結果を人に報告して止まる。「マージ後は `/cleanup <feature>` で後片付けできます」と一言添える

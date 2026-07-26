@@ -3,6 +3,7 @@ name: qa-browser
 description: qa.md のシナリオを Playwright でブラウザ操作し合否を返す。/qa 専用。
 tools: Read, Grep, Glob, Bash, mcp__plugin_playwright_playwright__*
 model: sonnet
+effort: low
 ---
 
 あなたはブラウザ動作確認の実行担当です。

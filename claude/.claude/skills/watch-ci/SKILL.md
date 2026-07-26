@@ -11,7 +11,7 @@ allowed-tools: Bash(gh *), Bash(git *)
 PRのCIが完了するまで監視し、結果に応じて次のアクションへ分岐させる。
 
 - CI成功 + 未対応コメントなし → draftならReady for reviewに切り替える
-- CI成功 + 未対応コメントあり → `/respond-pr-comments` を提案する
+- CI成功 + 未対応コメントあり → `/resolve-comments` を提案する
 - CI失敗 → 失敗ジョブのログを取得し、対応方針を人間と相談する
 
 ## 用語（前提）
@@ -80,7 +80,7 @@ gh pr checks <PR番号> --json name,state,conclusion,link
 gh pr view <PR番号> --json reviewThreads --jq '.reviewThreads[] | select(.isResolved == false)'
 ```
 
-- 未対応コメントが**あり** → 件数と概要を人間に提示し、`/respond-pr-comments` の起動を提案する
+- 未対応コメントが**あり** → 件数と概要を人間に提示し、`/resolve-comments` の起動を提案する
 - 未対応コメントが**なし** → 4-2 へ
 
 #### 4-2: draftならReady for reviewに切り替える
@@ -142,7 +142,7 @@ memory に1件保存する。
 ## 完了条件
 - CI成功 + 未対応コメントなし + Ready for reviewに切り替え完了（単体起動時）→ 完了
 - CI成功 + 未対応コメントなし + `auto` モード → draftのまま完了
-- CI成功 + 未対応コメントあり → `/respond-pr-comments` への引き継ぎを提案したら完了
+- CI成功 + 未対応コメントあり → `/resolve-comments` への引き継ぎを提案したら完了
 - CI失敗 → 失敗内容を報告し、（再発しそうなら）memoryに記録し、修正方針について人間に確認したら完了
 
 ## エラー処理
@@ -155,9 +155,9 @@ memory に1件保存する。
 
 ```
 ✅ CI 監視完了
-OK（green + 未解決コメントあり）：/respond-pr-comments
+OK（green + 未解決コメントあり）：/resolve-comments
 OK（green + 未解決コメントなし）：マージ / Ready for review を判断（停止点）
 NG（CI 赤）：失敗ジョブのログを確認して修正
 ```
 
-自律モード（起動引数に `auto` を含む）では上記ブロックを出さず、確定した遷移先を 1 行の簡易ログだけ残す（例: `次: /respond-pr-comments`）。次スキルの起動は呼び出し元（orchestrator）が行う。
+自律モード（起動引数に `auto` を含む）では上記ブロックを出さず、確定した遷移先を 1 行の簡易ログだけ残す（例: `次: /resolve-comments`）。次スキルの起動は呼び出し元（orchestrator）が行う。
