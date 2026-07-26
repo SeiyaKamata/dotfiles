@@ -19,6 +19,7 @@ return {
 				prompt_prefix = "❯ ",
 				selection_caret = "❯ ",
 				path_display = { "truncate" },
+				initial_mode = "normal",
 				mappings = {
 					n = { ["q"] = { actions.close, type = "action", opts = { nowait = true } } },
 				},
@@ -40,17 +41,17 @@ return {
 		local map = vim.keymap.set
 
 		local function find_files_all()
-			builtin.find_files({ hidden = true, no_ignore = true })
+			builtin.find_files({ hidden = true, no_ignore = true, initial_mode = "insert" })
 		end
 		local function live_grep_all()
-			builtin.live_grep({ additional_args = { "--hidden", "--no-ignore" } })
+			builtin.live_grep({ additional_args = { "--hidden", "--no-ignore" }, initial_mode = "insert" })
 		end
 
-		map("n", "<leader>ff", builtin.find_files, { desc = "Find files" })
+		map("n", "<leader>ff", function() builtin.find_files({ initial_mode = "insert" }) end, { desc = "Find files" })
 		map("n", "<leader>fb", function() builtin.buffers({ initial_mode = "normal" }) end, { desc = "Find buffers" })
-		map("n", "<leader>fg", builtin.live_grep,   { desc = "Live grep" })
-		map("n", "<leader>fF", find_files_all,      { desc = "Find files (all)" })
-		map("n", "<leader>fG", live_grep_all,        { desc = "Live grep (all)" })
+		map("n", "<leader>fg", function() builtin.live_grep({ initial_mode = "insert" }) end, { desc = "Live grep" })
+		map("n", "<leader>fF", find_files_all, { desc = "Find files (all)" })
+		map("n", "<leader>fG", live_grep_all,   { desc = "Live grep (all)" })
 
 		require("telescope").load_extension("fzf")
 	end,
