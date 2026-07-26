@@ -106,6 +106,7 @@ gh pr create --draft --base <base> --head <feature>-pN \
 ```
 - 各 PR の本文は**そのフェーズの差分だけ**をもとに書く（前フェーズの変更を含めない）。
 - PR 本文の Summary 冒頭に stacked の位置を明記する（例: `stacked PR 2/3（base: <feature>-p1）`）。
+- **`tasks.md` に `着地状態:` があれば、`## このPRをマージした後の状態` として本文に転記する**。stacked PR はそれ単体では feature が完成しないため、レビュアーが「どこまでできていれば正しいのか」を判断する material になる。
 - 作成順は `p1 → p2 → ...`（base 側の PR を先に作る）。
 
 **PR本文テンプレート:**
@@ -115,6 +116,9 @@ gh pr create --draft --base <base> --head <feature>-pN \
 
 ## 変更内容
 （git diffの結果をもとに変更ファイルと変更内容を箇条書き）
+
+## このPRをマージした後の状態
+（tasks.md の `着地状態:` を転記。単一 PR モードでは省略してよい）
 ```
 タイトルは **tasks.md の対応表で確定した各フェーズの PR タイトル**をそのまま使う（`【鎌田QA】…（PR N/M）` の形）。tasks.md が無い／未記載の場合のみ、そのフェーズ（単一なら全体）の最初のコミットメッセージをベースに作成する。
 
