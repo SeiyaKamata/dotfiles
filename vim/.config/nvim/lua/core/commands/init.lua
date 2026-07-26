@@ -1,6 +1,5 @@
 require("core.commands.replace")
 require("core.commands.tmux")
-require("core.commands.relpath")
 require("core.commands.copy_filename")
 require("core.commands.copy_project_root")
 require("core.commands.scratch")
