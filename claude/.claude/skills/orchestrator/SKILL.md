@@ -55,7 +55,7 @@ argument-hint: "<feature>"
 ## 自走モードの起動（重要）
 人間承認を待つステップを持つスキルは **`auto` 引数**で起動して承認をスキップする。各スキルの `auto` 時の挙動は、それぞれの SKILL.md の「自走モード（`auto` 引数）」節に定義されている：
 
-- **`auto` つきで起動するスキル**: `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test <feature> auto` / `/fix <feature> auto` / `/review auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/resolve-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に次ステップの定型ブロックを出さず 1 行の簡易ログのみ残す）
+- **`auto` つきで起動するスキル**: `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test <feature> auto` / `/fix <feature> auto` / `/review auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/resolve-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に完了カードを出さず 1 行の簡易ログのみ残す）
 - **spec だけは `auto` を渡さない**: requirements は唯一の人間承認ゲート（下記 Step 3）。spec 通常挙動（ドラフト → 承認 → 保存）で人間の承認を取る
 - **prototype**: 目視承認の代わりに Playwright での操作確認＋スクショ取得。**動くコードを `<feature>-proto` ブランチに残す**（後段の impl が「参照して昇格」で流用する）。design.md へ書き戻したら次へ
 - **commit**: フェーズループの中で各フェーズのブランチにコミットする（PR 作成はこの直後）
@@ -130,3 +130,20 @@ argument-hint: "<feature>"
 ## 完了条件
 draft PR（複数フェーズなら stacked PR 群）が作られ、CI が green、CodeRabbit の未解決コメントが無い状態を、PR の URL とともに人に報告したら完了。
 Ready for review への切替・merge は人が判断する。
+
+## 完了カード
+停止点に到達したら、Step 11 の報告を次の完了カードに畳んで**コードフェンスで囲まず**プレーンテキストで出力して終了する。カードの前後に作業サマリ・所感・補足を足さない。Ready for review への切替・merge は自走で行わず人の判断を待つ。
+
+- 一言サマリは 1 行。主要な結果は `- ` の箇条書きで**最大 3 行**（フェーズ数・CI / CodeRabbit の状態など。工程ごとの経過は各工程の成果物に寄せ、カードには列挙しない）。
+- 🔗 行は**全フェーズの PR を 1 本 1 行**で本数ぶん出す（行数上限は主要な結果にだけ課すので、PR が n 本なら 🔗 も n 行）。
+- 各工程の `⏳` は各スキルが自分で出すので、orchestrator が工程開始の実況を代わりに出さない。
+
+✅ パイプライン完走（停止点）
+<feature 名とフェーズ数・到達状態を 1 行>
+- <主要な結果 最大 3 行>
+🔗 <フェーズ 1 の PR の URL>
+🔗 <フェーズ N の PR の URL>
+▶ OK：Ready for review / merge を判断（人）
+▶ 後片付け：/cleanup <feature>
+
+「例外処理」の停止条件に当たって完走できずに終了するときは、同じ構成でヘッダを `⚠ パイプライン中断` に差し替え、一言サマリに停止理由（test FAIL 3 連続・rebase 伝播が安全に行えない・人間コメントありなど）、▶ 行に復帰の判断先を書く（作成済みの PR があれば 🔗 行は残す）。
