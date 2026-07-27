@@ -56,9 +56,38 @@ is_denied() {
   return 1
 }
 
+# heredoc 本文と `<...>` プレースホルダを落とす。
+# コマンド文字列に混ざる「データ」を書き込み先として誤検出しないため
+# （例: heredoc で書く本文中の `.specs/<feature>/review.md` は `>` + `/review.md` に見える）。
+# heredoc 開始行は `<<` より前を残すので `cat > 外部パス << EOF` は取り逃さない。
+strip_data_sections() {
+  awk '
+    BEGIN { q = sprintf("%c", 39); re = "<<-?[ \t]*" q "?\"?[A-Za-z_][A-Za-z0-9_]*" q "?\"?" }
+    hd != "" {
+      t = $0
+      sub(/^[ \t]+/, "", t)
+      sub(/[ \t]*;?[ \t]*$/, "", t)
+      if (t == hd) { hd = "" }
+      next
+    }
+    {
+      line = $0
+      if (match(line, re)) {
+        tag = substr(line, RSTART, RLENGTH)
+        sub(/^<<-?[ \t]*/, "", tag)
+        gsub("[" q "\"]", "", tag)
+        hd = tag
+        line = substr(line, 1, RSTART - 1)
+      }
+      print line
+    }
+  ' <<<"$1" | sed -E 's/<[^<>]*>//g'
+}
+
 # Bash コマンドから書き込み先とみられるパスを列挙する
 extract_write_targets() {
-  local cmd="$1"
+  local cmd
+  cmd=$(strip_data_sections "$1")
   {
     # リダイレクト先（`2>&1` `>&2` は & 始まりなのでマッチしない）
     grep -oE '>>?[[:space:]]*[^[:space:]<>|;&()]+' <<<"$cmd" | sed -E 's/^>>?[[:space:]]*//'
