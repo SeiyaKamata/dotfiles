@@ -111,6 +111,8 @@
   "editorMode": "normal",
   "preferredNotifChannel": "terminal_bell",
   "autoCompactEnabled": true,
+  "autoMemoryEnabled": false,
+  "autoDreamEnabled": false,
   "showTurnDuration": false,
   "skipAutoPermissionPrompt": true,
   "mcpServers": {
