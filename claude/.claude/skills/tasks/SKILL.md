@@ -20,7 +20,7 @@ argument-hint: "<feature> [auto]"
 ## 入力
 - `.specs/<feature>/requirements.md`
 - `.specs/<feature>/design.md`
-- `.specs/<feature>/meta.md`（PR タイトル・ブランチ名の素材。無ければ自動生成にフォールバック）
+- `.specs/<feature>/seed.md` の frontmatter（PR タイトル・ブランチ名の素材。frontmatter が無ければ自動生成にフォールバック）
 
 ## 出力先
 - `.specs/<feature>/tasks.md`
@@ -70,7 +70,7 @@ argument-hint: "<feature> [auto]"
 - 単一フェーズ = `<feature>`、複数フェーズ = `<feature>-p1`, `-p2`, ...（`pN` を `p(N-1)` にスタック）
 
 **PR タイトル**: `【鎌田QA】<pr_title>[：<フェーズ内容>]（PR<N>/<M>）`
-- `<pr_title>`: `meta.md` の `pr_title`（例 `[SEC-16005] ATM Auth0移行`）。meta.md が無い／`pr_title` 空なら設計・フェーズ内容から自動生成したタイトル
+- `<pr_title>`: `seed.md` frontmatter の `pr_title`（例 `[SEC-16005] ATM Auth0移行`）。frontmatter が無い／`pr_title` 空なら設計・フェーズ内容から自動生成したタイトル
 - `：<フェーズ内容>`: 総フェーズ数 `M≥2`（stacked）のときだけ付ける。単一 PR では付けない
 - `（PR<N>/<M>）`: 常に付ける（`M`＝総フェーズ数。単一なら `（PR1/1）`）
 - `【鎌田QA】` は固定 prefix
@@ -86,7 +86,7 @@ argument-hint: "<feature> [auto]"
 
 ### Step 2: コンテキスト収集とモード分岐
 - `.specs/<feature>/requirements.md` と `.specs/<feature>/design.md` を読み込む
-- `.specs/<feature>/meta.md` があれば読み込み、`pr_title` / `branch_name` / `ticket_key` を PR タイトル・ブランチ名の素材にする（無い／空なら自動生成）
+- `.specs/<feature>/seed.md` に frontmatter があれば読み込み、`pr_title` / `branch_name` / `ticket_key` を PR タイトル・ブランチ名の素材にする（frontmatter が無い／空なら自動生成）
 - 既存の `.specs/<feature>/tasks.md` の有無でモードを分岐する：
   - **存在しない場合（新規作成モード）**: Step 3 へ進みタスクを生成する。
   - **存在する場合（編集モード）**: 既存の `tasks.md` / `qa.md` をベースドラフトとして読み込み、Step 3（タスク生成）はスキップする。ただし**まず現在の `requirements.md` / `design.md` に対して Step 4 のレビューゲートを回す（能動チェック）**。要件・設計とタスクにズレ（未マッピングの要件・設計にあるがタスク化されていないコンポーネント 等）があれば、Step 3 でその差分だけを反映してから Step 5 のレビューへ進む。ズレが無ければそのまま Step 5 へ直行する。
