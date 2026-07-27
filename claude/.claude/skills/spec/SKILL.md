@@ -36,7 +36,9 @@ argument-hint: "<feature> [auto]"
 
 ### Step 2: コンテキスト収集とモード分岐
 - `.specs/<feature>/seed.md` があれば、新 feature の機能要望（入力）として読み込む
-  （`/spinoff` `/handoff` が切り出した種文書）。seed.md は消化後も削除しない。
+  （`/notion-import` `/spinoff` `/handoff` が作った種文書）。seed.md は消化後も削除しない
+  （`/tasks` と `/notion-export` が frontmatter を後から読む）。
+  frontmatter（`notion_url` / `pr_title` など）は命名メタなので要件化せず、本文だけを入力にする。
 - 既存の `.specs/<feature>/requirements.md` の有無でモードを分岐する：
   - **存在しない場合（新規作成モード）**: Step 3 へ進み、スコープ境界を洗い出す。
   - **存在する場合（編集モード）**: そのファイルをベースドラフトとして読み込み、Step 3（スコープ境界）と Step 4（要件の詳細化）はスキップする。まず既存要件に Step 5 のレビューゲートを回して自己整合（EARS 形式・テスト可能性・スコープ境界・連番）を確認し、ユーザーの変更要望があれば Step 4 でその点だけを反映してから Step 6 のレビューへ進む。ユーザーが境界（in/out）そのものの変更を申し出た場合は、変更対象の項目についてだけ Step 3 を実施してから Step 4 に戻る。**要件を変えたら下流の `/design`・`/tasks` も編集モードで見直す（前進カスケード）。**

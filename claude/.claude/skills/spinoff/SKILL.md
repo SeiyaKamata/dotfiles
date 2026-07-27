@@ -92,8 +92,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls *), Bash(test *), AskUserQ
 
 ## seed.md フォーマット（統一テンプレート）
 
-`/spinoff` と `/handoff` の双方が出力する共通フォーマット。EARS 要件ではなく「機能要望」の
+`/spinoff` `/handoff` `/notion-import` が出力する共通フォーマット。EARS 要件ではなく「機能要望」の
 粒度で書く。実装手順・受け入れ条件は書かない（`/spec`→`design`→`tasks` が生成する）。
+（`/notion-import` だけは命名メタの frontmatter を先頭に付ける。`/spinoff` では付けない。）
 
 ```markdown
 # <タイトル: 何をしたい変更か 1 行で>
