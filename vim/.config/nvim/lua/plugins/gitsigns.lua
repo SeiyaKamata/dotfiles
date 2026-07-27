@@ -10,7 +10,7 @@ return {
 			on_attach = function(bufnr)
 				local gs = package.loaded.gitsigns
 
-				vim.keymap.set("n", "<leader>h", function()
+				vim.keymap.set("n", "<leader>gt", function()
 					gs.toggle_deleted()
 					gs.toggle_word_diff()
 					gs.toggle_linehl()

@@ -2,16 +2,7 @@ return {
   "tpope/vim-fugitive",
   keys = {
     { "<leader>gs", "<cmd>Git<cr>", desc = "Git status" },
-    { "<leader>ga", "<cmd>Git add %<cr>", desc = "Git add current file" },
-    { "<leader>gc", "<cmd>Git commit<cr>", desc = "Git commit" },
-    { "<leader>gp", "<cmd>Git push<cr>", desc = "Git push" },
-    { "<leader>gP", "<cmd>Git pull<cr>", desc = "Git pull" },
     { "<leader>gl", "<cmd>Git log --oneline<cr>", desc = "Git log" },
-    { "<leader>gb", "<cmd>Git blame<cr>", desc = "Git blame" },
-    { "<leader>gB", "<cmd>Git branch<cr>", desc = "Git branch" },
-    { "<leader>gco", "<cmd>Git checkout<cr>", desc = "Git checkout" },
-    { "<leader>gf", "<cmd>Git fetch<cr>", desc = "Git fetch" },
-    { "<leader>gr", "<cmd>Git rebase<cr>", desc = "Git rebase" },
   },
   config = function()
     -- Git statusウィンドウでの追加キーマップ
