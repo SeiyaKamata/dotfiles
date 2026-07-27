@@ -19,6 +19,12 @@
 
 コミットする際は必ず `/commit` スキルを使う。直接 `git commit` を実行しない。
 
+## force push
+
+force push は **draft PR のみ**許可する。Ready for review 済み（open）の PR には行わない
+（レビュースレッドと CI 履歴が壊れ、復旧が効かない）。stacked PR の rebase 伝播で必要に
+なった場合も、対象 PR が open なら push 前に確認する。
+
 ## ガード・ブロックの扱い
 
 フックや権限で操作がブロックされたら、それは**「止まって確認する」シグナル**。別手段
