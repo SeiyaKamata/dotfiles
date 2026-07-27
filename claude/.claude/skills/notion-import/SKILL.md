@@ -17,7 +17,7 @@ Notion のタスクページを 1 回読み、パイプラインの入力 `.spec
 **非対話原則**: 要望の中身についての質問はしない。不足は seed.md 内に「TODO: /spec で詳細化」と明記して残す。対話するのは Notion が読めないときの貼り付け依頼と、feature スラッグ・上書きの確認だけ。
 
 ## 出力先
-`.specs/<feature>/seed.md`（frontmatter の項目は `claude/CLAUDE.md`「Notion 連携」に従う）
+`.specs/<feature>/seed.md`（frontmatter の項目は下記 Step 4 の表を正本とする）
 
 ## 自走モード（`auto` 引数）
 `$ARGUMENTS` に `auto` が含まれる場合、Step 5 のユーザー確認をスキップして保存する。ただし **feature スラッグが決まらない場合と `.specs/<feature>` が既存の場合は `auto` でも中断する**（黙って上書きしない）。
