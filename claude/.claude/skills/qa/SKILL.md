@@ -51,7 +51,8 @@ argument-hint: "<feature> [auto]"
 
 ### Step 5: 集約・レポート保存・報告
 - 結果配列で `.specs/<feature>/qa.md` のチェックボックスを更新する（pass → `[x]` / fail → `[ ]` のまま）
-- **最新の結果を `.specs/<feature>/qa-report.md` に必ず書き出す**（fail シナリオの ID・原因・スクショパス・`_Requirements:_`）。これが下流 `/fix` の入力源になり、qa の失敗原因を会話に依存させない（`/test` の `test-report.md` と同じパターン）。
+- `git branch --show-current` / `git rev-parse HEAD` / `git status --porcelain` で `branch` / `head` / `dirty` を確定し、`ran_at` を書き出し時点で記録する（`phase` は常に `none`）
+- **最新の結果を `.specs/<feature>/qa-report.md` に必ず書き出す**（frontmatter + fail シナリオの ID・原因・スクショパス・`_Requirements:_`）。これが下流 `/fix` の入力源になり、qa の失敗原因を会話に依存させない（`/test` の `test-report.md` と同じパターン）。
 - `## QA結果: PASS / FAIL` ＋ シナリオ別内訳（fail は原因）は qa-report.md に記録する（ターミナルには列挙せず、末尾「完了カード」に畳む）
 - スクショは PR 添付用に保持し、保存先パスを qa-report.md に記録する
 
@@ -74,9 +75,20 @@ argument-hint: "<feature> [auto]"
 ```
 
 ### qa-report.md（`.specs/<feature>/qa-report.md`）
-`/fix` が読むブラウザ受け入れの失敗レポート。最新の実行結果で毎回上書きする。
+`/fix` が読むブラウザ受け入れの失敗レポート。最新の実行結果で毎回上書きする。`/qa` はフェーズを持たない feature 単位の受け入れゲートのため、**保存先パスは変えない**（`phase: none` を frontmatter に記録するだけ。これにより `notion-export` は無変更で通る）。
+
+先頭に実行コンテキストの frontmatter を置く（値の仕様は `/orchestrator`「対象確定（工程共通）」の「実行コンテキスト frontmatter」参照）。
 
 ```
+---
+feature: <feature>
+phase: none                            # /qa は常に none（フェーズを持たない）
+branch: <カレントブランチ>              # 取得不能時は none
+head: 4f8c1e9b2a...                    # 取得不能時は none
+dirty: true
+ran_at: 2026-07-28T22:45:00+0900
+---
+
 # QA結果: [機能名]
 
 ## サマリ
