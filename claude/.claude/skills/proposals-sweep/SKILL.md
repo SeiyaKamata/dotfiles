@@ -1,6 +1,6 @@
 ---
 name: proposals-sweep
-description: 提案キューを走査し再発クラスタを報告する手動スイープ。dotfiles の .specs/proposals/ を1コマンドで棚卸しし、target+claim が近い open 提案を3件以上のクラスタとして再発シグナルを報告する。90日超の open singleton は寿命管理で dropped に落とす。スキル本体の修正はしない。
+description: 提案キューを走査し再発クラスタとbacklog棚卸しを報告する手動スイープ。dotfiles の .specs/proposals/ を1コマンドで棚卸しし、kind: rule かつ open な提案のうち target+claim が近いものを3件以上のクラスタとして再発シグナルを報告する。90日超の open rule singleton は寿命管理で dropped に落とす（kind: backlog は経過日数に依らず対象外）。kind: backlog は再発シグナルとは別枠の着手待ち一覧として棚卸しする。スキル本体の修正はしない。
 allowed-tools: Bash(readlink *), Bash(ls *), Bash(cat *), Bash(date *), Bash(grep *), Read, Edit, AskUserQuestion
 ---
 
@@ -8,9 +8,13 @@ allowed-tools: Bash(readlink *), Bash(ls *), Bash(cat *), Bash(date *), Bash(gre
 
 ## 役割
 
-`.specs/proposals/` に積み上がった提案を手動1コマンドで走査し、`target`+`claim` が近い
-`open` 提案をクラスタ化して再発シグナルとして報告する。**読み取り・クラスタ報告・status
+`.specs/proposals/` に積み上がった提案を手動1コマンドで走査し、`kind: rule` かつ `open` な
+提案のうち `target`+`claim` が近いものをクラスタ化して再発シグナルとして報告する。`kind: backlog`
+は再発シグナルとは別枠の着手待ち一覧として棚卸しする。**読み取り・クラスタ報告・status
 遷移のみ**を担い、スキル本体の修正は行わない（修正は人が別途判断・実施する）。
+
+提案ファイルの frontmatter スキーマの正本は `propose/SKILL.md` の `## 提案ファイルのスキーマ`
+であり、ここでは再掲しない。
 
 ## 引数
 
@@ -27,12 +31,25 @@ QUEUE_DIR="$(dirname "$(dirname "$(dirname "$(readlink -f ~/.claude/skills)")")"
 - `readlink -f` が失敗する、あるいは `QUEUE_DIR` が存在しない／中身が空（`README.md` 以外の
   提案ファイルが無い）場合は、「提案なし」と報告してここで終了する。
 
-### Step 2: open な提案の抽出
+### Step 2: open な提案の抽出と kind の正規化
 
 `$QUEUE_DIR/*.md`（`README.md` を除く）の frontmatter を読み、`status: open` の提案だけを
 対象に絞る。`applied` / `dropped` は以降の処理から完全に除外する。
 
-### Step 3: 寿命管理（90日超 open singleton の失効）
+続けて `kind` を読み取り、次の表で **rule 集合 / backlog 集合 / 不正集合** の3つに正規化する
+（正規化はメモリ上のみで、`kind` 未指定を理由にファイルを書き換えない）。以降の Step 3〜5 は
+この正規化済み集合だけを見る。
+
+| 読み取った `kind` | 正規化結果 |
+|---|---|
+| `rule` | rule 集合 |
+| `backlog` | backlog 集合 |
+| フィールド無し | **rule 集合**（フォールバック。既存の未指定提案を従来どおり扱うため） |
+| 上記以外の値 | **不正集合**（クラスタ検出・寿命管理・backlog 一覧のいずれの対象からも外し、Step 5 でファイル名を添えて報告する） |
+
+### Step 3: 寿命管理（90日超 open rule singleton の失効）
+
+**対象は rule 集合のみ**（`kind: backlog` は経過日数に依らず drop しない）。
 
 - 各提案の `date`（`YYYY-MM-DD`）を epoch に変換し、現在時刻との差が `90*86400` 秒を超えるか
   を判定する（macOS/BSD 前提。ロケール非依存にするため `-j -f` を使う）:
@@ -44,25 +61,27 @@ QUEUE_DIR="$(dirname "$(dirname "$(dirname "$(readlink -f ~/.claude/skills)")")"
 
   差が `90*86400` を超えていれば「90日超」とみなす。
 
-- **singleton**（同一 `target` かつ `claim` が近い提案が自分1件だけ）である 90日超 `open`
+- **singleton**（同一 `target` かつ `claim` が近い rule 提案が自分1件だけ）である 90日超 `open`
   提案だけを `status: dropped` に `Edit` で更新する。
-- **クラスタを構成しているメンバー**（Step 4 で3件以上のクラスタに属す提案）は、90日超でも
+- **クラスタを構成しているメンバー**（Step 4 で3件以上のクラスタに属す rule 提案）は、90日超でも
   drop しない。生きた再発シグナルとして残す。
 - singleton か否かは、寿命判定の前に一度 Step 4 のグルーピングを行い、そのグルーピング結果を
   流用して判定する（同じ near-match ロジックを2度書かない）。
+- `kind: backlog` の提案はこの Step の判定・更新のどちらの対象にもしない。
 
 ### Step 4: クラスタ検出
 
-残った（`dropped` にしなかった）`open` 提案を、`target` が完全一致し `claim` が近似する
-もの同士でグルーピングする。近似判定は AI が行う（表現の揺れは吸収するが、無関係な claim を
-混ぜない）。
+**対象は rule 集合のみ**。残った（`dropped` にしなかった）`open` かつ `kind: rule` の提案を、
+`target` が完全一致し `claim` が近似するもの同士でグルーピングする。近似判定は AI が行う
+（表現の揺れは吸収するが、無関係な claim を混ぜない）。`kind: backlog` の提案はここでの
+グルーピング・再発件数のカウントに含めない。
 
 - 同一クラスタが **3件以上** → 再発シグナルとして報告対象にする。
 - 1〜2件（singleton 含む）→ 再発として報告しない（件数の参考表示のみ許容）。
 
 ### Step 5: 報告
 
-クラスタ（3件以上）ごとに次のフォーマットで報告する:
+rule クラスタ（3件以上）ごとに次のフォーマットで報告する:
 
 ```
 ## 再発シグナル
@@ -78,27 +97,48 @@ QUEUE_DIR="$(dirname "$(dirname "$(dirname "$(readlink -f ~/.claude/skills)")")"
 
 クラスタが1つも無い場合は「再発クラスタなし（open singleton のみ）」と報告する。
 
+続けて、`kind: backlog` の別枠棚卸しを次のフォーマットで報告する（クラスタの3件閾値は
+rule 専用の概念であり backlog には適用しない。1件から出す）:
+
+```
+## dotfiles backlog（着手待ち）
+
+- target: <target> ｜ <claim>
+  - 発行日: <date>
+  - ファイル: <path>
+```
+
+open な `backlog` が1件も無い場合は「着手待ちの backlog なし」と明示的に報告する（節を黙って
+省略しない）。
+
+不正集合（`kind` が `rule`/`backlog` のいずれでもない提案）がある場合は、「不正な提案ファイル
+あり」としてファイル名を添えて報告する。
+
 ### Step 6: 修正はしない・applied への更新は補助のみ
 
-このスキルはスキル本体・CLAUDE.md の修正を行わない。報告を見た人間が「このクラスタは修正に
-着手する」と判断した場合のみ、対象クラスタの提案群を `status: applied` に更新する補助を
-`AskUserQuestion` で確認のうえ提供する（任意・対話）。ユーザーの明示的な指示が無い限り
-`applied` へは書き換えない。
+このスキルはスキル本体・CLAUDE.md の修正を行わない（`kind: backlog` に対しても同様で、
+別枠棚卸しに留め、スキル本体・`CLAUDE.md` の修正は行わない）。報告を見た人間が「このクラスタは
+修正に着手する」と判断した場合のみ、対象クラスタの提案群を `status: applied` に更新する補助を
+`AskUserQuestion` で確認のうえ提供する（任意・対話。対象は rule クラスタのみ）。ユーザーの
+明示的な指示が無い限り `applied` へは書き換えない。
 
 ## 完了条件
 
-- `.specs/proposals/` を1コマンド起動で走査し、`target`+`claim` が3件以上一致するクラスタを
-  すべて報告できたら完了。
-- `open` かつ90日超の singleton を `status: dropped` に更新できている（クラスタメンバーは
-  対象外）。
+- `.specs/proposals/` を1コマンド起動で走査し、`kind: rule` かつ `target`+`claim` が3件以上
+  一致するクラスタをすべて報告できたら完了。
+- `kind: rule` かつ `open` で90日超の singleton を `status: dropped` に更新できている
+  （クラスタメンバーは対象外）。
 - `applied` / `dropped` の提案がクラスタ検出（Step 4）の対象から除外されている。
 - クラスタが無ければ「再発クラスタなし」と報告して完了。
+- 再発判定（クラスタ検出）と寿命管理（90日 drop）の対象が `kind: rule` に限定されている。
+- `kind: backlog` を再発シグナルとは別枠の一覧として報告できている（0件なら明示的に報告）。
+- 不正な `kind` の提案をすべての対象から除外し、ファイル名を添えて報告できている。
 
 ## 完了カード
 走査と status 更新が済んだら、次の完了カードを**コードフェンスで囲まず**プレーンテキストで出力して終了する。カードの後に作業サマリ・所感・補足を足さない。スキル本体の修正は自動で行わずユーザーの判断を待つ。
 
-- Step 5 のクラスタ明細はこのスキルの成果物そのものなのでカードの直前に出してよい（カードには件数と代表 target だけを畳む）。
-- 一言サマリは 1 行。主要な結果は `- ` の箇条書きで**最大 3 行**（走査件数・クラスタ数・dropped 件数など。無ければ行ごと省略）。
+- Step 5 のクラスタ明細・backlog 別枠明細はこのスキルの成果物そのものなのでカードの直前に出してよい（カードには件数と代表 target だけを畳む）。
+- 一言サマリは 1 行。主要な結果は `- ` の箇条書きで**最大 3 行**（走査件数・クラスタ数・dropped 件数・backlog 件数など。無ければ行ごと省略）。
 - 📄 行は `status` を書き換えた提案ファイルを 1 件 1 行で出す（更新が無ければ行ごと省略。行数上限は主要な結果にだけ課す）。
 
 ✅ 提案キュー棚卸し完了
@@ -113,5 +153,9 @@ QUEUE_DIR="$(dirname "$(dirname "$(dirname "$(readlink -f ~/.claude/skills)")")"
 
 - `QUEUE_DIR` が解決できない／空 → 「提案なし」で終了する。
 - frontmatter が壊れている（`target`/`claim`/`date`/`status` のいずれか欠落）提案ファイルが
-  ある場合は、その提案をクラスタ検出・寿命管理の対象から外し、「不正な提案ファイルあり」と
-  ファイル名を添えて報告する（黙って無視しない）。
+  ある場合は、その提案をクラスタ検出・寿命管理・backlog 一覧の対象から外し、「不正な提案
+  ファイルあり」とファイル名を添えて報告する（黙って無視しない）。
+- `kind` の値が `rule`/`backlog` のいずれでもない場合も同様に不正扱いとし、クラスタ検出・
+  寿命管理・backlog 一覧のいずれの対象からも外してファイル名を添えて報告する。
+- **`kind` フィールドが欠落している場合だけは不正扱いにしない**。Step 2 の正規化に従い
+  `rule` にフォールバックし、既存の未指定提案を書き換えずに従来どおり扱う。
