@@ -9,13 +9,13 @@ argument-hint: "[/<stage>] <feature> [pN]"
 
 ## 役割
 仕様駆動開発のパイプライン全体を管理し、各スキル（工程）を順番に起動する。
-**人間承認ゲートを持たず**、`/spec <feature> auto` から draft PR + CI green + CodeRabbit のコメント解決まで自走する。要件の妥当性は `/spec` 内の spec-review-agents（形式・内容の 2 体）が検証する。途中の失敗は自己修正ループで潰し、人を呼ぶのは安全停止点・回復不能な詰まりだけにする。
+**人間承認ゲートを持たず**、`/spec <feature> auto` から draft PR + CI green + 未返信の未解決コメント解消まで自走する。要件の妥当性は `/spec` 内の spec-review-agents（形式・内容の 2 体）が検証する。途中の失敗は自己修正ループで潰し、人を呼ぶのは安全停止点・回復不能な詰まりだけにする。
 
 ## 用語（前提）
 用語は `claude/CLAUDE.md`「用語集」に従う。特に：
 - **工程 (stage)** = パイプラインの各段階（各スキル）。
 - **フェーズ = 大タスク = ブランチ = 1 PR**。tasks.md が大タスクを 1 フェーズに 1:1 で割る。複数フェーズ = **stacked PR**（`pN` を `p(N-1)` にスタック）。
-- **test / review / commit / create-pr / watch-ci / resolve-comments はフェーズ単位**（PR 単位で閉じる）。各フェーズは **PR を出して CI green + CodeRabbit 解決まで済ませてから次フェーズを積む**。
+- **test / review / commit / create-pr / watch-ci / resolve-comments はフェーズ単位**（PR 単位で閉じる）。各フェーズは **PR を出して CI green + 未返信の未解決コメントなしまで済ませてから次フェーズを積む**。
 - **qa だけは feature 全体の受け入れゲート**なので**全フェーズ実装後に 1 回だけ**回す。
 
 ### なぜフェーズごとに PR を出すのか（設計意図）
@@ -36,21 +36,21 @@ argument-hint: "[/<stage>] <feature> [pN]"
           ↓FAIL          ↓NG
          /fix→/test     /design or /impl に戻す
         → /create-pr(draft, このフェーズの 1 PR だけ)
-        → /watch-ci(この PR) → /resolve-comments(CodeRabbit のみ)
+        → /watch-ci(この PR) → /resolve-comments(全コメント)
           ↓CI赤
          ログ取得→自己修正→再push→/watch-ci
-        → 次フェーズへ（前フェーズの PR は green + コメント解決済み）
+        → 次フェーズへ（前フェーズの PR は green + 全件返信済み）
   → 全フェーズ完了後（最終スタックブランチ = 全実装）:
         /qa
          ↓FAIL
         原因フェーズを特定し /fix（設計起因なら /design・/impl）
         → 該当フェーズの /test→/review→/commit → stack を rebase 伝播
         → 影響 PR の /watch-ci→/resolve-comments → /qa に再合流
-  → 全 PR の最終確認(CI green + CodeRabbit 未解決なし) → 停止(人に報告)
+  → 全 PR の最終確認(CI green + 未返信の未解決コメントなし) → 停止(人に報告)
 ```
 
 要件の妥当性は **`/spec` 内の spec-review-agents（形式・内容の 2 体、最大 2 巡）が担保する**。人間の承認は待たず、レビューが通り次第そのまま自走する。**開始工程が design 以降のときは `/spec` を再実行しないため、このレビューも実施しない（既存の requirements.md を確定済みとして扱う）。**
-停止点: **draft PR（複数なら stacked PR 群）+ 全 PR が CI green + CodeRabbit の未解決コメントが無い状態**で人に報告して止まる。merge と Ready for review への切替は人が判断する（自走では行わない）。
+停止点: **draft PR（複数なら stacked PR 群）+ 全 PR が CI green + 未返信の未解決コメントが無い状態**で人に報告して止まる。merge と Ready for review への切替は人が判断する（自走では行わない）。
 
 > **人間レビューの依頼タイミングについて**: 人間レビューは `Ready for review` に切り替わってから行う運用のため、自走中（draft のまま）は依頼できない。現状は**全フェーズ完了後の停止点で人がまとめて Ready にする**。フェーズごとに Ready にする運用に変える場合は、フェーズループ Step 7-8（下記）に切替を差し込む。
 
@@ -85,7 +85,7 @@ argument-hint: "[/<stage>] <feature> [pN]"
 |---|---|---|
 | A（実装前） | `/impl` | ブランチが存在しない最小フェーズ。全フェーズのブランチが存在するなら最大フェーズ |
 | B（実装後・PR 前後） | `/test` `/review` `/commit` `/create-pr` | ブランチが存在する最大フェーズ |
-| C（PR 後） | `/watch-ci` `/resolve-comments` | PR が存在し「CI green かつ未解決コメントなし」を満たさない最小フェーズ。該当なしなら PR が存在する最大フェーズ |
+| C（PR 後） | `/watch-ci` `/resolve-comments` | PR が存在し「CI green かつ未返信の未解決コメントなし」を満たさない最小フェーズ。該当なしなら PR が存在する最大フェーズ |
 
 推定は必ず人の確認（`y/n`）を通す。推定精度より根拠を提示できることを優先する。
 
@@ -112,7 +112,7 @@ gh pr list --search "head:<feature>" --state all \
 - **commit**: フェーズループの中で各フェーズのブランチにコミットする（PR 作成はこの直後）
 - **create-pr**: `auto` 引数で**フェーズループの中で**起動し、**そのフェーズの PR を 1 本だけ**作る（`p1` の base = デフォルトブランチ、`pN` の base = `<feature>-p(N-1)`）。単一フェーズなら通常の 1 PR（base = デフォルトブランチ）。未コミットがあれば `/commit auto` を自動で呼ぶ。Notion URL が最初の指示にあれば引数で渡す
 - **watch-ci**: `auto` 引数で**フェーズループの中で**起動する。対象はそのフェーズの PR（既に作成済みの下位フェーズ PR も列挙対象に入るが、既に green なので追加コストは小さく、rebase で壊れていないかの確認になる）。CI green でも **Ready for review に自動で切り替えない**。draft のまま次へ
-- **resolve-comments**: `auto` 引数で**フェーズループの中で**起動する。次フェーズを積む前に、そのフェーズの CodeRabbit 指摘を解消しきる（これが rebase 伝播を避ける肝）
+- **resolve-comments**: `auto` 引数で**フェーズループの中で**起動する。次フェーズを積む前に、そのフェーズの未解決コメント（人間 + CodeRabbit）を解消しきる（これが rebase 伝播を避ける肝）
 
 ## 進め方
 1. **引数解釈・前提チェック・対象フェーズ決定・ブランチ整合・ディスパッチ**（子番号 1-1〜1-5）
@@ -146,7 +146,7 @@ gh pr list --search "head:<feature>" --state all \
          - `p` + 数字の形式でない → `フェーズ指定は pN の形式で渡してください（例: p2）` を示して終了
          - 数字が 1〜`N` の範囲外 → `tasks.md のフェーズ数は <N> です（指定: <入力>）` を示して終了
          - 範囲内 → それを対象フェーズとする（単一フェーズ時の `p1` も範囲内として受け付ける）
-      3. `pN` が省略されている場合、「開始工程」節の状態収集コマンドを実行し、推定カテゴリ A/B/C のルールで対象フェーズを推定する。推定結果と根拠（例:「`myfeature-p1` は PR green + コメント解決済み、`myfeature-p2` はブランチ未作成」）を提示して `y/n` を取る。`n` → `pN` を明示して再実行するよう促して終了
+      3. `pN` が省略されている場合、「開始工程」節の状態収集コマンドを実行し、推定カテゴリ A/B/C のルールで対象フェーズを推定する。推定結果と根拠（例:「`myfeature-p1` は PR green + 未返信の未解決コメントなし、`myfeature-p2` はブランチ未作成」）を提示して `y/n` を取る。`n` → `pN` を明示して再実行するよう促して終了
       4. カテゴリ C の工程で対象フェーズの PR が存在しない場合は Step 1-2 の不足扱いとして 2 択に回す（遡り先は `/create-pr`）
       5. `/watch-ci` を開始工程とする場合は、対象フェーズのブランチに対応する PR 番号を解決して起動引数に使う
    4. **Step 1-4: ブランチ整合** — 対象フェーズを持つ工程（カテゴリ A/B/C）から開始する場合のみ実行する。ブランチ名は単一フェーズ = `<feature>`、複数フェーズ = `<feature>-pN`（`/impl` Step 2 のルールに従う）
@@ -166,26 +166,26 @@ gh pr list --search "head:<feature>" --state all \
    - 不要 → そのまま次へ
 5. `/tasks <feature> auto` を起動し、`.specs/<feature>/tasks.md` を生成 → 承認を待たず次へ
 6. tasks.md を読んで**フェーズ構成（大タスク数）**を確認する。大タスク = フェーズ = 1 PR = 1 ブランチ。複数フェーズは依存順に並べる（stacked PR になる）
-7. **フェーズループ**: 各フェーズ pN を依存順に、以下のフルサイクルで回す（単一フェーズなら 1 周だけ）。**1 周 = 1 PR を CI green + CodeRabbit 解決まで閉じきる**。qa 以外の工程はすべてこのループ内＝PR 単位：
+7. **フェーズループ**: 各フェーズ pN を依存順に、以下のフルサイクルで回す（単一フェーズなら 1 周だけ）。**1 周 = 1 PR を CI green + 未返信の未解決コメントなしまで閉じきる**。qa 以外の工程はすべてこのループ内＝PR 単位：
    1. `/impl <feature> [pN] auto` を起動（単一は `<feature>`、複数は `pN`。`pN` のブランチは `p(N-1)` にスタック）
    2. `/test <feature> auto` を起動し PASS / FAIL を確認。FAIL → `/fix <feature> auto` → `/test <feature> auto` を再実行（test FAIL 3連続で停止）
    3. `/review <feature> auto` を起動。NG は下記「例外処理」（設計起因は `/design auto`→`/impl`、それ以外は `/impl` に戻す）
    4. `/commit auto` を起動し、**このフェーズのブランチにコミットする**
    5. `/create-pr auto` を起動し、**このフェーズの draft PR を 1 本だけ**作る（base = `p(N-1)`、`p1` と単一フェーズはデフォルトブランチ）。draft でも CodeRabbit が自動でレビューを開始する
    6. `/watch-ci auto` を起動し、この PR の CI green を待つ。赤ならログを取得して自己修正 → push → 再監視（2回直しても green にならなければ報告して停止）
-   7. **CodeRabbit コメント対応ループ（このフェーズについて最大2巡）**:
+   7. **未解決コメント対応ループ（このフェーズについて最大2巡）**:
       - `/resolve-comments` の Step 2 のコマンドで PR のレビュー／コメントを取得し、**現在の HEAD コミットより後**の `coderabbitai[bot]` のレビューが届くまでポーリングする（1巡目は最初のレビュー、2巡目以降は push 後の再レビュー。一定時間来なければ報告して停止）
-      - CodeRabbit は対応済みと判断したスレッドを**自分で resolve する**ため、`isResolved == false` の有無が終了シグナルになる
-      - 未解決コメントが**あり** → `/resolve-comments auto` を起動（CodeRabbit のみ対応）→ `/commit auto` → push → **6 に戻る**（push で CI も再レビューも自動で再実行される）
-      - 未解決コメントが**なし** → 8 へ
-      - 2巡しても未解決コメントが残る → 報告して停止
+      - CodeRabbit は対応済みと判断したスレッドを**自分で resolve する**ため CodeRabbit 分の未解決コメントは自動で消える。人間分は `/resolve-comments` の返信済み判定で消える。**未返信の未解決コメントの有無**が終了シグナルになる
+      - 未返信の未解決コメントが**あり** → `/resolve-comments auto` を起動（人間 + CodeRabbit の全 author を対応）→ `/commit auto` → push → **6 に戻る**（push で CI も再レビューも自動で再実行される）
+      - 未返信の未解決コメントが**なし** → 8 へ
+      - 2巡しても未返信の未解決コメントが残る → 報告して停止
    8. **（保留中の差し込み位置）人間レビューの依頼**: 現状は何もせず次へ進む。フェーズごとに人間レビューを回す運用にする場合、この位置で `gh pr ready <PR番号>` に切り替える（会社ルール上、人間レビューは Ready 以降のため）。**現状は自走では切り替えない**
-   9. 次フェーズへ（前フェーズは commit 済み・CI green・コメント解決済みなので、clean な土台の上に stack できる）
+   9. 次フェーズへ（前フェーズは commit 済み・CI green・全件返信済みなので、clean な土台の上に stack できる）
 8. **全フェーズ完了後の受け入れゲート**: 最終スタックブランチ（＝全実装が乗った状態）で `/qa <feature> auto` を起動する（ブラウザ動作確認。feature 全体の受け入れを 1 回で確認）
    - 全 pass → 次へ
-   - fail → qa の指摘から**原因フェーズを特定**し、そのフェーズのブランチに戻って `/fix <feature> auto`（設計起因なら `/design auto`・`/impl <feature> [pN] auto`）→ 該当フェーズの `/test <feature>`→`/review`→`/commit` を通し、**上位フェーズへ変更を反映（stack を rebase 伝播）**する。その後、**変更が乗った全 PR について Step 7-6〜7-7（`/watch-ci`→CodeRabbit 対応）を回し直して**から `/qa` に再合流。qa↔fix が2周しても収束しない、または rebase 伝播を自走で安全に行えないと判断したら報告して停止
-9. **全 PR の最終確認**: 全フェーズの PR が「CI green + CodeRabbit 未解決コメントなし」であることを確認する（各フェーズでは閉じているが、後続フェーズの push や qa 起因の rebase 伝播で状態が動いている可能性があるため、ここで一度まとめて見る）。崩れていれば該当 PR について Step 7-6〜7-7 を回し直す
-10. **停止点**: draft PR（複数なら stacked PR 群）+ 全 PR が CI green + CodeRabbit コメント解決済みの状態で、PR の URL と結果を人に報告して止まる。**Ready for review への切替と merge は人が判断する**。「マージ後は `/cleanup <feature>` で後片付けできます」と一言添える
+   - fail → qa の指摘から**原因フェーズを特定**し、そのフェーズのブランチに戻って `/fix <feature> auto`（設計起因なら `/design auto`・`/impl <feature> [pN] auto`）→ 該当フェーズの `/test <feature>`→`/review`→`/commit` を通し、**上位フェーズへ変更を反映（stack を rebase 伝播）**する。その後、**変更が乗った全 PR について Step 7-6〜7-7（`/watch-ci`→未解決コメント対応）を回し直して**から `/qa` に再合流。qa↔fix が2周しても収束しない、または rebase 伝播を自走で安全に行えないと判断したら報告して停止
+9. **全 PR の最終確認**: 全フェーズの PR が「CI green + 未返信の未解決コメントなし」であることを確認する（各フェーズでは閉じているが、後続フェーズの push や qa 起因の rebase 伝播で状態が動いている可能性があるため、ここで一度まとめて見る）。崩れていれば該当 PR について Step 7-6〜7-7 を回し直す
+10. **停止点**: draft PR（複数なら stacked PR 群）+ 全 PR が CI green + 全件返信済みの状態で、PR の URL と結果を人に報告して止まる。**Ready for review への切替と merge は人が判断する**。「マージ後は `/cleanup <feature>` で後片付けできます」と一言添える
 
 ## prototype 分岐
 `/design` 完了後、`design.md` の内容から以下を判定する：
@@ -204,12 +204,11 @@ gh pr list --search "head:<feature>" --state all \
 - **レビュー NG**:
   - 「設計の根本的な問題」が含まれる → `/design` に戻す
   - それ以外（コード品質・実装ミス）→ `/impl` に戻す
-- **qa FAIL** → 原因フェーズを特定してそのフェーズで `/fix <feature>`（設計起因なら `/design`・`/impl`）→ そのフェーズの `/test <feature>`→`/review`→`/commit` を通し、stack を rebase 伝播 → 影響 PR の CI / CodeRabbit を通し直してから `/qa` に再合流。qa↔fix が2周しても収束しない、または rebase 伝播を自走で安全に行えない → 報告して停止
-  - **rebase 伝播が必要になるのはここだけ**（フェーズループ内で PR を閉じきっているため、CI / CodeRabbit 起因の修正は常に先端ブランチで完結する）
+- **qa FAIL** → 原因フェーズを特定してそのフェーズで `/fix <feature>`（設計起因なら `/design`・`/impl`）→ そのフェーズの `/test <feature>`→`/review`→`/commit` を通し、stack を rebase 伝播 → 影響 PR の CI / 未解決コメント対応を通し直してから `/qa` に再合流。qa↔fix が2周しても収束しない、または rebase 伝播を自走で安全に行えない → 報告して停止
+  - **rebase 伝播が必要になるのはここだけ**（フェーズループ内で PR を閉じきっているため、CI / 未解決コメント起因の修正は常に先端ブランチで完結する）
 - **CI 失敗** → ログを取得し自己修正して push し直す。2回直しても green にならない → 報告して停止（フェーズループ内なので、失敗しているのは原則そのフェーズの PR）
-- **CodeRabbit コメント対応がそのフェーズで2巡しても収束しない** → 報告して停止（次フェーズを積まない）
+- **未解決コメント対応がそのフェーズで2巡しても収束しない** → 報告して停止（次フェーズを積まない）
 - **CodeRabbit のレビューが一定時間来ない** → 報告して停止
-- **PR に人間のレビューコメントが付いた** → 自動対応せず報告して停止
 - 各スキルが判断できない（要件の曖昧さ等）→ 報告して指示を仰ぐ
 - **引数が不正**（引数なし・工程指定に feature が無い・スラッシュ無しの工程名・レジストリに無い工程名・`pN` の形式不正・`pN` が範囲外）→ Step 1-1・1-3 のエラーメッセージを表示して終了
 - **開始工程の前提成果物が不足しており「中断する」が選ばれた** → 中断理由と復帰コマンドを示して終了（Step 1-2）
@@ -226,7 +225,7 @@ gh pr list --search "head:<feature>" --state all \
 各スキルは編集モードの再入時に上流 doc との整合を自分で再チェックし、ズレがあれば差分だけを patch する。
 
 ## 完了条件
-draft PR（複数フェーズなら stacked PR 群）が作られ、CI が green、CodeRabbit の未解決コメントが無い状態を、PR の URL とともに人に報告したら完了。
+draft PR（複数フェーズなら stacked PR 群）が作られ、CI が green、未返信の未解決コメントが無い状態を、PR の URL とともに人に報告したら完了。
 Ready for review への切替・merge は人が判断する。
 
 ## 完了カード
@@ -244,4 +243,4 @@ Ready for review への切替・merge は人が判断する。
 ▶ OK：Ready for review / merge を判断（人）
 ▶ 後片付け：/cleanup <feature>
 
-「例外処理」の停止条件に当たって完走できずに終了するときは、同じ構成でヘッダを `⚠ パイプライン中断` に差し替え、一言サマリに停止理由（test FAIL 3 連続・rebase 伝播が安全に行えない・人間コメントありなど）、▶ 行に復帰の判断先を書く（作成済みの PR があれば 🔗 行は残す）。
+「例外処理」の停止条件に当たって完走できずに終了するときは、同じ構成でヘッダを `⚠ パイプライン中断` に差し替え、一言サマリに停止理由（test FAIL 3 連続・rebase 伝播が安全に行えない・未解決コメント対応が2巡しても収束しないなど）、▶ 行に復帰の判断先を書く（作成済みの PR があれば 🔗 行は残す）。
