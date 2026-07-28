@@ -15,12 +15,12 @@ argument-hint: "<feature> [auto]"
 このスキルは会話履歴に依存しない。入力はすべて `.specs/<feature>/` と実際のテスト実行から得る。コールドで `/fix <feature>` を叩いても動く。対象フェーズは自分で推定・引数指定を受け付けず、**入力レポートの frontmatter に記録された `phase` から逆算する**（`/orchestrator`「対象確定（工程共通）」参照。`/fix` は手順 3・4（フェーズの検証・推定）を行わず、レポートの `phase` を対象フェーズとしてそのまま採用したうえで手順 5（ブランチ照合）だけを行う）。
 
 ## 入力（すべて .specs / 実行から。会話に依存しない）
-- `.specs/<feature>/test-report.md`（`/test` が書いた失敗レポート。失敗テスト名・エラー・疑わしいファイル・実行コマンド。frontmatter の `phase` を対象フェーズとして採用し、カレントブランチと照合する）
-- `.specs/<feature>/qa-report.md`（存在すれば。`/qa` が書いたブラウザ受け入れの失敗シナリオ・原因・スクショパス。qa 起因で呼ばれたときの入力源。`/qa` はフェーズを持たないため `phase: none` の扱い）
+- `.specs/<feature>/test-report.pN.md`（あれば）または `.specs/<feature>/test-report.md`（フォールバック）（`/test` が書いた失敗レポート。失敗テスト名・エラー・疑わしいファイル・実行コマンド。frontmatter の `phase` を対象フェーズとして採用し、カレントブランチと照合する。パス解決とフォールバックの詳細は Step 2）
+- `.specs/<feature>/qa-report.md`（存在すれば。`/qa` が書いたブラウザ受け入れの失敗シナリオ・原因・スクショパス。qa 起因で呼ばれたときの入力源。`/qa` はフェーズを持たないため `phase: none` の扱い。パスは常に固定で、フェーズ別パスは無い）
 - `.specs/<feature>/bug-report.md`（存在すれば。`/bugfix` が書いたバグ調査記録。症状・再現手順・疑わしい箇所。`/bugfix` 起点で呼ばれたときの入力源）
 - `.specs/<feature>/{requirements,design,tasks}.md`（仕様の文脈。「実装バグか設計の穴か」を判断するのに使う）
-- **入力レポート（`test-report.md`）が存在しない場合、`/fix` は中断せず、自分でテストを実行して失敗を観測する**（このフォールバックは中断より優先する。フェーズ・ブランチの照合ができないため、対象は現在のブランチ・`phase: none` として進める）
-- レポートが存在してもコードと食い違うと判断したときも同様に、**自分でテストを走らせて失敗を観測する**（コールド起動時のフォールバック）
+- **入力レポート（`test-report`）が存在しない場合、`/fix` は中断せず、自分でテストを実行して失敗を観測する**（このフォールバックは中断より優先する。フェーズ・ブランチの照合ができないため、対象は現在のブランチ・`phase: none` として進める）
+- レポートが存在してもコードと食い違うと判断したとき、または frontmatter との照合で **stale と判定したとき**も同様に、**自分でテストを走らせて失敗を観測する**（コールド起動時のフォールバック。stale 判定の詳細は Step 2）
 
 ## 自走モード（`auto` 引数）
 `$ARGUMENTS[1]` が `auto` の場合は自律モード（ブロック抑制）。Step 4 で完了カードを出さず、1 行の簡易ログのみ残す。**設計が原因と診断した場合はコードを触らず、その旨を報告して止まる**（戻し先の起動は orchestrator が行う）。引数なしの単体起動では完了カードを表示する。
@@ -30,8 +30,18 @@ argument-hint: "<feature> [auto]"
 ### Step 1: 引数チェック
 - `$ARGUMENTS[0]` が未指定なら「使い方: /fix <feature> [auto]」を表示して終了
 
-### Step 2: 根本原因の診断
-`test-report.md`（qa 起因なら `qa-report.md`）・`.specs/<feature>/` の仕様・失敗に関連するコードを読み、原因を特定して分類する。`/bugfix` 起点では `test-report.md` が未生成なので、`bug-report.md` を診断の起点として読む：
+### Step 2: レポートのパス解決・stale 判定・根本原因の診断
+
+**パス解決**: `test-report` は対象フェーズが確定できていれば `.specs/<feature>/test-report.pN.md` を先に探し、無ければ旧来の単一パス `.specs/<feature>/test-report.md` をフォールバックとして読む。`qa-report.md` は常に固定パス。
+
+**stale 判定**: 読み込んだレポートの frontmatter（`phase` / `branch` / `head` / `dirty`）を現在の対象・カレントブランチ・`git rev-parse HEAD` と照合する（判定表は `/orchestrator`「対象確定（工程共通）」の「stale 判定」参照）。frontmatter が無い旧形式のレポートも stale として扱う。stale と判定した事実と不一致のキーは出力に残す。
+
+- `test-report` が stale → 根拠にせず、**自分でテストを実行して失敗を観測し直す**（「入力」節のフォールバックと同じ経路。診断はこの再観測結果で行う）
+- `qa-report` が stale → 中断する。復帰コマンドは `/qa <feature>`（`/fix` は Playwright を持たないため qa は再観測できない）
+
+`/impl` はコミットしないため `/test` は通常 `dirty: true` で走る。結果として `test-report` はほぼ常に stale と判定され、`/fix` はほぼ毎回自分でテストを再観測することになる（診断のためのテスト実行が 1 回増える。Step 4 の検証実行とは別カウント）。これは Requirement 7 の判定基準どおりの帰結であり、`/fix` は再観測できるため自走は止まらない。
+
+`test-report`（qa 起因なら `qa-report.md`）・`.specs/<feature>/` の仕様・失敗に関連するコードを読み、原因を特定して分類する。`/bugfix` 起点では `test-report` が未生成なので、`bug-report.md` を診断の起点として読む：
 - **実装バグ** → Step 3 で最小修正
 - **テストの期待値ずれ** → 仕様（requirements.md）と照合してから Step 3 で修正
 - **設計の問題** → コードを触らず `/design <feature>`（編集モード）に戻す。前進カスケードで design→tasks→impl→test を回し直す（NG 分岐）
@@ -43,7 +53,7 @@ argument-hint: "<feature> [auto]"
 特定した原因に対し、**テストを green にする最小限の変更のみ**を加える。新機能・設計変更・リファクタは行わない。
 
 ### Step 4: テスト再実行で確認
-修正後にテストを走らせて確認する（この 1 回が修正の検証）。結果は `.specs/<feature>/test-report.md` に反映する。
+修正後にテストを走らせて確認する（この 1 回が修正の検証）。結果は Step 2 で解決したパス（`test-report.pN.md` があればそれ、無ければ `test-report.md`）に反映する。反映時は frontmatter（`phase` / `branch` / `head` / `dirty` / `ran_at`）もこの再実行時点の値に更新する（古い frontmatter を残すと次の読み手が誤って stale 判定できなくなるため）。
 qa 起因の失敗（ブラウザでしか観測できない挙動）は、ここではユニットテストで最小限の確認に留め、**最終確認は下流の `/qa` 再実行に委ねる**（fix は Playwright を持たない）。
 - PASS → 末尾「完了カード」のブロックで `/test <feature>` の再ゲートを提示する
 - FAIL（別の原因）→ Step 2 に戻る（最大3回まで）
