@@ -69,8 +69,8 @@ argument-hint: "[/<stage>] <feature> [pN]"
 | `/prototype` | + `design.md` | Step 4 | 不要 | `/prototype <feature> auto`（Step 4 の分岐判定はせず直接起動） |
 | `/tasks` | + `design.md` | Step 5 | 不要 | `/tasks <feature> auto` |
 | `/impl` | + `tasks.md` | Step 6 → 7-1 | 必要（カテゴリA） | `/impl <feature> [pN] auto` |
-| `/test` | + `tasks.md` | Step 6 → 7-2 | 必要（カテゴリB） | `/test <feature> auto` |
-| `/review` | + `tasks.md` | Step 6 → 7-3 | 必要（カテゴリB） | `/review <feature> auto` |
+| `/test` | + `tasks.md` | Step 6 → 7-2 | 必要（カテゴリB） | `/test <feature> pN auto` |
+| `/review` | + `tasks.md` | Step 6 → 7-3 | 必要（カテゴリB） | `/review <feature> pN auto` |
 | `/commit` | + `tasks.md` | Step 6 → 7-4 | 必要（カテゴリB） | `/commit auto`（feature を渡さない） |
 | `/create-pr` | + `tasks.md` | Step 6 → 7-5 | 必要（カテゴリB） | `/create-pr auto`（feature を渡さない） |
 | `/watch-ci` | + `tasks.md` + 対象フェーズの PR | Step 6 → 7-6 | 必要（カテゴリC） | `/watch-ci <PR番号> auto`（feature ではなく解決した PR 番号を渡す） |
@@ -104,10 +104,54 @@ gh pr list --search "head:<feature>" --state all \
   --json number,headRefName,isDraft,statusCheckRollup
 ```
 
+## 対象確定（工程共通）
+
+`/test` `/review` `/qa` `/fix` の 4 工程は、会話履歴に依存せず単体でコールド起動しても同じ対象に到達できるよう、起動時に**対象 feature と対象フェーズを自力で確定する**。その手順の**正本をここに置く**（推定ルールは上の「対象フェーズの推定カテゴリ」表と同一のものを使い、二重に書かない）。各工程は自分の節でこの節への参照 1 行を置くだけでよい。
+
+### 手順 1〜6
+
+1. **feature の確定** — 第 1 引数。未指定なら各工程の使い方を表示して終了する。
+2. **フェーズ構成の取得** — `.specs/<feature>/tasks.md` を読み、フェーズ数 `N` と各フェーズのブランチ名（`ブランチ: X（base: Y）`の行）を得る。
+   - `tasks.md` が存在しない → `phase: none` / `branch: none` としてフェーズ照合をスキップし 6 へ（`/bugfix` 起点などで `tasks.md` が無いフローを壊さない）。
+   - 全フェーズが `ブランチ: なし（...）`（PR を運用しない repo。この dotfiles 自身がこの運用）→ ブランチ照合が原理的に成立しないため、同様に `phase: none` として 6 へ。ただし `pN` が明示されていればフェーズ番号としては採用し、3 の形式・範囲の検証だけを行う（ブランチ照合は行わない）。
+3. **フェーズ指定の検証**（`pN` が渡されているとき） — `p` + 数字の形式でなければ形式不正として中断。数字が 1〜`N` の範囲外なら範囲外として中断。
+4. **フェーズの推定**（`pN` が渡されていないとき） — 上の「対象フェーズの推定カテゴリ」表の**カテゴリ B（実装後・PR 前後）＝ブランチが存在する最大フェーズ**を使う。
+   - 非 auto → 推定結果と根拠を提示して `y/n` を取る。`n` → `pN` を明示した再実行を促して終了。
+   - auto → 確認を求めず、推定結果と根拠を 1 行のログに残して継続。
+   - 一つに絞れない → 判断に使った状態を示して中断。
+5. **ブランチ照合** — `git branch --show-current` と対象フェーズのブランチを比較する。
+   - 一致 → 6 へ。
+   - `tasks.md` のいずれかのフェーズのブランチには一致するが対象フェーズと異なる → 中断。
+   - どのフェーズのブランチにも一致しない（detached HEAD を含む）→ 中断。
+6. **実行コンテキストの確定** — `feature` / `phase` / `branch` を確定し、以降の入力導出とレポート出力をこの確定値に基づいて行う。
+
+### 工程ごとの差分
+
+- **`/qa`**: 3〜5 を実行しない（フェーズを持たない。feature 全体の受け入れゲート）。1・2・6 と、入力（`qa.md`）の存在確認だけを行う。
+- **`/fix`**: 3・4 を実行しない。入力レポート（`test-report.md` 等）の frontmatter に記録された `phase` を対象フェーズとしてそのまま採用したうえで、5 のブランチ照合だけを行う。
+- **`/test` `/review`**: 1〜6 をすべて実行する。
+
+### orchestrator 経由では 4 と 5 が発火しない理由
+
+`/orchestrator` は Step 1-3 で対象フェーズを決めて `pN` を起動引数として渡し、Step 1-4 でカレントブランチをそのフェーズのブランチへ合わせてから工程を起動する。したがって工程側では「`pN` が省略されている」（4 の前提）も「ブランチが不一致」（5 の中断条件）も成立しない。**これは orchestrator が自走のために推定・照合を免除される抜け道フラグではない** — 単に事前条件がすでに満たされているだけであり、工程スキル自身は常に手順 1〜6 をそのまま実行する。工程側に「orchestrator から呼ばれたら 4・5 を skip する」という分岐を作らないこと（作れば元の silent failure が復活する）。
+
+### 中断メッセージのテンプレート
+
+各工程は既存の `⚠ <工程名>中断` カードに畳んで出す（新しい出力形式を作らない）。一言サマリに使う文面:
+
+```
+フェーズ指定の形式が不正です（指定: <入力>）。pN の形式で渡してください（例: p2）
+tasks.md のフェーズ数は <N> です（指定: <入力>）
+対象フェーズを一つに絞れません（既存ブランチ: <一覧>）
+カレントブランチ <CURRENT> は対象フェーズ <pN> のブランチ <BRANCH> と一致しません
+カレントブランチ <CURRENT> は tasks.md のどのフェーズにも一致しません（フェーズ: <一覧>）
+入力 <path> がありません（<生成する工程> が生成します）
+```
+
 ## 自走モードの起動（重要）
 人間承認を待つステップを持つスキルは **`auto` 引数**で起動して承認をスキップする。各スキルの `auto` 時の挙動は、それぞれの SKILL.md の「自走モード（`auto` 引数）」節に定義されている：
 
-- **`auto` つきで起動するスキル**: `/spec auto` / `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test <feature> auto` / `/fix <feature> auto` / `/review auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/resolve-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に完了カードを出さず 1 行の簡易ログのみ残す）
+- **`auto` つきで起動するスキル**: `/spec auto` / `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test <feature> pN auto` / `/fix <feature> auto` / `/review <feature> pN auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/resolve-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に完了カードを出さず 1 行の簡易ログのみ残す）。`/test` `/review` の `pN` は orchestrator が Step 1-3 で決めた対象フェーズをそのまま渡す（「対象確定（工程共通）」参照）
 - **prototype**: 目視承認の代わりに Playwright での操作確認＋スクショ取得。**動くコードを `<feature>-proto` ブランチに残す**（後段の impl が「参照して昇格」で流用する）。design.md へ書き戻したら次へ
 - **commit**: フェーズループの中で各フェーズのブランチにコミットする（PR 作成はこの直後）
 - **create-pr**: `auto` 引数で**フェーズループの中で**起動し、**そのフェーズの PR を 1 本だけ**作る（`p1` の base = デフォルトブランチ、`pN` の base = `<feature>-p(N-1)`）。単一フェーズなら通常の 1 PR（base = デフォルトブランチ）。未コミットがあれば `/commit auto` を自動で呼ぶ。Notion URL が最初の指示にあれば引数で渡す
@@ -168,8 +212,8 @@ gh pr list --search "head:<feature>" --state all \
 6. tasks.md を読んで**フェーズ構成（大タスク数）**を確認する。大タスク = フェーズ = 1 PR = 1 ブランチ。複数フェーズは依存順に並べる（stacked PR になる）
 7. **フェーズループ**: 各フェーズ pN を依存順に、以下のフルサイクルで回す（単一フェーズなら 1 周だけ）。**1 周 = 1 PR を CI green + 未返信の未解決コメントなしまで閉じきる**。qa 以外の工程はすべてこのループ内＝PR 単位：
    1. `/impl <feature> [pN] auto` を起動（単一は `<feature>`、複数は `pN`。`pN` のブランチは `p(N-1)` にスタック）
-   2. `/test <feature> auto` を起動し PASS / FAIL を確認。FAIL → `/fix <feature> auto` → `/test <feature> auto` を再実行（test FAIL 3連続で停止）
-   3. `/review <feature> auto` を起動。NG は下記「例外処理」（設計起因は `/design auto`→`/impl`、それ以外は `/impl` に戻す）
+   2. `/test <feature> pN auto` を起動し PASS / FAIL を確認。FAIL → `/fix <feature> auto` → `/test <feature> pN auto` を再実行（test FAIL 3連続で停止）
+   3. `/review <feature> pN auto` を起動。NG は下記「例外処理」（設計起因は `/design auto`→`/impl`、それ以外は `/impl` に戻す）
    4. `/commit auto` を起動し、**このフェーズのブランチにコミットする**
    5. `/create-pr auto` を起動し、**このフェーズの draft PR を 1 本だけ**作る（base = `p(N-1)`、`p1` と単一フェーズはデフォルトブランチ）。draft でも CodeRabbit が自動でレビューを開始する
    6. `/watch-ci auto` を起動し、この PR の CI green を待つ。赤ならログを取得して自己修正 → push → 再監視（2回直しても green にならなければ報告して停止）
@@ -214,6 +258,7 @@ gh pr list --search "head:<feature>" --state all \
 - **開始工程の前提成果物が不足しており「中断する」が選ばれた** → 中断理由と復帰コマンドを示して終了（Step 1-2）
 - **推定した対象フェーズが人に否認された（`n`）** → `pN` を明示して再実行するよう促して終了（Step 1-3）
 - **対象フェーズのブランチへ切り替えられない**（未コミットの変更がある）→ 報告して停止し、stash などの作業ツリー操作は行わない（Step 1-4）
+- **`/test` `/review` `/qa` `/fix` が「対象確定（工程共通）」の前提破れ（フェーズ指定の形式不正・範囲外・推定不能・ブランチ不一致・入力欠損）で中断した** → orchestrator はこれを停止条件として扱い、工程が出した中断理由をそのまま人に報告して停止する（orchestrator 側で回避や再試行は行わない。フェーズとブランチは Step 1-3・1-4 で合わせて渡しているため、本来この中断は起きない前提だが、起きた場合は前提が崩れているとみなす）
 
 ## 実装中の変更
 実装中に仕様・設計・タスクの変更が必要になった場合は、**変更が生じた工程から編集モードで再入し、OK の前進チェーンを辿り直す**（前進カスケード）。どの工程から再入するか（＝影響範囲の判断）はここで決める：
