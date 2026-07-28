@@ -123,7 +123,7 @@ gh pr list --search "head:<feature>" --state all \
    - 一致 → 6 へ。
    - `tasks.md` のいずれかのフェーズのブランチには一致するが対象フェーズと異なる → 中断。
    - どのフェーズのブランチにも一致しない（detached HEAD を含む）→ 中断。
-6. **実行コンテキストの確定** — `feature` / `phase` / `branch` を確定し、以降の入力導出とレポート出力をこの確定値に基づいて行う。
+6. **実行コンテキストの確定** — `feature` / `phase` / `branch` / `head`（`git rev-parse HEAD`） / `dirty`（`git status --porcelain` が空でなければ `true`）を確定し、以降の入力導出とレポート出力をこの確定値に基づいて行う。値の詳細は下の「実行コンテキスト frontmatter」を参照。
 
 ### 工程ごとの差分
 
@@ -146,7 +146,73 @@ tasks.md のフェーズ数は <N> です（指定: <入力>）
 カレントブランチ <CURRENT> は対象フェーズ <pN> のブランチ <BRANCH> と一致しません
 カレントブランチ <CURRENT> は tasks.md のどのフェーズにも一致しません（フェーズ: <一覧>）
 入力 <path> がありません（<生成する工程> が生成します）
+<path> は stale です（<不一致のキー>: レポート <値> / 現在 <値>）
 ```
+
+### 実行コンテキスト frontmatter（レポート共通規約の正本）
+
+`test-report` / `qa-report` / `review` の 3 種のレポートは、先頭に次の frontmatter を記録する。書き手・読み手はこの節だけを見て frontmatter・保存先・stale 判定を決められる。
+
+```yaml
+---
+feature: stage-context-free
+phase: p2                              # フェーズ未確定時は none
+branch: stage-context-free-p2          # ブランチなし運用・照合不可時は none
+head: 4f8c1e9b2a...                    # git rev-parse HEAD（40文字。短縮しない）
+dirty: true                            # 実行時に未コミット変更があったか
+ran_at: 2026-07-28T22:45:00+0900       # レポートを書き出した時刻
+---
+```
+
+収集コマンド（macOS の BSD `date` は `-Iseconds` 非対応なのでフォーマット指定を使う）:
+
+```bash
+git branch --show-current                       # branch
+git rev-parse HEAD                              # head
+[ -n "$(git status --porcelain)" ] && echo true # dirty
+date +"%Y-%m-%dT%H:%M:%S%z"                     # ran_at
+```
+
+キーの型と欠損時の値:
+
+| キー | 値 | 未確定時 |
+|---|---|---|
+| `feature` | 文字列（引数の feature 名） | 欠損しない（未指定なら工程が終了する） |
+| `phase` | `pN` | `none` |
+| `branch` | ブランチ名 | `none` |
+| `head` | 40 文字の SHA | detached や取得不能時は `none` |
+| `dirty` | `true` / `false` | 取得不能時は `true`（安全側に倒す） |
+| `ran_at` | ISO 8601（タイムゾーン付き） | 欠損しない |
+
+対象を確定するのは工程スキル（親）であり、サブエージェントは対象を推定・判定せず、親が渡した確定値をそのまま frontmatter に書き写す（`ran_at` だけは書き出し時点でサブエージェント自身が記録する）。
+
+### レポートの保存先規約
+
+**フェーズが確定しているときだけ**サフィックスを付ける。それ以外（`phase: none`）は従来の単一パスのまま書く。
+
+| 状況 | test-report | review | qa-report |
+|---|---|---|---|
+| フェーズ確定（`phase: pN`） | `.specs/<feature>/test-report.pN.md` | `.specs/<feature>/review.pN.md` | — |
+| フェーズ未確定（`phase: none`） | `.specs/<feature>/test-report.md` | `.specs/<feature>/review.md` | — |
+| qa（常に feature 単位） | — | — | `.specs/<feature>/qa-report.md` |
+
+- `qa-report.md` は `/qa` が feature 全体のゲートでフェーズを持たないため**パスを変えない**（`notion-export` は無変更で通る）。
+- **読み込み順**: 対象フェーズのパス（`test-report.pN.md` 等）→ 存在しなければ従来の単一パス（`test-report.md` 等）をフォールバックとして読む。既存 `.specs/` 資産の移行操作は不要。
+- 単一フェーズ構成（ブランチ = `<feature>`）はフェーズを `p1` と確定できるが、feature 名でパスが一意になるため**サフィックスを付けない**（`phase: p1` は frontmatter にだけ残す）。
+
+### stale 判定
+
+読み込んだレポートの frontmatter を現在値と照合する:
+
+| 条件 | 判定 |
+|---|---|
+| `phase` が現在の対象フェーズと不一致 | stale |
+| `branch` が現在のブランチと不一致 | stale |
+| `head` が `git rev-parse HEAD` と不一致 | stale |
+| `dirty: true` | stale（実行時の作業ツリーが再現できないため、`head` 一致でも stale） |
+| frontmatter が無い（旧形式のレポート） | stale（照合材料が無い） |
+
+stale と判定した事実と不一致のキーは、判定した工程の出力に残す（中断メッセージのテンプレート参照）。読み手ごとの分岐（再観測 / 中断）は各工程の SKILL.md に書く（`/fix` の分岐は `fix/SKILL.md` Step 2 が正）。
 
 ## 自走モードの起動（重要）
 人間承認を待つステップを持つスキルは **`auto` 引数**で起動して承認をスキップする。各スキルの `auto` 時の挙動は、それぞれの SKILL.md の「自走モード（`auto` 引数）」節に定義されている：
