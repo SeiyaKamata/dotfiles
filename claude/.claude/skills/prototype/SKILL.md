@@ -79,14 +79,14 @@ argument-hint: "<feature> [auto]"
   git add -A
   git commit -m "proto: <feature> 流用元の動作確認済み捨て実装"
   ```
-  > この 1 コミットは PR にならない参照用ブランチへの捨て実装なので、`/commit` スキルも commit-planner も通さず直接 1 コミットしてよい（グローバル規約「必ず /commit を使う」の明示的な例外）。分割せず 1 コミットにまとめる。
+  > この 1 コミットは PR にならない参照用ブランチへの捨て実装なので、`/commit` スキルを通さず直接 1 コミットしてよい（グローバル規約「必ず /commit を使う」の明示的な例外）。分割せず 1 コミットにまとめる。
 - prototype コードは正典ではない。impl が正典として参照するのは `design.md`。コードはそれを速く実装するための参考実装。
 
 ### Step 7: 実サーバー検証用の PR を作成する
 proto ブランチを push し、**実サーバーでの動作検証用**に draft PR を作成する。この PR は**マージされない前提**（proto は捨て実装であり、正典は `design.md`）。
 
 - **CodeRabbit を動かさないこと**。普通に PR を作ると CodeRabbit が自動レビューを走らせてしまうので、PR 本文に必ず `@coderabbitai ignore` を入れる。このコマンドが本文にあると CodeRabbit はその PR のレビューをスキップする（リポジトリ側の設定に依らず効く）。
-- `/commit`・commit-planner・`/create-pr` スキルは**経由しない**（Step 6 で直接 1 コミット済みのため）。ここでは push と `gh pr create` を直接行う。
+- `/commit`・`/create-pr` スキルは**経由しない**（Step 6 で直接 1 コミット済みのため）。ここでは push と `gh pr create` を直接行う。
 
   ```
   DEFAULT=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
