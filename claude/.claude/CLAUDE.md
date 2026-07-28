@@ -17,7 +17,7 @@
 
 ## コミット
 
-コミットする際は必ず `/commit` スキルを使う。直接 `git commit` を実行しない。
+コミットする際は必ず `/commit` スキルを使う。直接 `git commit` を実行しない（実行するのは `/commit` が起動する `committer` エージェントのみ）。
 
 ## force push
 
