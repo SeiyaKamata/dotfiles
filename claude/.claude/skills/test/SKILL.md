@@ -35,18 +35,18 @@ argument-hint: "<feature> [pN] [auto]"
 `/orchestrator`「対象確定（工程共通）」の手順 1〜6（`/test` `/review` は差分なくすべて実行）に従い、feature・対象フェーズ・対象ブランチを確定する。前提が破れた場合（フェーズ指定の形式不正・範囲外・推定不能・ブランチ不一致）は中断する（末尾「完了カード」の中断カードへ）。`tasks.md` が無い、または全フェーズが `ブランチ: なし` 運用の場合はフェーズ照合をスキップし `phase: none` で継続する。
 
 ### Step 3: test-runner へ委譲
-`test-runner` サブエージェントを起動し、feature 名を渡す。test-runner が以下を行う：
+保存先パスを決める（Step 2 で確定した `phase` が `pN` なら `.specs/<feature>/test-report.pN.md`、`none` なら従来どおり `.specs/<feature>/test-report.md`）。`test-runner` サブエージェントを起動し、feature 名と Step 2 の確定値（`phase` / `branch` / `head` / `dirty`）・この保存先パスを渡す。test-runner が以下を行う：
 - プロジェクト CLAUDE.md を最優先にテストコマンドを検出して実行する
 - PASS/FAIL を判定する
-- 最新結果を `.specs/<feature>/test-report.md` に書き出す（`/fix` の入力源）
-- 判定・要点・レポートパスだけを返す（テストログ本体はサブエージェント側に閉じる）
+- 最新結果を渡された保存先パスに書き出す（frontmatter に確定値を書き写し、`ran_at` だけ自分で記録する。`/fix` の入力源になる）
+- 判定・要点・レポートパスだけを返す（テストログ本体はサブエージェント側に閉じる。記録項目が増えても戻り情報量は増やさない）
 
 test-runner が「テストコマンドを判断できない」と返した場合は、**推測で実行させ直さず**、単体起動ならユーザーに確認、`auto` 自走時は「判断できない」として報告・停止する。
 
 ### Step 4: 完了カード
-test-runner の判定（PASS / FAIL）を確定し、末尾「完了カード」のブロックを出力して終了する。「出力フォーマット」の内訳（実行数・失敗テストの一覧）はターミナルに列挙せず、`.specs/<feature>/test-report.md` に記録する。
+test-runner の判定（PASS / FAIL）を確定し、末尾「完了カード」のブロックを出力して終了する。「出力フォーマット」の内訳（実行数・失敗テストの一覧）はターミナルに列挙せず、Step 3 で決めた保存先パス（`test-report.pN.md` または `test-report.md`）に記録する。
 
-## 出力フォーマット（test-report.md に書く内訳）
+## 出力フォーマット（test-report に書く内訳）
 ```
 ## テスト結果: PASS / FAIL
 
@@ -73,13 +73,14 @@ test-runner の判定（PASS / FAIL）を確定し、末尾「完了カード」
 ## 完了カード
 Step 4 で判定が確定したら、次の完了カードを**コードフェンスで囲まず**プレーンテキストで出力して終了する。カードの前後に作業サマリ・所感・補足を足さない。次スキルは自動起動せずユーザーの実行を待つ。
 
-- ✅ ヘッダの括弧に判定（PASS / FAIL）を入れる。一言サマリは 1 行。主要な結果は `- ` の箇条書きで**最大 3 行**（無ければ行ごと省略）。失敗テストの内訳は test-report.md に寄せ、カードには列挙しない。
+- ✅ ヘッダの括弧に判定（PASS / FAIL）を入れる。一言サマリは 1 行。主要な結果は `- ` の箇条書きで**最大 3 行**（無ければ行ごと省略）。失敗テストの内訳は test-report に寄せ、カードには列挙しない。
 - ▶ 行は完了時点で確定した分岐 1 つだけを出す（PASS なら OK 行、FAIL なら NG 行）。
+- 📄 行は Step 3 で決めた保存先パスをそのまま出す（フェーズ確定時は `test-report.pN.md`、未確定時は `test-report.md`）。
 
 ✅ テスト実行完了（PASS）
 <実行数と判定を 1 行>
 - <主要な結果 最大 3 行>
-📄 .specs/<feature>/test-report.md
+📄 .specs/<feature>/test-report.pN.md（フェーズ未確定時は test-report.md）
 ▶ OK：/review <feature>
 ▶ NG：/fix <feature>
 
