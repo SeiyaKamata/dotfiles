@@ -35,27 +35,27 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls *), Bash(test *), AskUserQ
 
 ## 引数
 
-- 第1引数: 元 feature 名（`.specs/<feature>/review.md` からスコープ外指摘を拾う）
-- プロンプトで指摘内容を直接渡すこともできる（review.md と併用可）
+- 第1引数: 元 feature 名（`.specs/<feature>/review.md` および `.specs/<feature>/review.p*.md` からスコープ外指摘を拾う）
+- プロンプトで指摘内容を直接渡すこともできる（review と併用可）
 
 ## 進め方
 
 ### Step 1: 入力の特定
 
-- `$ARGUMENTS[0]`（元 feature）があれば `test -f .specs/<feature>/review.md` を確認し、あれば読む。
+- `$ARGUMENTS[0]`（元 feature）があれば `.specs/<feature>/review.md`（フェーズ未確定・単一フェーズ運用）と `.specs/<feature>/review.p*.md`（フェーズ別。`/review` がフェーズ確定時にこの形で保存する）を `ls`/`Glob` で探し、見つかったものをすべて読む。複数見つかった場合はフェーズ番号の昇順（`review.p1.md` → `review.p2.md` → …。フェーズ未確定の `review.md` があれば先頭）で全件を候補として列挙する（取りこぼしを防ぐため、一部だけ読んで終わらない）。
 - プロンプトで指摘が直接渡されていれば、それも切り出し対象の候補に含める。
 - **`.specs/proposals/` 配下の backlog 提案ファイルのパスが渡された場合**、それを Read して
   切り出し候補に含める（`/propose` の完了カードが案内する `dotfiles で /spinoff <パス>` の導線を
   受ける入口）。提案ファイルの `target`・`claim`・本文をそのまま切り出し候補の内容として扱う。
 - 元 feature が未指定かつプロンプトの指摘も無ければ「使い方: /spinoff <feature>」を表示して終了する。
-- review.md が存在せず、プロンプトの指摘も無ければ「切り出せるスコープ外指摘が無い」旨を伝えて終了する。
+- review.md も review.p*.md も存在せず、プロンプトの指摘も無ければ「切り出せるスコープ外指摘が無い」旨を伝えて終了する。
 
 **完了ゲート:** 切り出し対象の候補（review.md 由来 / プロンプト由来）が確定したか。
 
 ### Step 2: 候補の抽出
 
-- review.md から指摘（`### CodeRabbit の指摘` / `### 推奨対応` 等の記録項目）を候補として列挙する。
-- review.md にはスコープ外を示す公式マーカーが無いため、ここで機械的に絞り込まず、Step 3 の
+- Step 1 で読んだ review（`review.md` / `review.p*.md` の全件）から指摘（`### CodeRabbit の指摘` / `### 推奨対応` 等の記録項目）を候補として列挙する。複数フェーズの review があればフェーズをまたいで全件を候補にする。
+- review にはスコープ外を示す公式マーカーが無いため、ここで機械的に絞り込まず、Step 3 の
   確認でユーザーに対象を選ばせる。
 - 指摘の中身についての質問はしない。要件詳細化はここでは行わない。
 
