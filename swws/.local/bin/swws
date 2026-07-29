@@ -73,9 +73,16 @@ attempt_up() {
 launch() {
   local waits=(300 600 600) i=0 rc
   while true; do
-    if attempt_up; then return 0; fi
-    rc=$?
-    [ "$rc" = 2 ] || return "$rc"
+    # `if attempt_up; then ...; fi` の直後に `$?` を読むと、条件が偽の if 文自体の
+    # 終了ステータス（＝常に 0）を拾ってしまい、ガードの exit 2 が 0 に化ける。
+    # `|| rc=$?` なら attempt_up の値をそのまま受けられる（set -e も踏まない）。
+    rc=0
+    attempt_up || rc=$?
+    case "$rc" in
+      0) return 0 ;;                # 起動した
+      2) ;;                         # 別 worktree が使用中 → 下の警告・リトライへ
+      *) return "$rc" ;;            # ロック取得失敗(3) / 起動コマンドの失敗
+    esac
 
     echo "⚠️  $project_name は別の worktree で使用中です:" >&2
     printf '      %s\n' $(other_worktrees) >&2
