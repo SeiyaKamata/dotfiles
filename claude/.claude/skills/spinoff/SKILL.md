@@ -2,7 +2,7 @@
 name: spinoff
 description: スコープ外指摘・棚上げ案件を独立featureのseed.mdに切り出す。/review等でスコープ外の指摘が出たとき、または投げなくても今のタスクが完了する棚上げ案件があるとき使う。その場では要件詳細化せず、後で/specが拾う。
 argument-hint: "[元feature]"
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls *), Bash(test *)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls *)
 ---
 
 # 棚上げ案件の切り出しスキル

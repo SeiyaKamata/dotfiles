@@ -2,7 +2,7 @@
 name: handoff
 description: 今のタスクを進めるのに別PJの変更が必要なとき、その依頼を作業ディレクトリ外の別PJに投げる。相手PJの.specs/配下に要望書(seed.md)を書いて受け渡し、相手は/specで拾う。別PJのファイルを直接編集できずブロックされたときにも使う。
 argument-hint: "[依頼先PJのパスまたは略称] [機能名]"
-allowed-tools: Bash(ls *), Bash(test *), Bash(git -C *), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(ls *), Bash(git -C *), Read, Write, Edit, Glob, Grep
 ---
 
 # 他 PJ への修正依頼スキル
@@ -41,13 +41,10 @@ allowed-tools: Bash(ls *), Bash(test *), Bash(git -C *), Read, Write, Edit, Glob
 ### Step 2: 依頼先 PJ の特定
 引数のパス／略称から依頼先 PJ のルートを確定する。略称なら CLAUDE.md の対応表で解決する。一意に決まればそのまま進み、**候補が複数ある・特定できない場合だけ**人間に確認する。
 
-`.specs/` に書けることを確認する（存在しなければ作成方針を人間に確認する）：
+`.specs/` に書けることを確認する。`Glob` で `<依頼先PJ>/.specs/*/` を一覧する（**`test` は使わない** — ハーネスの allow リストに無く、毎回パーミッション判定に回って承認待ちの原因になる）。
 
-```
-test -d <依頼先PJ>/.specs && echo writable || echo "(.specs なし)"
-```
-
-書き込める場合は `ls <依頼先PJ>/.specs/` で既存 feature 一覧を取得し、Step 4 のスラッグ決定の材料にする。
+- **既存 feature が返る** → 書き込める。この一覧を Step 4 のスラッグ決定の材料にする
+- **何も返らない** → `.specs/` が無いか空。作成方針を人間に確認する
 
 **完了ゲート:** 依頼先 PJ ルートと `.specs/` の書き込み可否が確定したか。
 
@@ -55,6 +52,8 @@ test -d <依頼先PJ>/.specs && echo writable || echo "(.specs なし)"
 人間から受け取った修正内容を、相手が `/spec` に渡して要件詳細化できる「**要望**」の粒度に落とす。実装手順や受け入れ条件まで先回りして書かない（それは相手の spec→design→tasks が作る）。
 
 依頼先のコードを Read する前に **`git -C <依頼先PJ> fetch` を実行**し、リモート追跡ブランチの内容を基準に対象範囲（どのあたりのファイル・該当箇所か）を確認する。ドキュメントや記憶を鵜呑みにせず**実コードで裏取りする**。行番号を書く場合は基準としたコミット（`git -C <依頼先PJ> rev-parse @{u}` 等）を併記する。
+
+`git -C` はハーネスの allow リストに無いため**承認を求められることがある**。承認されなかった場合は fetch を諦め、依頼先の作業ツリーを `Read` / `Grep` で確認したうえで、seed.md の「対象範囲・既知の手がかり」に**どの時点のコードを見たのか不明である旨**を明記する（黙って fetch 済みのように書かない）。
 
 **完了ゲート:** `git fetch` 済みの内容を基準に対象範囲を確認し、要望の中身が固まったか。
 
