@@ -25,6 +25,40 @@ normalize_path() {
   echo "/${out[*]}"
 }
 
+# symlink を解決した絶対パスを返す。
+# realpath は実在しないパスで失敗するので、実在する祖先まで遡って解決し、残りの
+# セグメントを足し戻す。単に normalize_path へ落とすと symlink が未解決のまま残り、
+# `<other-repo>/.specs -> ~/.claude/skills` のような symlink 経由の**新規作成**が
+# 「.specs 配下だから許可」と誤判定されて素通りする。
+resolve_path() {
+  local p suffix="" real
+  p=$(normalize_path "$1")
+  while [[ -n "$p" && "$p" != "/" ]]; do
+    if real=$(realpath "$p" 2>/dev/null); then
+      echo "${real%/}$suffix"
+      return
+    fi
+    suffix="/$(basename "$p")$suffix"
+    p=$(dirname "$p")
+  done
+  echo "/${suffix#/}"
+}
+
+# PJ 間連携で許可する `.specs/` 配下のドキュメントか判定する（許可なら 0）。
+# 「`.specs/` 配下なら何でも」は広すぎる。要件書・提案は markdown なので拡張子で絞り、
+# **エージェントが自動で読み込む名前は除外する** — それらは実質 instruction file で、
+# 他 PJ から書き込めると相手セッションの振る舞いを外部から書き換えられるため。
+is_specs_document() {
+  local p="$1" base
+  [[ "$p" == */.specs/* ]] || return 1
+  base=$(basename "$p")
+  [[ "$base" == *.md ]] || return 1
+  case "$base" in
+    CLAUDE.md | CLAUDE.local.md | AGENTS.md | AGENT.md | GEMINI.md | README.md) return 1 ;;
+  esac
+  return 0
+}
+
 # プロジェクト外への書き込みなら 0（ブロック）、許可なら 1 を返す
 is_denied() {
   local file_path="$1"
@@ -41,18 +75,14 @@ is_denied() {
     file_path="$PWD/$file_path"
   fi
 
-  # パスを正規化。realpath は実在しないパスで失敗するので、その場合は自前で畳む
-  # （畳まないと `<project>/../other-repo/x` が project 内と誤判定されて素通りする）
+  # `.` `..` を畳み symlink まで解決する（解決しないと `<project>/../other-repo/x` が
+  # project 内と誤判定されたり、symlink を張った `.specs` が例外に化けたりする）
   local abs_path
-  abs_path=$(realpath "$file_path" 2>/dev/null) || abs_path=$(normalize_path "$file_path")
+  abs_path=$(resolve_path "$file_path")
 
-  # 他リポジトリの .specs/ 配下への書き込みは許可（PJ間連携用）
-  if [[ "$abs_path" == */.specs || "$abs_path" == */.specs/* ]]; then
-    return 1
-  fi
-
-  # CLAUDE.md への書き込みは許可（グローバル/各プロジェクト問わず）
-  if [[ "$(basename "$abs_path")" == "CLAUDE.md" ]]; then
+  # 他リポジトリの .specs/ 配下への markdown 書き込みは許可（PJ間連携用）。
+  # 拡張子と名前の制限は is_specs_document を参照。
+  if is_specs_document "$abs_path"; then
     return 1
   fi
 
