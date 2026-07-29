@@ -15,7 +15,7 @@ argument-hint: "[/<stage>] <feature> [pN]"
 用語は `claude/CLAUDE.md`「用語集」に従う。特に：
 - **工程 (stage)** = パイプラインの各段階（各スキル）。
 - **フェーズ = 大タスク = ブランチ = 1 PR**。tasks.md が大タスクを 1 フェーズに 1:1 で割る。複数フェーズ = **stacked PR**（`pN` を `p(N-1)` にスタック）。
-- **test / review / commit / create-pr / watch-ci / resolve-comments はフェーズ単位**（PR 単位で閉じる）。各フェーズは **PR を出して CI green + 未返信の未解決コメントなしまで済ませてから次フェーズを積む**。
+- **test / review / commit / sync-to-remote / watch-ci / resolve-comments はフェーズ単位**（PR 単位で閉じる）。各フェーズは **PR を出して CI green + 未返信の未解決コメントなしまで済ませてから次フェーズを積む**。
 - **qa だけは feature 全体の受け入れゲート**なので**全フェーズ実装後に 1 回だけ**回す。
 
 ### なぜフェーズごとに PR を出すのか（設計意図）
@@ -35,7 +35,7 @@ argument-hint: "[/<stage>] <feature> [pN]"
         /impl pN → /test → /review → /commit
           ↓FAIL          ↓NG
          /fix→/test     /design or /impl に戻す
-        → /create-pr(draft, このフェーズの 1 PR だけ)
+        → /sync-to-remote(draft, このフェーズの 1 PR だけ)
         → /watch-ci(この PR) → /resolve-comments(全コメント)
           ↓CI赤
          ログ取得→自己修正→再push→/watch-ci
@@ -72,7 +72,7 @@ argument-hint: "[/<stage>] <feature> [pN]"
 | `/test` | + `tasks.md` | Step 6 → 7-2 | 必要（カテゴリB） | `/test <feature> pN auto` |
 | `/review` | + `tasks.md` | Step 6 → 7-3 | 必要（カテゴリB） | `/review <feature> pN auto` |
 | `/commit` | + `tasks.md` | Step 6 → 7-4 | 必要（カテゴリB） | `/commit auto`（feature を渡さない） |
-| `/create-pr` | + `tasks.md` | Step 6 → 7-5 | 必要（カテゴリB） | `/create-pr auto`（feature を渡さない） |
+| `/sync-to-remote` | + `tasks.md` | Step 6 → 7-5 | 必要（カテゴリB） | `/sync-to-remote auto`（feature を渡さない） |
 | `/watch-ci` | + `tasks.md` + 対象フェーズの PR | Step 6 → 7-6 | 必要（カテゴリC） | `/watch-ci <PR番号> auto`（feature ではなく解決した PR 番号を渡す） |
 | `/resolve-comments` | + `tasks.md` + 対象フェーズの PR | Step 6 → 7-7 | 必要（カテゴリC） | `/resolve-comments auto`（feature を渡さない） |
 | `/qa` | + `tasks.md` | Step 8 | 不要 | `/qa <feature> auto` |
@@ -84,7 +84,7 @@ argument-hint: "[/<stage>] <feature> [pN]"
 | カテゴリ | 対象工程 | 推定ルール |
 |---|---|---|
 | A（実装前） | `/impl` | ブランチが存在しない最小フェーズ。全フェーズのブランチが存在するなら最大フェーズ |
-| B（実装後・PR 前後） | `/test` `/review` `/commit` `/create-pr` | ブランチが存在する最大フェーズ |
+| B（実装後・PR 前後） | `/test` `/review` `/commit` `/sync-to-remote` | ブランチが存在する最大フェーズ |
 | C（PR 後） | `/watch-ci` `/resolve-comments` | PR が存在し「CI green かつ未返信の未解決コメントなし」を満たさない最小フェーズ。該当なしなら PR が存在する最大フェーズ |
 
 推定は必ず人の確認（`y/n`）を通す。推定精度より根拠を提示できることを優先する。
@@ -113,7 +113,7 @@ gh pr list --search "head:<feature>" --state all \
 1. **feature の確定** — 第 1 引数。未指定なら各工程の使い方を表示して終了する。
 2. **フェーズ構成の取得** — `.specs/<feature>/tasks.md` を読み、フェーズ数 `N` と各フェーズのブランチ名（`ブランチ: X（base: Y）`の行）を得る。
    - `tasks.md` が存在しない → `phase: none` / `branch: none` としてフェーズ照合をスキップし 6 へ（`/bugfix` 起点などで `tasks.md` が無いフローを壊さない）。
-   - 全フェーズが `ブランチ: なし（...）`（PR を運用しない repo。この dotfiles 自身がこの運用）→ ブランチ照合が原理的に成立しないため、同様に `phase: none` として 6 へ。ただし `pN` が明示されていればフェーズ番号としては採用し、3 の形式・範囲の検証だけを行う（ブランチ照合は行わない）。
+   - `ブランチ:` 行があってもそのブランチが 1 つも存在しない（＝実装前、または PR を作らない運用でデフォルトブランチ上に直接コミットしている）→ ブランチ照合が成立しないため、同様に `phase: none` として 6 へ。ただし `pN` が明示されていればフェーズ番号としては採用し、3 の形式・範囲の検証だけを行う。
 3. **フェーズ指定の検証**（`pN` が渡されているとき） — `p` + 数字の形式でなければ形式不正として中断。数字が 1〜`N` の範囲外なら範囲外として中断。
 4. **フェーズの推定**（`pN` が渡されていないとき） — 上の「対象フェーズの推定カテゴリ」表の**カテゴリ B（実装後・PR 前後）＝ブランチが存在する最大フェーズ**を使う。
    - 非 auto → 推定結果と根拠を提示して `y/n` を取る。`n` → `pN` を明示した再実行を促して終了。
@@ -217,10 +217,10 @@ stale と判定した事実と不一致のキーは、判定した工程の出�
 ## 自走モードの起動（重要）
 人間承認を待つステップを持つスキルは **`auto` 引数**で起動して承認をスキップする。各スキルの `auto` 時の挙動は、それぞれの SKILL.md の「自走モード（`auto` 引数）」節に定義されている：
 
-- **`auto` つきで起動するスキル**: `/spec auto` / `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test <feature> pN auto` / `/fix <feature> auto` / `/review <feature> pN auto` / `/qa auto` / `/commit auto` / `/create-pr auto` / `/watch-ci auto` / `/resolve-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に完了カードを出さず 1 行の簡易ログのみ残す）。`/test` `/review` の `pN` は orchestrator が Step 1-3 で決めた対象フェーズをそのまま渡す（「対象確定（工程共通）」参照）
+- **`auto` つきで起動するスキル**: `/spec auto` / `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test <feature> pN auto` / `/fix <feature> auto` / `/review <feature> pN auto` / `/qa auto` / `/commit auto` / `/sync-to-remote auto` / `/watch-ci auto` / `/resolve-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に完了カードを出さず 1 行の簡易ログのみ残す）。`/test` `/review` の `pN` は orchestrator が Step 1-3 で決めた対象フェーズをそのまま渡す（「対象確定（工程共通）」参照）
 - **prototype**: 目視承認の代わりに Playwright での操作確認＋スクショ取得。**動くコードを `<feature>-proto` ブランチに残す**（後段の impl が「参照して昇格」で流用する）。design.md へ書き戻したら次へ
 - **commit**: フェーズループの中で各フェーズのブランチにコミットする（PR 作成はこの直後）
-- **create-pr**: `auto` 引数で**フェーズループの中で**起動し、**そのフェーズの PR を 1 本だけ**作る（`p1` の base = デフォルトブランチ、`pN` の base = `<feature>-p(N-1)`）。単一フェーズなら通常の 1 PR（base = デフォルトブランチ）。未コミットがあれば `/commit auto` を自動で呼ぶ。Notion URL が最初の指示にあれば引数で渡す
+- **sync-to-remote**: `auto` 引数で**フェーズループの中で**起動し、**そのフェーズの PR を 1 本だけ**作る（`p1` の base = デフォルトブランチ、`pN` の base = `<feature>-p(N-1)`）。単一フェーズなら通常の 1 PR（base = デフォルトブランチ）。未コミットがあれば `/commit auto` を自動で呼ぶ。Notion URL が最初の指示にあれば引数で渡す
 - **watch-ci**: `auto` 引数で**フェーズループの中で**起動する。対象はそのフェーズの PR（既に作成済みの下位フェーズ PR も列挙対象に入るが、既に green なので追加コストは小さく、rebase で壊れていないかの確認になる）。CI green でも **Ready for review に自動で切り替えない**。draft のまま次へ
 - **resolve-comments**: `auto` 引数で**フェーズループの中で**起動する。次フェーズを積む前に、そのフェーズの未解決コメント（人間 + CodeRabbit）を解消しきる（これが rebase 伝播を避ける肝）
 
@@ -257,7 +257,7 @@ stale と判定した事実と不一致のキーは、判定した工程の出�
          - 数字が 1〜`N` の範囲外 → `tasks.md のフェーズ数は <N> です（指定: <入力>）` を示して終了
          - 範囲内 → それを対象フェーズとする（単一フェーズ時の `p1` も範囲内として受け付ける）
       3. `pN` が省略されている場合、「開始工程」節の状態収集コマンドを実行し、推定カテゴリ A/B/C のルールで対象フェーズを推定する。推定結果と根拠（例:「`myfeature-p1` は PR green + 未返信の未解決コメントなし、`myfeature-p2` はブランチ未作成」）を提示して `y/n` を取る。`n` → `pN` を明示して再実行するよう促して終了
-      4. カテゴリ C の工程で対象フェーズの PR が存在しない場合は Step 1-2 の不足扱いとして 2 択に回す（遡り先は `/create-pr`）
+      4. カテゴリ C の工程で対象フェーズの PR が存在しない場合は Step 1-2 の不足扱いとして 2 択に回す（遡り先は `/sync-to-remote`）
       5. `/watch-ci` を開始工程とする場合は、対象フェーズのブランチに対応する PR 番号を解決して起動引数に使う
    4. **Step 1-4: ブランチ整合** — 対象フェーズを持つ工程（カテゴリ A/B/C）から開始する場合のみ実行する。ブランチ名は単一フェーズ = `<feature>`、複数フェーズ = `<feature>-pN`（`/impl` Step 2 のルールに従う）
       - カテゴリ B/C（ブランチが存在する前提）→ そのブランチへ `git switch` する。未コミットの変更があって切り替えられない場合は報告して停止する（stash などの作業ツリー操作はしない）
@@ -281,7 +281,7 @@ stale と判定した事実と不一致のキーは、判定した工程の出�
    2. `/test <feature> pN auto` を起動し PASS / FAIL を確認。FAIL → `/fix <feature> auto` → `/test <feature> pN auto` を再実行（test FAIL 3連続で停止）
    3. `/review <feature> pN auto` を起動。NG は下記「例外処理」（設計起因は `/design auto`→`/impl`、それ以外は `/impl` に戻す）
    4. `/commit auto` を起動し、**このフェーズのブランチにコミットする**
-   5. `/create-pr auto` を起動し、**このフェーズの draft PR を 1 本だけ**作る（base = `p(N-1)`、`p1` と単一フェーズはデフォルトブランチ）。draft でも CodeRabbit が自動でレビューを開始する
+   5. `/sync-to-remote auto` を起動し、**このフェーズの draft PR を 1 本だけ**作る（base = `p(N-1)`、`p1` と単一フェーズはデフォルトブランチ）。draft でも CodeRabbit が自動でレビューを開始する
    6. `/watch-ci auto` を起動し、この PR の CI green を待つ。赤ならログを取得して自己修正 → push → 再監視（2回直しても green にならなければ報告して停止）
    7. **未解決コメント対応ループ（このフェーズについて最大2巡）**:
       - `/resolve-comments` の Step 2 のコマンドで PR のレビュー／コメントを取得し、**現在の HEAD コミットより後**の `coderabbitai[bot]` のレビューが届くまでポーリングする（1巡目は最初のレビュー、2巡目以降は push 後の再レビュー。一定時間来なければ報告して停止）

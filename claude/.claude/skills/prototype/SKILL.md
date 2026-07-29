@@ -86,7 +86,7 @@ argument-hint: "<feature> [auto]"
 proto ブランチを push し、**実サーバーでの動作検証用**に draft PR を作成する。この PR は**マージされない前提**（proto は捨て実装であり、正典は `design.md`）。
 
 - **CodeRabbit を動かさないこと**。普通に PR を作ると CodeRabbit が自動レビューを走らせてしまうので、PR 本文に必ず `@coderabbitai ignore` を入れる。このコマンドが本文にあると CodeRabbit はその PR のレビューをスキップする（リポジトリ側の設定に依らず効く）。
-- `/commit`・`/create-pr` スキルは**経由しない**（Step 6 で直接 1 コミット済みのため）。ここでは push と `gh pr create` を直接行う。
+- `/commit`・`/sync-to-remote` スキルは**経由しない**（Step 6 で直接 1 コミット済みのため）。ここでは push と `gh pr create` を直接行う。
 
   ```
   DEFAULT=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')

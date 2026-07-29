@@ -47,7 +47,7 @@ stacked（複数 PR）の場合は全 PR の CI が green になるまで監視�
   gh pr view --json number,url,isDraft,headRefName,state
   ```
 
-PRが見つからない場合は人間に確認する（`auto` かつ未作成なら `/create-pr auto` を提案）。
+PRが見つからない場合は人間に確認する（`auto` かつ未作成なら `/sync-to-remote auto` を提案）。
 
 ### Step 2: CIを監視する
 
@@ -144,7 +144,7 @@ CI失敗の原因が **その PJ で繰り返しハマる構造的なもの**（
 - CI失敗 → 失敗内容を報告し、（再発しそうなら）改善提案の切り出し先を提示し、修正方針について人間に確認したら完了
 
 ## エラー処理
-- `gh pr view` でPRが見つからない場合: 現在のブランチがpushされているか・PRが作成済みかを確認し、必要なら `/create-pr` を提案する
+- `gh pr view` でPRが見つからない場合: 現在のブランチがpushされているか・PRが作成済みかを確認し、必要なら `/sync-to-remote` を提案する
 - `gh pr checks --watch` がタイムアウトした場合: 再実行するか人間に確認する
 - `gh pr ready` が権限エラーで失敗した場合: 人間にWeb UIでの操作を案内する
 
