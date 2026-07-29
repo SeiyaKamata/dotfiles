@@ -9,7 +9,7 @@ argument-hint: "[/<stage>] <feature> [pN]"
 
 ## 役割
 仕様駆動開発のパイプライン全体を管理し、各スキル（工程）を順番に起動する。
-**人間承認ゲートを持たず**、`/spec <feature> auto` から draft PR + CI green + 未返信の未解決コメント解消まで自走する。要件の妥当性は `/spec` 内の spec-review-agents（形式・内容の 2 体）が検証する。途中の失敗は自己修正ループで潰し、人を呼ぶのは安全停止点・回復不能な詰まりだけにする。
+**人間承認ゲートを持たず**、`/spec <feature> auto` から draft PR + CI green + 未返信の未解決コメント解消まで自走する。成果物の妥当性は `/spec`・`/design`・`/tasks` の完了後に orchestrator が `stage-reviewer` で検証し、NG ならその工程を再起動して直させる。途中の失敗は自己修正ループで潰し、人を呼ぶのは安全停止点・回復不能な詰まりだけにする。
 
 ## 用語（前提）
 用語は `claude/CLAUDE.md`「用語集」に従う。特に：
@@ -30,7 +30,7 @@ argument-hint: "[/<stage>] <feature> [pN]"
 > 開始工程を `/orchestrator /<stage> <feature> [pN]` で任意の位置から指定できる（指定工程より前は実行しない。詳細は「## 開始工程」）。
 
 ```
-/spec auto →（要件レビュー: spec-review-agents）→ /design →(分岐)→ [/prototype] → /tasks
+/spec auto →(R)→ /design →(R)→(分岐)→ [/prototype] → /tasks →(R)   ※(R) = stage-reviewer
   → フェーズループ（大タスクごと・依存順・stacked / 1 周 = 1 PR を green まで閉じる）:
         /impl pN → /test → /review → /commit
           ↓FAIL          ↓NG
@@ -49,7 +49,7 @@ argument-hint: "[/<stage>] <feature> [pN]"
   → 全 PR の最終確認(CI green + /resolve-comments all) → 停止(人に報告)
 ```
 
-要件の妥当性は **`/spec` 内の spec-review-agents（形式・内容の 2 体、最大 2 巡）が担保する**。人間の承認は待たず、レビューが通り次第そのまま自走する。**開始工程が design 以降のときは `/spec` を再実行しないため、このレビューも実施しない（既存の requirements.md を確定済みとして扱う）。**
+成果物の妥当性は **`/spec`・`/design`・`/tasks` の完了後に orchestrator が `stage-reviewer`（最大 2 巡）で検証する**。人間の承認は待たず、レビューが通り次第そのまま自走する。手順の正本は「工程レビュー（工程共通）」。**開始工程より前の工程は実行しないため、そのレビューも実施しない**（例: 開始工程が `/design` なら `requirements.md` は確定済みとして扱う）。
 停止点: **draft PR（複数なら stacked PR 群）+ 全 PR が CI green + 未返信の未解決コメントが無い状態**で人に報告して止まる。merge と Ready for review への切替は人が判断する（自走では行わない）。
 
 > **人間レビューの依頼タイミングについて**: 人間レビューは `Ready for review` に切り替わってから行う運用のため、自走中（draft のまま）は依頼できない。現状は**全フェーズ完了後の停止点で人がまとめて Ready にする**。フェーズごとに Ready にする運用に変える場合は、フェーズループ Step 7-8（下記）に切替を差し込む。
@@ -221,11 +221,11 @@ stale と判定した事実と不一致のキーは、判定した工程の出�
 
 **`auto` で実行内容が変わるのは 3 工程だけ**:
 
-- `/spec` — spec-review-agents（形式・内容の 2 体）を回して requirements を確定させる
+- `/spec` — 複数の解釈が成り立つ項目が残れば中断する（単体は最も素直な解釈を採って「要確認」に挙げる）
 - `/resolve-comments` — 全件の方針を自分で確定する（単体は 1 件ずつ逐次確認）
 - `/watch-ci` — Ready for review へ切り替えない（単体は `y/n` で確認）
 
-**残りは出力形式だけが変わる**（`/design` `/prototype` `/tasks` `/impl` `/test` `/fix` `/review` `/qa` `/commit` `/sync-to-remote`）。実行内容・実行順序・止まる条件は単体と同じ — これらの工程は単体でも人に問わないため。
+**残りは出力形式だけが変わる**（`/design` `/prototype` `/tasks` `/impl` `/test` `/fix` `/review` `/qa` `/commit` `/sync-to-remote`）。実行内容・実行順序・止まる条件は単体と同じ — これらの工程は単体でも人に問わないため。成果物の検証は工程の中ではなく orchestrator 側で行う（下記「工程レビュー（工程共通）」）。
 
 `/test` `/review` の `pN` は orchestrator が Step 1-3 で決めた対象フェーズをそのまま渡す（「対象確定（工程共通）」参照）。
 
@@ -236,6 +236,41 @@ stale と判定した事実と不一致のキーは、判定した工程の出�
 - **sync-to-remote**: `auto` 引数で**フェーズループの中で**起動し、**そのフェーズの PR を 1 本だけ**作る（`p1` の base = デフォルトブランチ、`pN` の base = `<feature>-p(N-1)`）。単一フェーズなら通常の 1 PR（base = デフォルトブランチ）。未コミットがあれば `/commit auto` を自動で呼ぶ。Notion URL が最初の指示にあれば引数で渡す
 - **watch-ci**: `auto` 引数で**フェーズループの中で**起動する。対象はそのフェーズの PR（既に作成済みの下位フェーズ PR も列挙対象に入るが、既に green なので追加コストは小さく、rebase で壊れていないかの確認になる）。CI green でも draft のまま次へ
 - **resolve-comments**: `auto` 引数で**フェーズループの中で**起動する。次フェーズを積む前に、そのフェーズの未解決コメント（人間 + CodeRabbit）を解消しきる（これが rebase 伝播を避ける肝）
+
+## 工程レビュー（工程共通）
+
+**この節が工程レビューの正本。** `/spec`・`/design`・`/tasks` の完了後、orchestrator が `stage-reviewer` を起動して成果物を検証し、NG なら**その工程を再起動して直させる**。
+
+**工程スキル側はレビューを持たない。** 作るのが工程の仕事で、検証と差し戻しは orchestrator の仕事。`stage-reviewer` は「**完了カードを読んで、ダメなら直させる人間**」の役を代行する。人が単体で使うときは人自身がその役をやるので、工程スキルの単体／auto の動きはどちらも変わらない。
+
+`stage-reviewer` に渡すもの（受け取り側の仕様は `agents/stage-reviewer.md`）:
+
+| 渡すもの | `/spec` | `/design` | `/tasks` |
+|---|---|---|---|
+| 上流成果物 | 起動時の要望テキスト + `seed.md`（あれば） | `requirements.md` | `design.md` |
+| レビュー対象 | `requirements.md` | `design.md` | `tasks.md` + `qa.md` |
+| 検証条件リスト | 各スキル「書き出し」Step の「書き出しの時点で次を満たす」を**そのまま全項目** | 同 | 同 |
+| 参照ドキュメント | なし | なし | `tasks/SKILL.md`「フェーズの割り方（縦割り原則）」 |
+
+ループ（最大 2 巡）:
+
+```
+review_round = 0
+loop:
+    review_round += 1
+    stage-reviewer を起動 → 判定と指摘を受け取る
+    if 判定 == OK:
+        確定 → 次工程へ
+    if review_round == 2:
+        人に報告して停止（成果物は未確定。次工程へ進めない）
+    <工程> <feature> auto を再起動し、指摘を変更要望として渡す → loop
+```
+
+- **再起動は編集モードになる**（成果物が既にあるため）。`auto` は出力形式フラグなので付けたままでよい。指摘は起動時の変更要望として渡し、工程側は白紙に戻さず**指摘箇所だけを直す**
+- 2 巡目のレビューには**前巡の指摘も渡す**（反映されたかを見させるため。`review_round` も渡す）
+- **「判断できなかった点」は OK 扱いしない。** 1 巡目なら渡した材料から補える範囲を補って再レビューし、2 巡目でも残るなら停止する
+- レビューは 1 体で観点 A（上流突合）と観点 B（検証条件リスト）の両方を見る。**観点を分けて複数体を並列起動しない**
+- 2 巡で収束しなかったときの停止は「例外処理（人を呼ぶ＝停止する条件）」に従う
 
 ## 進め方
 1. **引数解釈・前提チェック・対象フェーズ決定・ブランチ整合・ディスパッチ**（子番号 1-1〜1-5）
@@ -260,7 +295,7 @@ stale と判定した事実と不一致のキーは、判定した工程の出�
          1: 不足工程まで遡って実行する（/design から開始します）
          2: 中断する
          ```
-      3. 「遡って実行する」→ 不足を生む最上流の工程に開始工程を巻き戻し、Step 1-2 を再評価する（`requirements.md` も無ければ `/spec` まで巻き戻る）。**`/spec` まで巻き戻った場合は Step 2 から通常の `/spec <feature> auto` を実行する**（spec-review-agents のレビューを経て requirements.md が確定する。人間の承認は待たない）
+      3. 「遡って実行する」→ 不足を生む最上流の工程に開始工程を巻き戻し、Step 1-2 を再評価する（`requirements.md` も無ければ `/spec` まで巻き戻る）。**`/spec` まで巻き戻った場合は Step 2 から通常の `/spec <feature> auto` を実行する**（`stage-reviewer` のレビューを経て requirements.md が確定する。人間の承認は待たない）
       4. 「中断する」→ 中断理由と復帰コマンドを示した中断カードで終了する
       5. 回答待ちの間はいずれの工程スキルも起動しない
    3. **Step 1-3: 対象フェーズの決定** — 工程レジストリで「対象フェーズ: 不要」の工程はこの Step をスキップする（第 3 引数が渡されていても無視する）
@@ -277,17 +312,17 @@ stale と判定した事実と不一致のキーは、判定した工程の出�
       - カテゴリ A（`/impl`）→ 切り替えは行わない。ブランチ作成は `/impl` の Step 2 の責任なので、`pN`（N > 1）なら `<feature>-p(N-1)` に居る状態を作ってから `/impl` を起動する。`p(N-1)` のブランチが無ければ前提成果物の不足として Step 1-2 の 2 択に回す
    5. **Step 1-5: ディスパッチ** — 工程レジストリの「開始 Step」へジャンプする。ジャンプ後の挙動は既存 Step の記述そのままとし、以下を追加ルールとする:
       1. 開始 Step より前の Step は実行しない。したがって**開始工程が design 以降のときは Step 2（`/spec`）を実行せず、既存の requirements.md を確定済みの成果物として扱う**
-      2. **開始工程の指定によって人間承認ゲートを新設しない**。要件の妥当性は `/spec` 内の spec-review-agents が担保する既存の枠組みのままにする
+      2. **開始工程の指定によって人間承認ゲートを新設しない**。成果物の妥当性は orchestrator が工程の完了後に回す `stage-reviewer` が担保する既存の枠組みのままにする
       3. 開始工程が `/prototype` のとき、Step 4 の分岐判定は行わず `/prototype` を直接起動する
       4. 開始 Step が Step 7-x のとき、Step 7 のフェーズループはその小 Step から始める。対象フェーズを閉じたら Step 7-9 に合流し、残る後続フェーズは 7-1 から通常どおり回す
       5. 開始 Step が Step 8（`/qa`）のとき、全フェーズ実装済みとみなして最終スタックブランチで `/qa` を起動する
       6. 停止点（Step 10）と「## 例外処理」の停止条件は、開始工程がどれであっても既存どおり適用される
-2. `/spec <feature> auto` を起動し、`.specs/<feature>/requirements.md` を生成する（spec-review-agents によるレビューを経て確定。承認を待たず次へ）
-3. `/design <feature> auto` を起動し、`.specs/<feature>/design.md` を生成 → 承認を待たず次へ
+2. `/spec <feature> auto` を起動し、`.specs/<feature>/requirements.md` を生成する → **工程レビュー**（「工程レビュー（工程共通）」）→ 承認を待たず次へ
+3. `/design <feature> auto` を起動し、`.specs/<feature>/design.md` を生成 → **工程レビュー** → 承認を待たず次へ
 4. **prototype 分岐判定**（下記「prototype 分岐」参照）
    - 必要 → `/prototype <feature> auto` を起動 → design.md 更新後に次へ
    - 不要 → そのまま次へ
-5. `/tasks <feature> auto` を起動し、`.specs/<feature>/tasks.md` を生成 → 承認を待たず次へ
+5. `/tasks <feature> auto` を起動し、`.specs/<feature>/tasks.md` と `qa.md` を生成 → **工程レビュー** → 承認を待たず次へ
 6. tasks.md を読んで**フェーズ構成（大タスク数）**を確認する。大タスク = フェーズ = 1 PR = 1 ブランチ。複数フェーズは依存順に並べる（stacked PR になる）
 7. **フェーズループ**: 各フェーズ pN を依存順に、以下のフルサイクルで回す（単一フェーズなら 1 周だけ）。**1 周 = 1 PR を CI green + 未返信の未解決コメントなしまで閉じきる**。qa 以外の工程はすべてこのループ内＝PR 単位：
    1. `/impl <feature> [pN] auto` を起動（単一は `<feature>`、複数は `pN`。`pN` のブランチは `p(N-1)` にスタック）
