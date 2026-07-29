@@ -16,7 +16,7 @@ argument-hint: "<feature> [auto]"
 - **入力**（すべて `.specs/` と実行から。会話に依存しない）:
   - `.specs/<feature>/test-report.pN.md` または `test-report.md`（`/test` が書いた失敗レポート。パス解決は Step 2）
   - `.specs/<feature>/qa-report.md`（`/qa` 起点で呼ばれたとき。`/qa` はフェーズを持たないのでパスは常に固定）
-  - `.specs/<feature>/bug-report.md`（`/bugfix` 起点で呼ばれたとき）
+  - `.specs/<feature>/bug-report.md`（`/bughunt` 起点で呼ばれたとき）
   - `.specs/<feature>/{requirements,design,tasks}.md`（「実装バグか設計の穴か」を判断する文脈）
 - **出力**: コード修正と、Step 2 で解決したパスへのテスト結果の反映（**それ以外のファイル成果物は持たない**）
 
@@ -52,7 +52,7 @@ argument-hint: "<feature> [auto]"
 
 **2-3 根本原因の診断**
 
-レポート・`.specs/<feature>/` の仕様・失敗に関連するコードを読み、原因を分類する（`/bugfix` 起点では `test-report` が未生成なので `bug-report.md` を起点にする）：
+レポート・`.specs/<feature>/` の仕様・失敗に関連するコードを読み、原因を分類する（`/bughunt` 起点では `test-report` が未生成なので `bug-report.md` を起点にする）：
 
 | 分類 | 進み先 |
 |---|---|
