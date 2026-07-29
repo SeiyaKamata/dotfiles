@@ -36,7 +36,7 @@ argument-hint: "[/<stage>] <feature> [pN]"
           ↓FAIL          ↓NG
          /fix→/test     /design or /impl に戻す
         → /sync-to-remote(draft, このフェーズの 1 PR だけ)
-        → /watch-ci(この PR) → /resolve-comments(全コメント)
+        → /watch-ci(この PR) → /resolve-comments(この PR の全 author)
           ↓CI赤
          ログ取得→自己修正→再push→/watch-ci
         → 次フェーズへ（前フェーズの PR は green + 全件返信済み）
@@ -46,7 +46,7 @@ argument-hint: "[/<stage>] <feature> [pN]"
         原因フェーズを特定し /fix（設計起因なら /design・/impl）
         → 該当フェーズの /test→/review→/commit → stack を rebase 伝播
         → 影響 PR の /watch-ci→/resolve-comments → /qa に再合流
-  → 全 PR の最終確認(CI green + 未返信の未解決コメントなし) → 停止(人に報告)
+  → 全 PR の最終確認(CI green + /resolve-comments all) → 停止(人に報告)
 ```
 
 要件の妥当性は **`/spec` 内の spec-review-agents（形式・内容の 2 体、最大 2 巡）が担保する**。人間の承認は待たず、レビューが通り次第そのまま自走する。**開始工程が design 以降のときは `/spec` を再実行しないため、このレビューも実施しない（既存の requirements.md を確定済みとして扱う）。**
@@ -74,7 +74,7 @@ argument-hint: "[/<stage>] <feature> [pN]"
 | `/commit` | + `tasks.md` | Step 6 → 7-4 | 必要（カテゴリB） | `/commit auto`（feature を渡さない） |
 | `/sync-to-remote` | + `tasks.md` | Step 6 → 7-5 | 必要（カテゴリB） | `/sync-to-remote auto`（feature を渡さない） |
 | `/watch-ci` | + `tasks.md` + 対象フェーズの PR | Step 6 → 7-6 | 必要（カテゴリC） | `/watch-ci <PR番号> auto`（feature ではなく解決した PR 番号を渡す） |
-| `/resolve-comments` | + `tasks.md` + 対象フェーズの PR | Step 6 → 7-7 | 必要（カテゴリC） | `/resolve-comments auto`（feature を渡さない） |
+| `/resolve-comments` | + `tasks.md` + 対象フェーズの PR | Step 6 → 7-7 | 必要（カテゴリC） | `/resolve-comments auto`（引数なし＝カレントブランチの PR 1 本。横断は最終確認の `all` だけ） |
 | `/qa` | + `tasks.md` | Step 8 | 不要 | `/qa <feature> auto` |
 
 ### 対象フェーズの推定カテゴリ
@@ -294,7 +294,10 @@ stale と判定した事実と不一致のキーは、判定した工程の出�
 8. **全フェーズ完了後の受け入れゲート**: 最終スタックブランチ（＝全実装が乗った状態）で `/qa <feature> auto` を起動する（ブラウザ動作確認。feature 全体の受け入れを 1 回で確認）
    - 全 pass → 次へ
    - fail → qa の指摘から**原因フェーズを特定**し、そのフェーズのブランチに戻って `/fix <feature> auto`（設計起因なら `/design auto`・`/impl <feature> [pN] auto`）→ 該当フェーズの `/test <feature>`→`/review`→`/commit` を通し、**上位フェーズへ変更を反映（stack を rebase 伝播）**する。その後、**変更が乗った全 PR について Step 7-6〜7-7（`/watch-ci`→未解決コメント対応）を回し直して**から `/qa` に再合流。qa↔fix が2周しても収束しない、または rebase 伝播を自走で安全に行えないと判断したら報告して停止
-9. **全 PR の最終確認**: 全フェーズの PR が「CI green + 未返信の未解決コメントなし」であることを確認する（各フェーズでは閉じているが、後続フェーズの push や qa 起因の rebase 伝播で状態が動いている可能性があるため、ここで一度まとめて見る）。崩れていれば該当 PR について Step 7-6〜7-7 を回し直す
+9. **全 PR の最終確認**: 全フェーズの PR が「CI green + 未返信の未解決コメントなし」であることを確認する（各フェーズでは閉じているが、後続フェーズの push や qa 起因の rebase 伝播、**先に閉じた PR への後追いコメント**で状態が動いている可能性があるため、ここで一度まとめて見る）。
+   - コメントの取りこぼし回収は **`/resolve-comments all auto` を 1 回**回す（`all` は feature の全 PR 横断。フェーズループ内では既定の 1 本だけを見ているため、横断はここでしか行わない）
+   - CI が崩れていれば該当 PR について Step 7-6 を回し直す
+   - `all` で下位フェーズを直した場合は **rebase 伝播が必要**になる。自走で安全に行えないと判断したら報告して停止する
 10. **停止点**: draft PR（複数なら stacked PR 群）+ 全 PR が CI green + 全件返信済みの状態で、PR の URL と結果を人に報告して止まる。**Ready for review への切替と merge は人が判断する**。「マージ後は `/cleanup <feature>` で後片付けできます」と一言添える
 
 ## prototype 分岐
