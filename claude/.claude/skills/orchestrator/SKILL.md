@@ -217,13 +217,24 @@ date +"%Y-%m-%dT%H:%M:%S%z"                     # ran_at
 stale と判定した事実と不一致のキーは、判定した工程の出力に残す（中断メッセージのテンプレート参照）。読み手ごとの分岐（再観測 / 中断）は各工程の SKILL.md に書く（`/fix` の分岐は `fix/SKILL.md` Step 2 が正）。
 
 ## 自走モードの起動（重要）
-人間承認を待つステップを持つスキルは **`auto` 引数**で起動して承認をスキップする。各スキルの `auto` 時の挙動は、それぞれの SKILL.md の「自走モード（`auto` 引数）」節に定義されている：
+各工程は **`auto` 引数**で起動する（起動コマンドは「工程レジストリ」の表が正本）。`auto` は**読み手が人間ではなく orchestrator であることを伝える I/O モード**で、完了カードの代わりに 1 行の簡易ログを返させる。各スキルの定義はそれぞれの SKILL.md「モード」節にある。
 
-- **`auto` つきで起動するスキル**: `/spec auto` / `/design auto` / `/prototype auto` / `/tasks auto` / `/impl … auto` / `/test <feature> pN auto` / `/fix <feature> auto` / `/review <feature> pN auto` / `/qa auto` / `/commit auto` / `/sync-to-remote auto` / `/watch-ci auto` / `/resolve-comments auto`。人間承認を待たず自己レビューゲートで進む（各スキルは `auto` 時に完了カードを出さず 1 行の簡易ログのみ残す）。`/test` `/review` の `pN` は orchestrator が Step 1-3 で決めた対象フェーズをそのまま渡す（「対象確定（工程共通）」参照）
+**`auto` で実行内容が変わるのは 3 工程だけ**:
+
+- `/spec` — spec-review-agents（形式・内容の 2 体）を回して requirements を確定させる
+- `/resolve-comments` — 全件の方針を自分で確定する（単体は 1 件ずつ逐次確認）
+- `/watch-ci` — Ready for review へ切り替えない（単体は `y/n` で確認）
+
+**残りは出力形式だけが変わる**（`/design` `/prototype` `/tasks` `/impl` `/test` `/fix` `/review` `/qa` `/commit` `/sync-to-remote`）。実行内容・実行順序・止まる条件は単体と同じ — これらの工程は単体でも人に問わないため。
+
+`/test` `/review` の `pN` は orchestrator が Step 1-3 で決めた対象フェーズをそのまま渡す（「対象確定（工程共通）」参照）。
+
+**フェーズループでの補足**:
+
 - **prototype**: 目視承認の代わりに Playwright での操作確認＋スクショ取得。**動くコードを `<feature>-proto` ブランチに残す**（後段の impl が「参照して昇格」で流用する）。design.md へ書き戻したら次へ
 - **commit**: フェーズループの中で各フェーズのブランチにコミットする（PR 作成はこの直後）
 - **sync-to-remote**: `auto` 引数で**フェーズループの中で**起動し、**そのフェーズの PR を 1 本だけ**作る（`p1` の base = デフォルトブランチ、`pN` の base = `<feature>-p(N-1)`）。単一フェーズなら通常の 1 PR（base = デフォルトブランチ）。未コミットがあれば `/commit auto` を自動で呼ぶ。Notion URL が最初の指示にあれば引数で渡す
-- **watch-ci**: `auto` 引数で**フェーズループの中で**起動する。対象はそのフェーズの PR（既に作成済みの下位フェーズ PR も列挙対象に入るが、既に green なので追加コストは小さく、rebase で壊れていないかの確認になる）。CI green でも **Ready for review に自動で切り替えない**。draft のまま次へ
+- **watch-ci**: `auto` 引数で**フェーズループの中で**起動する。対象はそのフェーズの PR（既に作成済みの下位フェーズ PR も列挙対象に入るが、既に green なので追加コストは小さく、rebase で壊れていないかの確認になる）。CI green でも draft のまま次へ
 - **resolve-comments**: `auto` 引数で**フェーズループの中で**起動する。次フェーズを積む前に、そのフェーズの未解決コメント（人間 + CodeRabbit）を解消しきる（これが rebase 伝播を避ける肝）
 
 ## 進め方
