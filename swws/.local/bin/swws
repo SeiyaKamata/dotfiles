@@ -31,11 +31,19 @@ LOCKFILE="/tmp/swws-${project_name}.lock"
 
 # このプロジェクトで稼働中のコンテナがマウントしている worktree 一覧（distinct）。
 # 何も無ければ空文字＝空き。停止済みは解放とみなす（稼働中のみ対象）。
+# docker ps 自体の失敗（デーモン停止など）は「空き」と区別して 1 を返す。
 running_worktrees() {
-  docker ps \
+  local out
+  out=$(docker ps \
     --filter "label=com.docker.compose.project=$project_name" \
-    --format '{{.Label "com.docker.compose.project.working_dir"}}' \
-    2>/dev/null | grep -v '^$' | sort -u
+    --format '{{.Label "com.docker.compose.project.working_dir"}}' 2>/dev/null) || {
+    echo "docker ps に失敗しました（Docker が起動していない可能性があります）" >&2
+    return 1
+  }
+  # 空行落としに grep -v '^$' を使わない。入力ゼロのとき grep は 1 を返し、pipefail で
+  # スクリプトごと落ちる（稼働コンテナが無いと status が無言で終わっていた原因）。
+  # awk 'NF' は出力ゼロでも 0 を返す。
+  printf '%s\n' "$out" | awk 'NF' | sort -u
 }
 
 # 自分の worktree 以外で稼働している worktree 一覧（あれば競合 or 混在）。
