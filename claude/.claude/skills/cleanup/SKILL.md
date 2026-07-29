@@ -56,7 +56,7 @@ git branch --show-current
 
 現在のブランチが `main` / `master` の場合、削除対象がないため人間に確認する。
 
-### Step 2: PRのマージ状態を確認する
+### Step 2: マージ状態を確認する
 
 ```
 gh pr view <現在のブランチ名> --json state,mergedAt,headRefName --jq '{state, mergedAt, branch: .headRefName}'
@@ -65,7 +65,13 @@ gh pr view <現在のブランチ名> --json state,mergedAt,headRefName --jq '{s
 - `state` が `MERGED` → Step 3へ
 - `state` が `OPEN` → 「PRはまだマージされていません」と伝え、本当に後片付けするか確認する
 - `state` が `CLOSED`（マージなしクローズ）→ 人間に確認する
-- PRが見つからない → 人間に確認する
+- **PR が見つからない** → PR を作らない運用（`/sync-to-remote`「PR 運用の有無」が `なし`）の可能性があるので、PR の代わりに**デフォルトブランチへ取り込み済みか**を見る：
+  ```
+  git fetch origin
+  git branch -r --merged "origin/$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')" | grep -F "origin/<現在のブランチ名>"
+  ```
+  - マージ済み → Step 3 へ（PR 無しで着地した想定どおり）
+  - 未マージ → 人間に確認する
 
 ### Step 3: mainブランチに移動する
 
