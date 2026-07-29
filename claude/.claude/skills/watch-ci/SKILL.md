@@ -1,7 +1,7 @@
 ---
 name: watch-ci
 description: PRのCIを監視し、完了後に結果に応じて分岐対応する。push後やPR作成後に使う。
-argument-hint: "[PR番号] [auto]"
+argument-hint: "[PR番号]"
 allowed-tools: Bash(gh *), Bash(git *)
 ---
 
@@ -18,15 +18,12 @@ PR の CI が完了するまで監視し、結果を判定して次のアクシ�
 用語は `claude/CLAUDE.md`「用語集」に従う。**フェーズ = 大タスク = ブランチ = 1 PR**。複数フェーズは stacked PR。stacked のときは **feature の全 PR を対象に CI を監視して集約**する。
 
 ## モード
-**単体**: CI green かつ未解決コメントが無ければ、draft を Ready for review に切り替えるか `y/n` で確認する。
+CI の結果を完了カードで報告する。**Ready for review への切り替えは行わない**（draft のまま完了とし、完了カードで `gh pr ready` を案内する）。
 
-**auto（`$ARGUMENTS` に `auto` を含む）**: 完了カードを出さず 1 行の簡易ログだけ残す。**Ready for review への切り替えは行わない**（draft のまま完了とし、切り替えは orchestrator の停止点で人が判断する）。orchestrator から呼ばれるときは必ず `auto` が付く。
-
-> Ready for review は**レビュアーに通知が飛ぶ外向きの操作**なので、単体でも `y/n` を取る。この工程で廃した「聞かない」は成果物の内容についての確認であって、外向きの操作の確認ではない。
+> Ready for review は**レビュアーに通知が飛ぶ外向きの操作**で、しかも取り消しても通知は戻らない。このスキルは監視と報告までを担い、外向きの操作は人が明示的に実行する。
 
 ## 引数
 - `$ARGUMENTS` のうち数字部分: PR 番号（省略時はカレントブランチに紐づく PR を使う）
-- `auto`: 自走モードフラグ（省略可）
 
 ## 進め方
 
@@ -78,12 +75,11 @@ gh pr view <PR番号> --json reviewThreads --jq '.reviewThreads[] | select(.isRe
 ```
 
 - **未解決あり** → 件数と概要を押さえ、`/resolve-comments` を次の一手に出す（切り替えは行わない）
-- **未解決なし** → 単体なら Ready for review への切り替えを `y/n` で確認する（auto はスキップして draft のまま完了）
+- **未解決なし** → **draft のまま完了とする**。切り替えは行わず、完了カードの次の一手に `▶ Ready for review にする：gh pr ready <PR番号>` を出す
   ```
-  gh pr view <PR番号> --json isDraft --jq '.isDraft'   # draft か確認
-  gh pr ready <PR番号>                                  # 「はい」のとき
+  gh pr view <PR番号> --json isDraft --jq '.isDraft'   # draft か確認（案内文に含めるため）
   ```
-  既に Open なら切り替え不要（その旨をカードに 1 行）
+  既に Open ならその旨をカードに 1 行だけ書き、案内は出さない
 
 #### 3-2 赤のとき
 
@@ -127,13 +123,7 @@ gh run view <run-id> --log-failed
   - green + 未解決コメントなし → `▶ マージ / Ready for review を判断（停止点）`
   - 赤 → `▶ 失敗を直す：<失敗ジョブ名> のログを確認して修正`
 
-**auto**: 完了カードを出さず、確定した遷移先を 1 行の簡易ログだけ残す。次スキルの起動は呼び出し元（orchestrator）が行う。
-
-```
-次: /resolve-comments
-```
-
-**中断時**（単体・auto 共通）: 同じブロック構成でヘッダを `⚠ CI 監視中断` に差し替える。
+**中断時**: 同じブロック構成でヘッダを `⚠ CI 監視中断` に差し替える。
 
 - やったこと: 一言サマリに中断理由（PR 未作成・`--watch` タイムアウト・権限エラーなど）。
 - 次の一手: 復帰コマンド（PR 未作成なら `▶ PR を作る：/sync-to-remote`）。判定が出ていないまま次工程へ進む道は出さない。
