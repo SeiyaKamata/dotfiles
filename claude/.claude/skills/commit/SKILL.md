@@ -30,16 +30,30 @@ DEFAULT=$(git remote show origin | sed -n 's/.*HEAD branch: //p')
 
 判定：
 - `CURRENT` が空（detached HEAD）→ 警告へ
-- `CURRENT` が `DEFAULT` と一致 → 警告へ
 - リモートでマージ済み（下記がマッチ）→ 警告へ
   ```
   git fetch origin
-  git branch -r --merged "origin/$DEFAULT" | sed 's/^[ *]*//' | grep -xF "origin/$CURRENT"
+  [ "$CURRENT" != "$DEFAULT" ] && \
+    git branch -r --merged "origin/$DEFAULT" | sed 's/^[ *]*//' | grep -xF "origin/$CURRENT"
   ```
+  **`CURRENT` が `DEFAULT` と等しいときはこの判定を走らせない。** デフォルトブランチは自分自身に
+  マージ済みなので（`git branch -r --merged origin/main` は `origin/main` を含む）、無条件に走らせると
+  デフォルトブランチで必ずマッチし、下で意図的に外した判定が裏口から復活する。
 - いずれも該当しなければ Step 2 へ
 
+**`CURRENT` が `DEFAULT` と一致することは判定しない**（意図的な除外。ここに判定を戻さないこと）。
+理由は 2 つ。デフォルトブランチへのコミットは**ローカルで可逆**で（完了カードの
+`git reset --soft HEAD~<N>` で戻せる）、危険が現実化するのは push の瞬間だが `/commit` は push
+しない（`committer` も `git push` を行わない）。そしてデフォルトブランチへ直接コミットしてよいかは
+**repo の運用方針**であって、`/commit` はその方針を知る層にない（判定の正本は `/tasks`
+「PR 運用の有無の判定」で、材料はプロジェクト `CLAUDE.md`）。push 側の押さえは `/create-pr` の
+Step 1.5 が持つ。
+
+上の 2 つは運用方針に依らず機械的に危険なケースだけを残している（detached HEAD はコミットが
+到達不能になる、マージ済みブランチは閉じた PR に積む）。
+
 **警告文:**
-> 現在のブランチ `<CURRENT>` は <デフォルトブランチ／マージ済み／detached> の状態です。新しいブランチを切ってからコミットしますか？
+> 現在のブランチ `<CURRENT>` は <マージ済み／detached> の状態です。新しいブランチを切ってからコミットしますか？
 
 - 「はい」→ デフォルトブランチを最新化してから新ブランチを作成し Step 2 へ
   ```
@@ -95,8 +109,6 @@ git reset
 `committer` から返った実行結果に基づき、末尾「完了カード」のブロックを出力して終了する。
 
 **単一 PR / スタック PR のどちらでも、コミット直後に `/create-pr` へ進む。** スタック PR 運用でも、**フェーズごとにその 1 本の PR を出して CI green + CodeRabbit 解決まで閉じてから次フェーズを積む**（全フェーズを積んでから一斉作成はしない）。理由は orchestrator の「なぜフェーズごとに PR を出すのか」を参照。`/create-pr` は既に PR があるフェーズをスキップする冪等な作りなので、重複作成の心配はいらない。
-
-push 時にリモートのデフォルトブランチへ直接 push しようとしていないか確認する。
 
 **完了ゲート:** 完了カードを出力したか。
 
