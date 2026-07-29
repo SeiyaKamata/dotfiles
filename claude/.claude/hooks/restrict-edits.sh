@@ -10,6 +10,21 @@ TOOL=$(echo "$INPUT" | jq -r '.tool_name // ""')
 
 PROJECT_DIR=$(realpath "$PWD" 2>/dev/null || echo "$PWD")
 
+# `.` `..` を自前で畳む（realpath が使えない＝実在しないパス用）
+normalize_path() {
+  local seg segs out=()
+  IFS='/' read -ra segs <<<"$1"
+  for seg in "${segs[@]}"; do
+    case "$seg" in
+      '' | .) ;;
+      ..) [[ ${#out[@]} -gt 0 ]] && unset "out[$((${#out[@]} - 1))]" ;;
+      *) out+=("$seg") ;;
+    esac
+  done
+  local IFS=/
+  echo "/${out[*]}"
+}
+
 # プロジェクト外への書き込みなら 0（ブロック）、許可なら 1 を返す
 is_denied() {
   local file_path="$1"
@@ -26,9 +41,10 @@ is_denied() {
     file_path="$PWD/$file_path"
   fi
 
-  # パスを正規化（realpath できない場合はそのまま）
+  # パスを正規化。realpath は実在しないパスで失敗するので、その場合は自前で畳む
+  # （畳まないと `<project>/../other-repo/x` が project 内と誤判定されて素通りする）
   local abs_path
-  abs_path=$(realpath "$file_path" 2>/dev/null || echo "$file_path")
+  abs_path=$(realpath "$file_path" 2>/dev/null) || abs_path=$(normalize_path "$file_path")
 
   # 他リポジトリの .specs/ 配下への書き込みは許可（PJ間連携用）
   if [[ "$abs_path" == */.specs || "$abs_path" == */.specs/* ]]; then
@@ -95,9 +111,12 @@ extract_write_targets() {
     # tee [-a ...] <path>
     grep -oE '\btee\b([[:space:]]+-[^[:space:]]+)*[[:space:]]+[^[:space:]|;&()]+' <<<"$cmd" | awk '{print $NF}'
 
-    # sed -i / truncate は対象ファイルを直接書き換えるので、引数中のパスらしいトークンを全て見る
+    # sed -i / truncate は対象ファイルを直接書き換えるので、引数中のパスらしいトークンを全て見る。
+    # トークンの先頭（行頭・空白・クォート・`=` の直後）から拾う。途中の `/` から拾うと
+    # `claude/.claude/x.md` が `/.claude/x.md` に化けて絶対パスと誤判定される。
     if grep -qE '\bsed\b[^|;&]*[[:space:]]-i|\btruncate\b' <<<"$cmd"; then
-      grep -oE '(~|\.{0,2}/)[^[:space:]|;&()]*' <<<"$cmd"
+      grep -oE "(^|[[:space:]'\"=])(~|[A-Za-z0-9_.-]*/)[^[:space:]|;&()]*" <<<"$cmd" |
+        sed -E "s/^[[:space:]'\"=]//"
     fi
 
     # cp / mv / rsync / install の最終引数（＝コピー先）
