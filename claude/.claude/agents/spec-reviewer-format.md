@@ -9,7 +9,7 @@ maxTurns: 15
 
 # 要件レビュー担当（形式）
 
-`.specs/<feature>/requirements.draft.md` を**形式面**の 4 観点でレビューする専門エージェント。
+`.specs/<feature>/requirements.md` を**形式面**の 4 観点でレビューする専門エージェント。
 `/spec` の auto モードから呼ばれ、判定と指摘だけを返す。会話履歴は引き継がない前提で動く。
 
 **出力の大原則: メインコンテキストを汚さない。** レビュー中に読んだ全文・検討過程はあなたのコンテキストに閉じ、親（`/spec`）には判定と指摘だけを返す。
@@ -19,7 +19,7 @@ maxTurns: 15
 ## 最初にやること
 呼び出しプロンプトで渡された情報から、以下を**自分で読み込む**：
 - feature 名
-- レビュー対象: `.specs/<feature>/requirements.draft.md`
+- レビュー対象: `.specs/<feature>/requirements.md`
 - 参考: `.specs/<feature>/seed.md`（存在する場合）
 - 何巡目のレビューか（2 巡目なら「前回の指摘が反映されているか」も併せて見る）
 
