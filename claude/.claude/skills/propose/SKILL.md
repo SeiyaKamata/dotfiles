@@ -2,7 +2,7 @@
 name: propose
 description: 各工程・PJからの改善提案の唯一の入口。skill / pipeline 改善の気づきを、規模に応じて kind: rule（一行のルールに落ちる）または kind: backlog（構成規模の改善）としてdotfilesの.specs/proposals/へ1件発行・記録する。再発判定はしない。
 argument-hint: "[target] [claim...]"
-allowed-tools: Bash(readlink *), Bash(ls *), Bash(test *), Bash(date *), Read, Write
+allowed-tools: Bash(ls *), Read, Write, Glob
 ---
 
 # 提案発行スキル
@@ -14,7 +14,7 @@ allowed-tools: Bash(readlink *), Bash(ls *), Bash(test *), Bash(date *), Read, W
 
 ## 入出力
 - **入力**: 引数（`target` / `claim`）、または直前の工程文脈から組み立てた気づき
-- **出力**: `<dotfiles>/.specs/proposals/<YYYYMMDD-HHMMSS>-<target>-<claim-slug>.md` を**1 件だけ**
+- **出力**: `<dotfiles>/.specs/proposals/<YYYYMMDD>-<target>-<claim-slug>.md` を**1 件だけ**
 
 ## モード
 `auto` は持たない（各工程から呼ばれるが、発行そのものは常に同じ動作）。
@@ -86,23 +86,22 @@ status: open | applied | dropped
 
 **3-1 キューの解決**
 
-symlink からハードコードせず動的に解決する：
+symlink からハードコードせず動的に解決する。**`readlink` `test` `date` `mkdir` は使わない** — ハーネスの allow リストにも組み込みの read-only コマンド群にも無く、毎回パーミッション判定に回って承認待ちの原因になるため。使ってよいのは `ls`（read-only 扱いで無条件に通る）と `Glob` / `Read` / `Write`。
 
-```bash
-QUEUE_DIR="$(dirname "$(dirname "$(dirname "$(readlink -f ~/.claude/skills)")")")/.specs/proposals"
-```
+1. `ls -ld ~/.claude/skills` を実行し、出力の `->` の右側から symlink 先を得る。相対パスなら `~/.claude/` 基準で解決する
+2. 得られたパスから末尾の `/claude/.claude/skills` を取り除いた部分が dotfiles ルート。そこに `/.specs/proposals` を付ける
+3. **フォールバック**（`->` が出ない・symlink でない環境）: `Glob` で `~/Develop` 配下から `**/claude/.claude/skills/propose/SKILL.md` を探し、マッチから末尾の `/claude/.claude/skills/propose/SKILL.md` を取り除いた部分を dotfiles ルートとする
+4. どちらでも解決できないときは、その旨を明示エラーとして報告し**発行を中止する**
 
-- `readlink -f ~/.claude/skills` → `.../dotfiles/claude/.claude/skills`、3 つ上 → `.../dotfiles`、そこに `/.specs/proposals` を付ける
-- `readlink -f` が失敗する（symlink が張られていない環境）ときは、その旨を明示エラーとして報告し**発行を中止する**
-- `test -d "$QUEUE_DIR"` で存在確認し、無ければ作成してよい
+ディレクトリの存在確認も作成もしない（`Write` が親ディレクトリを作る）。
 
 **3-2 ファイル名**
 
-命名規則: `<YYYYMMDD-HHMMSS>-<target>-<claim-slug>.md`
+命名規則: `<YYYYMMDD>-<target>-<claim-slug>.md`
 
-- `date +%Y%m%d-%H%M%S` でタイムスタンプを得る
+- 日付は**コンテキストに注入される今日の日付**を使う（`date` コマンドは使わない）。同日内の発行順は保持しないが、`date` frontmatter も `/proposals-sweep` の走査も日単位なので実害は無い
 - `claim` を kebab-case 化し先頭数語を `claim-slug` とする
-- `test -e` で衝突確認し、衝突していれば末尾に `-2` `-3` と連番を付ける（同一秒・同一 target の多重発行は稀だが保険）
+- `Glob` でキュー内の `<YYYYMMDD>-<target>-*` を一覧し、同名があれば末尾に `-2` `-3` と連番を付ける
 
 **3-3 Write**
 
@@ -134,7 +133,7 @@ QUEUE_DIR="$(dirname "$(dirname "$(dirname "$(readlink -f ~/.claude/skills)")")"
 **中断時**（発行しなかった場合を含む）: ヘッダを `⚠ 提案発行中断` に差し替え、一言サマリに理由（`claim` を一行で書けない・プロダクト側のスコープ切り分け・symlink 未設置など）、次の一手に代わりの行き先（`▶ 棚上げする：/spinoff`、`▶ 依頼を投げる：/handoff`）を書く（ファイル未生成なので 📄 行は省略する）。
 
 ## エラー処理
-- **`readlink -f ~/.claude/skills` が失敗する**（symlink 未設置環境）→ 発行を中止し、明示エラーとして報告する
+- **キューの解決に失敗する**（`ls -ld ~/.claude/skills` が symlink を示さず、Glob フォールバックも空）→ 発行を中止し、明示エラーとして報告する
 - **`target` / `claim` のどちらかが確定できない** → 発行しない（Step 2 の敷居）
 
 ## 完了条件
