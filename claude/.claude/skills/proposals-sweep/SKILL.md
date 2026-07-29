@@ -18,7 +18,7 @@ allowed-tools: Bash(readlink *), Bash(ls *), Bash(cat *), Bash(date *), Bash(gre
 - **出力**: 報告（再発シグナル / backlog 一覧）と、90 日超 singleton の `status: dropped` への更新
 
 ## モード
-`auto` は持たない。**手動スイープ**として人が起動する。引数も取らない。
+**手動スイープ**として人が起動する。引数は取らない。
 
 `status: applied` への更新だけは、報告を見た人が「着手する」と判断したときに補助として提供する（対話・任意）。**明示的な指示が無い限り `applied` へは書き換えない。**
 
