@@ -2,7 +2,7 @@
 name: notion-import
 description: Notion のタスクページから機能要望(seed.md)を作る。Notion のチケット URL を渡されたら spec の前に使う。
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls *), Bash(test *), AskUserQuestion, mcp__claude_ai_Notion__*, mcp__plugin_Notion_notion__*
-argument-hint: "<notion-url> [feature] [auto]"
+argument-hint: "<notion-url> [feature]"
 ---
 
 # Notion 取り込みスキル
@@ -19,18 +19,14 @@ Notion のタスクページを 1 回読み、パイプラインの入力 `.spec
 - **出力**: `.specs/<feature>/seed.md`
 
 ## モード
-**単体**: 保存内容をユーザーに一度提示してから書き込む。
+人が明示的に起動する（`/orchestrator` の自走パイプラインには組み込まない。`CLAUDE.md`「Notion 連携」参照）。
 
-**auto（`$ARGUMENTS` に `auto` を含む）**: 提示せずに保存し、完了カードの代わりに 1 行の簡易ログを残す。
-
-どちらも**要望の中身については質問しない**（不足は seed.md に「TODO: /spec で詳細化」と明記する）。対話するのは **Notion が読めないときの貼り付け依頼**だけ。
-
-このスキルは `/orchestrator` の自走パイプラインには組み込まれていない（通常は人が直接起動する）。
+保存内容をユーザーに一度提示してから書き込む。ただし**要望の中身については質問しない**（不足は seed.md に「TODO: /spec で詳細化」と明記する）。対話するのは **Notion が読めないときの貼り付け依頼**だけ。
 
 ## 進め方
 
 ### Step 1: 引数チェック
-- `<notion-url>`（必須、`http(s)://…notion…`）を確定する。無ければ「使い方: /notion-import <notion-url> [feature] [auto]」を表示して終了
+- `<notion-url>`（必須、`http(s)://…notion…`）を確定する。無ければ「使い方: /notion-import <notion-url> [feature]」を表示して終了
 - `[feature]`（任意）があれば feature スラッグの第一候補にする
 
 **完了ゲート:** Notion URL が確定したか。
@@ -62,7 +58,7 @@ Notion 連携ツール（`notion-fetch`）で URL のページを取得し、次
 **完了ゲート:** 採用する feature スラッグが確定したか。
 
 ### Step 4: 書き出し
-次のフォーマットで `.specs/<feature>/seed.md` を Write する（`auto` でなければ保存内容を一度提示してから書く）。
+次のフォーマットで `.specs/<feature>/seed.md` を Write する（保存内容を一度提示してから書く）。
 
 ```markdown
 ---
@@ -114,7 +110,7 @@ Notion に書かれていた対象範囲や既知の手がかり（参考情報�
 
 ### Step 5: 出力
 
-**単体**: 次の完了カードを**コードフェンスで囲まず**プレーンテキストで出力して終了する。カードの前後に作業サマリ・所感・補足を足さない。
+次の完了カードを**コードフェンスで囲まず**プレーンテキストで出力して終了する。カードの前後に作業サマリ・所感・補足を足さない。
 
 ✅ Notion 取り込み完了
 <どのチケットを何の feature として取り込んだかを 1 行>
@@ -133,12 +129,6 @@ Notion に書かれていた対象範囲や既知の手がかり（参考情報�
 - やったこと: 一言サマリは 1 行。主要な結果は `- ` の箇条書きで**最大 3 行**（無ければ行ごと省略）。要望の本文や frontmatter の全項目は転記せず、要点だけ載せる。
 - 要確認: **Notion の長文を要約している**ので、落とした情報・空にした項目をここに出す。`pr_title` が空なら `/tasks` が自動生成にフォールバックする旨も添える。無ければブロックごと省略する。
 - 次の一手: 1 行に留める。
-
-**auto**: 完了カードを出さず、次の 1 行の簡易ログだけ残す。
-
-```
-次: /spec <feature>
-```
 
 **中断時**: ヘッダを `⚠ Notion 取り込み中断` に差し替え、一言サマリに中断理由（Notion を読めない・URL 未指定など）、次の一手に復帰コマンドを書く（成果物が未生成なら 📄 行は省略する）。
 
