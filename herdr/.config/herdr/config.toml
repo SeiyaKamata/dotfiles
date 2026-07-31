@@ -115,11 +115,15 @@ command = '''export PATH="$HOME/.nix-profile/bin:$PATH"; nvim'''
 width = "95%"
 height = "95%"
 
-# prefix+o: hp（プロンプトランチャー）で fzf 選択 → popup を開いたワークスペースの
-# 主 Claude セッションへリテラル注入（Enter は送らない、submit は人手）
+# prefix+o: hp（プロンプトランチャー）の fzf 選択 UI。Enter で popup を開いた
+# ワークスペースの主 Claude セッションへリテラル注入（Enter は送らない、submit は人手）。
+# popup 内はシェルに戻れないため、追加・編集・削除も hp pick 側のキーで完結させる。
+# 送信（Enter）と中止（ESC）以外では閉じず、一覧へ戻って続けて操作できる。
+#   Enter:送信  C-n:打った文字を 1 行追加  C-e:選択行をその場で編集
+#   C-x:選択行を削除  C-o:プロンプトファイル全体をエディタで開く
 [[keys.command]]
 key = "prefix+o"
 type = "popup"
-command = '''export PATH="$HOME/.nix-profile/bin:$HOME/.local/bin:$PATH"; name=$(hp list | fzf --prompt="prompt> ") && hp send "$name" && echo "送信: $name"; sleep 0.5'''
+command = '''export PATH="$HOME/.nix-profile/bin:$HOME/.local/bin:$PATH"; export HP_LOG="$HOME/.cache/hp.log"; mkdir -p "$HOME/.cache"; hp pick; st=$?; [ $st -eq 0 ] || { printf '\n[hp exit %s] Enter で閉じます' "$st"; read -r _ < /dev/tty; }; sleep 0.5'''
 width = "60%"
 height = "60%"
