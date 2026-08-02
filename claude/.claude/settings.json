@@ -56,9 +56,7 @@
       "Bash(docker compose exec *)",
       "Read(~/Develop/*)",
       "Edit(.specs/**)",
-      "Write(.specs/**)",
-      "Edit(~/Develop/**/.specs/**)",
-      "Write(~/Develop/**/.specs/**)"
+      "Edit(~/Develop/**/.specs/**)"
     ],
     "ask": [
       "Bash(git push --force*)",
