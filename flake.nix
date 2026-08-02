@@ -73,6 +73,7 @@
         sheldon
         starship
         zoxide
+        direnv
 
         # Editor
         neovim
