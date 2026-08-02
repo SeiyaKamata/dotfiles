@@ -68,7 +68,10 @@ split_vertical = "prefix+h"
 # tmux: bind x kill-pane
 close_pane = "prefix+x"
 # tmux: bind z resize-pane -Z
-zoom = "prefix+z"
+# prefix なしの直接バインド。高頻度操作なので即座に押せるようにする。
+# herdr が先取りするため、herdr 内では ctrl+z の OS サスペンドは発火しない
+# （herdr 外の裸シェルでは従来通り SIGTSTP が効く点に注意）。
+zoom = "ctrl+z"
 # tmux: bind -n C-t select-pane -t :.+（次のペインへ巡回、prefix 不要）
 cycle_pane_next = "ctrl+t"
 
