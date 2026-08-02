@@ -2,7 +2,7 @@
 name: orchestrator
 description: 開発パイプライン全体を管理する。新規開発や機能追加の指示を受けたら使う。
 disable-model-invocation: true
-argument-hint: "[/<stage>] <feature> [pN]"
+argument-hint: "[<stage>] <feature> [pN]"
 ---
 
 # オーケストレーター
@@ -27,7 +27,7 @@ argument-hint: "[/<stage>] <feature> [pN]"
 
 > **フロー正本**: パイプライン全体の流れ（各工程の順序・次工程・戻し先・承認ゲート・scope）は、下のフロー図とこの SKILL.md の「進め方」「例外処理」を正本とする。各工程の完了条件（done）は各スキルの「## 完了条件」を正本とする。工程を進める／戻すときはここを参照して判断する。
 
-> 開始工程を `/orchestrator /<stage> <feature> [pN]` で任意の位置から指定できる（指定工程より前は実行しない。詳細は「## 開始工程」）。
+> 開始工程を `/orchestrator <stage> <feature> [pN]` で任意の位置から指定できる（指定工程より前は実行しない。詳細は「## 開始工程」）。
 
 ```
 /spec →(R)→ /design →(R)→(分岐)→ [/prototype] → /tasks →(R)   ※(R) = stage-reviewer
@@ -56,7 +56,9 @@ argument-hint: "[/<stage>] <feature> [pN]"
 
 ## 開始工程
 
-`/orchestrator [/<stage>] <feature> [pN]` の `/<stage>` で、パイプラインの任意の工程から開始できる。省略時は従来どおり spec 開始。判定・分岐の詳細は「進め方」Step 1-1〜1-5 に書く。ここでは判断の正本となる工程レジストリと、対象フェーズ推定に使うカテゴリ・状態収集コマンドを定義する。
+`/orchestrator [<stage>] <feature> [pN]` の `<stage>`（スラッシュなしの工程名。例: `design`）で、パイプラインの任意の工程から開始できる。省略時は従来どおり spec 開始。判定・分岐の詳細は「進め方」Step 1-1〜1-5 に書く。ここでは判断の正本となる工程レジストリと、対象フェーズ推定に使うカテゴリ・状態収集コマンドを定義する。
+
+`<stage>` に工程レジストリの工程名と完全一致する文字列を渡すと開始工程として解釈される。**feature 名がこの 12 語（`spec` `design` `prototype` `tasks` `impl` `test` `review` `commit` `sync-to-remote` `watch-ci` `resolve-comments` `qa`）のいずれかと完全一致する場合は工程指定と区別できない**ため、その名前は feature 名として使わないこと。
 
 ### 工程レジストリ
 
@@ -64,18 +66,18 @@ argument-hint: "[/<stage>] <feature> [pN]"
 
 | 開始工程 | 前提成果物 | 開始 Step | 対象フェーズ | 起動コマンド |
 |---|---|---|---|---|
-| `/spec` | なし | Step 2 | 不要 | `/spec <feature>` |
-| `/design` | `requirements.md` | Step 3 | 不要 | `/design <feature>` |
-| `/prototype` | + `design.md` | Step 4 | 不要 | `/prototype <feature>`（Step 4 の分岐判定はせず直接起動） |
-| `/tasks` | + `design.md` | Step 5 | 不要 | `/tasks <feature>` |
-| `/impl` | + `tasks.md` | Step 6 → 7-1 | 必要（カテゴリA） | `/impl <feature> [pN]` |
-| `/test` | + `tasks.md` | Step 6 → 7-2 | 必要（カテゴリB） | `/test <feature> pN` |
-| `/review` | + `tasks.md` | Step 6 → 7-3 | 必要（カテゴリB） | `/review <feature> pN` |
-| `/commit` | + `tasks.md` | Step 6 → 7-4 | 必要（カテゴリB） | `/commit`（feature を渡さない） |
-| `/sync-to-remote` | + `tasks.md` | Step 6 → 7-5 | 必要（カテゴリB） | `/sync-to-remote`（feature を渡さない） |
-| `/watch-ci` | + `tasks.md` + 対象フェーズの PR | Step 6 → 7-6 | 必要（カテゴリC） | `/watch-ci <PR番号>`（feature ではなく解決した PR 番号を渡す） |
-| `/resolve-comments` | + `tasks.md` + 対象フェーズの PR | Step 6 → 7-7 | 必要（カテゴリC） | `/resolve-comments batch`（引数なし＝カレントブランチの PR 1 本。横断は最終確認の `all` だけ） |
-| `/qa` | + `tasks.md` | Step 8 | 不要 | `/qa <feature>` |
+| `spec` | なし | Step 2 | 不要 | `/spec <feature>` |
+| `design` | `requirements.md` | Step 3 | 不要 | `/design <feature>` |
+| `prototype` | + `design.md` | Step 4 | 不要 | `/prototype <feature>`（Step 4 の分岐判定はせず直接起動） |
+| `tasks` | + `design.md` | Step 5 | 不要 | `/tasks <feature>` |
+| `impl` | + `tasks.md` | Step 6 → 7-1 | 必要（カテゴリA） | `/impl <feature> [pN]` |
+| `test` | + `tasks.md` | Step 6 → 7-2 | 必要（カテゴリB） | `/test <feature> pN` |
+| `review` | + `tasks.md` | Step 6 → 7-3 | 必要（カテゴリB） | `/review <feature> pN` |
+| `commit` | + `tasks.md` | Step 6 → 7-4 | 必要（カテゴリB） | `/commit`（feature を渡さない） |
+| `sync-to-remote` | + `tasks.md` | Step 6 → 7-5 | 必要（カテゴリB） | `/sync-to-remote`（feature を渡さない） |
+| `watch-ci` | + `tasks.md` + 対象フェーズの PR | Step 6 → 7-6 | 必要（カテゴリC） | `/watch-ci <PR番号>`（feature ではなく解決した PR 番号を渡す） |
+| `resolve-comments` | + `tasks.md` + 対象フェーズの PR | Step 6 → 7-7 | 必要（カテゴリC） | `/resolve-comments batch`（引数なし＝カレントブランチの PR 1 本。横断は最終確認の `all` だけ） |
+| `qa` | + `tasks.md` | Step 8 | 不要 | `/qa <feature>` |
 
 ### 対象フェーズの推定カテゴリ
 
@@ -93,7 +95,7 @@ argument-hint: "[/<stage>] <feature> [pN]"
 
 対象フェーズ決定のための調査は inline の Bash で行う（工程自体は確定済みで、必要なのはフェーズ判定だけのため、サブエージェントには委譲しない）。
 
-> **「今どの工程か」の推定はこのスキルが正本。** 中断したセッションの再開もここから入る（`/orchestrator /<stage> <feature> [pN]`。Step 1-2 で不足成果物を提示し、Step 1-3 でフェーズ推定に `y/n` を取ってから走る）。以前は `/recover` が同じ推定を別表で持っていたが、フェーズ運用への追随が漏れて実態とずれたため廃止した。**判定表をこの外に複製しないこと。**
+> **「今どの工程か」の推定はこのスキルが正本。** 中断したセッションの再開もここから入る（`/orchestrator <stage> <feature> [pN]`。Step 1-2 で不足成果物を提示し、Step 1-3 でフェーズ推定に `y/n` を取ってから走る）。以前は `/recover` が同じ推定を別表で持っていたが、フェーズ運用への追随が漏れて実態とずれたため廃止した。**判定表をこの外に複製しないこと。**
 
 ```bash
 # フェーズ構成（tasks.md の大タスク）→ tasks.md を Read してフェーズ数と各フェーズ名を取得
@@ -270,27 +272,24 @@ loop:
 ## 進め方
 1. **引数解釈・前提チェック・対象フェーズ決定・ブランチ整合・ディスパッチ**（子番号 1-1〜1-5）
    1. **Step 1-1: 引数パーサ** — `$ARGUMENTS` を `開始工程 / feature / pN` に分解する。判定順:
-      1. 引数が 0 個 → `使い方: /orchestrator [/<stage>] <feature> [pN]` を表示して終了
-      2. 第 1 引数が `/` で始まらない場合
-         - 「工程レジストリ」の工程名と同一文字列（例: `design`）→ `工程を指定するにはスラッシュを付けてください（例: /orchestrator /design <feature>）` + 使い方を表示して終了
-         - それ以外 → 開始工程 = `/spec`、feature = 第 1 引数、`pN` なし（従来どおりの後方互換）
-      3. 第 1 引数が `/` で始まる場合
-         - 工程レジストリに無い工程名 → `開始工程 '<入力>' は指定できません。` + レジストリの工程名一覧を表示して終了
-         - 第 2 引数（feature）が無い → `使い方: /orchestrator [/<stage>] <feature> [pN]` を表示して終了
+      1. 引数が 0 個 → `使い方: /orchestrator [<stage>] <feature> [pN]` を表示して終了
+      2. 第 1 引数が「工程レジストリ」の工程名（12 語）のいずれかと完全一致する場合
+         - 第 2 引数（feature）が無い → `使い方: /orchestrator [<stage>] <feature> [pN]` を表示して終了
          - それ以外 → 開始工程 = 第 1 引数、feature = 第 2 引数、`pN` = 第 3 引数（あれば）
+      3. それ以外（工程名と一致しない）→ 開始工程 = `spec`、feature = 第 1 引数、`pN` なし（従来どおりの後方互換。feature 名が工程レジストリの 12 語と完全一致すると開始工程指定と区別できないため、その名前は feature に使わない）
    2. **Step 1-2: 前提成果物チェックと遡り** — 工程レジストリの「前提成果物」列を `.specs/<feature>/` に照合する（対象フェーズの PR の存在確認は Step 1-3 でフェーズが決まってから行う）
       1. すべて揃っていれば確認を挟まず Step 1-3 へ
       2. 不足があれば、不足しているファイル・状態と、それを生む工程を列挙して 2 択を提示する:
          ```
          【前提成果物の不足】
 
-         開始工程: /tasks
-         不足: .specs/<feature>/design.md（/design が生成）
+         開始工程: tasks
+         不足: .specs/<feature>/design.md（design が生成）
 
-         1: 不足工程まで遡って実行する（/design から開始します）
+         1: 不足工程まで遡って実行する（design から開始します）
          2: 中断する
          ```
-      3. 「遡って実行する」→ 不足を生む最上流の工程に開始工程を巻き戻し、Step 1-2 を再評価する（`requirements.md` も無ければ `/spec` まで巻き戻る）。**`/spec` まで巻き戻った場合は Step 2 から `/spec <feature>` を実行する**（`stage-reviewer` のレビューを経て requirements.md が確定する。人間の承認は待たない）
+      3. 「遡って実行する」→ 不足を生む最上流の工程に開始工程を巻き戻し、Step 1-2 を再評価する（`requirements.md` も無ければ `spec` まで巻き戻る）。**`spec` まで巻き戻った場合は Step 2 から `/spec <feature>` を実行する**（`stage-reviewer` のレビューを経て requirements.md が確定する。人間の承認は待たない）
       4. 「中断する」→ 中断理由と復帰コマンドを示した中断カードで終了する
       5. 回答待ちの間はいずれの工程スキルも起動しない
    3. **Step 1-3: 対象フェーズの決定** — 工程レジストリで「対象フェーズ: 不要」の工程はこの Step をスキップする（第 3 引数が渡されていても無視する）
@@ -300,17 +299,17 @@ loop:
          - 数字が 1〜`N` の範囲外 → `tasks.md のフェーズ数は <N> です（指定: <入力>）` を示して終了
          - 範囲内 → それを対象フェーズとする（単一フェーズ時の `p1` も範囲内として受け付ける）
       3. `pN` が省略されている場合、「開始工程」節の状態収集コマンドを実行し、推定カテゴリ A/B/C のルールで対象フェーズを推定する。推定結果と根拠（例:「`myfeature-p1` は PR green + 未返信の未解決コメントなし、`myfeature-p2` はブランチ未作成」）を提示して `y/n` を取る。`n` → `pN` を明示して再実行するよう促して終了
-      4. カテゴリ C の工程で対象フェーズの PR が存在しない場合は Step 1-2 の不足扱いとして 2 択に回す（遡り先は `/sync-to-remote`）
-      5. `/watch-ci` を開始工程とする場合は、対象フェーズのブランチに対応する PR 番号を解決して起動引数に使う
+      4. カテゴリ C の工程で対象フェーズの PR が存在しない場合は Step 1-2 の不足扱いとして 2 択に回す（遡り先は `sync-to-remote`）
+      5. `watch-ci` を開始工程とする場合は、対象フェーズのブランチに対応する PR 番号を解決して起動引数に使う
    4. **Step 1-4: ブランチ整合** — 対象フェーズを持つ工程（カテゴリ A/B/C）から開始する場合のみ実行する。ブランチ名は単一フェーズ = `<feature>`、複数フェーズ = `<feature>-pN`（`/impl` Step 2 のルールに従う）
       - カテゴリ B/C（ブランチが存在する前提）→ そのブランチへ `git switch` する。未コミットの変更があって切り替えられない場合は報告して停止する（stash などの作業ツリー操作はしない）
       - カテゴリ A（`/impl`）→ 切り替えは行わない。ブランチ作成は `/impl` の Step 2 の責任なので、`pN`（N > 1）なら `<feature>-p(N-1)` に居る状態を作ってから `/impl` を起動する。`p(N-1)` のブランチが無ければ前提成果物の不足として Step 1-2 の 2 択に回す
    5. **Step 1-5: ディスパッチ** — 工程レジストリの「開始 Step」へジャンプする。ジャンプ後の挙動は既存 Step の記述そのままとし、以下を追加ルールとする:
       1. 開始 Step より前の Step は実行しない。したがって**開始工程が design 以降のときは Step 2（`/spec`）を実行せず、既存の requirements.md を確定済みの成果物として扱う**
       2. **開始工程の指定によって人間承認ゲートを新設しない**。成果物の妥当性は orchestrator が工程の完了後に回す `stage-reviewer` が担保する既存の枠組みのままにする
-      3. 開始工程が `/prototype` のとき、Step 4 の分岐判定は行わず `/prototype` を直接起動する
+      3. 開始工程が `prototype` のとき、Step 4 の分岐判定は行わず `/prototype` を直接起動する
       4. 開始 Step が Step 7-x のとき、Step 7 のフェーズループはその小 Step から始める。対象フェーズを閉じたら Step 7-9 に合流し、残る後続フェーズは 7-1 から通常どおり回す
-      5. 開始 Step が Step 8（`/qa`）のとき、全フェーズ実装済みとみなして最終スタックブランチで `/qa` を起動する
+      5. 開始 Step が Step 8（`qa`）のとき、全フェーズ実装済みとみなして最終スタックブランチで `/qa` を起動する
       6. 停止点（Step 10）と「## 例外処理」の停止条件は、開始工程がどれであっても既存どおり適用される
 2. `/spec <feature>` を起動し、`.specs/<feature>/requirements.md` を生成する → **工程レビュー**（「工程レビュー（工程共通）」）→ 承認を待たず次へ
 3. `/design <feature>` を起動し、`.specs/<feature>/design.md` を生成 → **工程レビュー** → 承認を待たず次へ
@@ -366,7 +365,7 @@ loop:
 - **未解決コメント対応がそのフェーズで2巡しても収束しない** → 報告して停止（次フェーズを積まない）
 - **CodeRabbit のレビューが一定時間来ない** → 報告して停止
 - 各スキルが判断できない（要件の曖昧さ等）→ 報告して指示を仰ぐ
-- **引数が不正**（引数なし・工程指定に feature が無い・スラッシュ無しの工程名・レジストリに無い工程名・`pN` の形式不正・`pN` が範囲外）→ Step 1-1・1-3 のエラーメッセージを表示して終了
+- **引数が不正**（引数なし・工程指定に feature が無い・`pN` の形式不正・`pN` が範囲外）→ Step 1-1・1-3 のエラーメッセージを表示して終了
 - **開始工程の前提成果物が不足しており「中断する」が選ばれた** → 中断理由と復帰コマンドを示して終了（Step 1-2）
 - **推定した対象フェーズが人に否認された（`n`）** → `pN` を明示して再実行するよう促して終了（Step 1-3）
 - **対象フェーズのブランチへ切り替えられない**（未コミットの変更がある）→ 報告して停止し、stash などの作業ツリー操作は行わない（Step 1-4）
