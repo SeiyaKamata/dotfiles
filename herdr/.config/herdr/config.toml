@@ -109,15 +109,6 @@ command = '''export PATH="$HOME/.nix-profile/bin:$PATH"; nvim .specs'''
 width = "80%"
 height = "80%"
 
-# ===== popup: nvim 起動ショートカット =====
-# prefix+e: カレントディレクトリを nvim で開く
-[[keys.command]]
-key = "prefix+e"
-type = "popup"
-command = '''export PATH="$HOME/.nix-profile/bin:$PATH"; nvim'''
-width = "95%"
-height = "95%"
-
 # prefix+o: hp（プロンプトランチャー）の fzf 選択 UI。Enter で popup を開いた
 # ワークスペースの主 Claude セッションへリテラル注入（Enter は送らない、submit は人手）。
 # popup 内はシェルに戻れないため、追加・編集・削除も hp pick 側のキーで完結させる。
