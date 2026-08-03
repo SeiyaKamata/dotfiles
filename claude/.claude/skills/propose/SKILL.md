@@ -38,11 +38,17 @@ claim: <一行の主張。kind により意味が変わる>
 kind: rule | backlog
 date: <YYYY-MM-DD>
 source_feature: <発行元 feature 名。不明なら「不明」>
-status: open | applied | dropped
+status: open | applied | deferred | dropped
 ---
 
 <本文。kind により書くものが変わる>
 ```
+
+**status の語彙**（発行時は常に `open`。遷移させるのは `/proposals-sweep`）
+- **`open`**: 未判断
+- **`applied`**: 成果物に反映済み
+- **`deferred`**: 判断済みで、今は着手しない（`/proposals-sweep` のトリアージ対象から外れる。寿命管理の対象には残る）
+- **`dropped`**: 破棄
 
 **kind の語彙**
 - **`rule`**: 一行足せば次回以降防げるルール
