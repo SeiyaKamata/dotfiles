@@ -34,7 +34,7 @@ argument-hint: "<feature> [pN|task-numbers]"
 ## 用語（前提）
 用語の定義は `claude/CLAUDE.md`「用語集」に従う。特にこのスキルでは：
 - **フェーズ = 大タスク = ブランチ = 1 PR**。tasks.md は大タスク（1., 2., ...）を 1 フェーズに 1:1 で対応させて出力する。複数フェーズ = stacked PR。
-- 1 回の `/impl` 呼び出しが扱うのは**単一フェーズ（＝単一の大タスク）**のみ。マルチフェーズは orchestrator が `/impl <feature> p1`, `/impl <feature> p2`, ... と別々に呼ぶ。
+- 1 回の `/impl` 呼び出しが扱うのは**単一フェーズ（＝単一の大タスク）**のみ。マルチフェーズは `/impl <feature> p1`, `/impl <feature> p2`, ... と 1 フェーズずつ呼ぶ。
 - タスクの分割・粒度は **tasks の責務**。impl は tasks.md に**書かれたとおりに実装する**。大タスクが大きすぎても impl 側で分割しない（それは tasks がおかしいということなので、`/tasks` を編集モードで再入して直す）。
 
 ## 進め方
