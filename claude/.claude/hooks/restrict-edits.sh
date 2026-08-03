@@ -8,7 +8,16 @@
 INPUT=$(cat)
 TOOL=$(echo "$INPUT" | jq -r '.tool_name // ""')
 
-PROJECT_DIR=$(realpath "$PWD" 2>/dev/null || echo "$PWD")
+# 判定基準はハーネスが渡す `CLAUDE_PROJECT_DIR` から取る。環境変数なので Bash ツールの
+# cd では変わらず、名前どおりプロジェクトディレクトリを指すのでこのフックの目的と一致する。
+# `$PWD` を基準にすると cd に追随してガードが両方向に壊れる:
+# `cd <repo>/claude/.claude/skills` すれば同じ repo の `agents/` が「外」と誤判定され、
+# 逆に `cd /` すれば `/etc` まで「プロジェクト内」として通ってしまう。
+# フォールバックは入力 JSON の `cwd`（セッションの作業ディレクトリ）→ `$PWD` の順。
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-}"
+[[ -z "$PROJECT_DIR" ]] && PROJECT_DIR=$(echo "$INPUT" | jq -r '.cwd // ""')
+[[ -z "$PROJECT_DIR" ]] && PROJECT_DIR="$PWD"
+PROJECT_DIR=$(realpath "$PROJECT_DIR" 2>/dev/null || echo "$PROJECT_DIR")
 
 # `.` `..` を自前で畳む（realpath が使えない＝実在しないパス用）
 normalize_path() {
