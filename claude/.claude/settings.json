@@ -94,6 +94,15 @@
             "command": "~/.claude/hooks/restrict-edits.sh"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/no-cd.sh"
+          }
+        ]
       }
     ]
   },
