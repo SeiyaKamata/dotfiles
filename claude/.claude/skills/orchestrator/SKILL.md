@@ -322,6 +322,7 @@ loop:
    1. `/impl <feature> [pN]` を起動（単一は `<feature>`、複数は `pN`。`pN` のブランチは `p(N-1)` にスタック）
    2. `/test <feature> pN` を起動し PASS / FAIL を確認。FAIL → `/fix <feature>` → `/test <feature> pN` を再実行（test FAIL 3連続で停止）
    3. `/review <feature> pN` を起動。NG は下記「例外処理」（設計起因は `/design`→`/impl`、それ以外は `/impl` に戻す）
+      - 判定 OK でも `review.md` の推奨対応に**上流 doc の記述修正**が挙がっていれば、`/spec`・`/design` を編集モードで再入して記述だけ直す。`/tasks` と実装はやり直さない（実装は正しいため）
    4. `/commit` を起動し、**このフェーズのブランチにコミットする**
    5. `/sync-to-remote` を起動し、**このフェーズの draft PR を 1 本だけ**作る（base = `p(N-1)`、`p1` と単一フェーズはデフォルトブランチ）。draft でも CodeRabbit が自動でレビューを開始する
    6. `/watch-ci <PR番号>` を起動し、この PR の CI green を待つ。赤ならログを取得して自己修正 → push → 再監視（2回直しても green にならなければ報告して停止）
