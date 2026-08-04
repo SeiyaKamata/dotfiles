@@ -10,7 +10,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls *)
 ## 役割
 スコープ外として棚上げされた指摘を、その場で議論・要件化せずに独立 feature の"種"文書 `.specs/<新feature>/seed.md` として切り出す。
 
-**追跡記録を残さない。** 元 feature に「切り出し済み」のマーキングをしない。これが `/handoff`（依頼元 `tasks.md` の `H<n>` にチェックを付けて追跡する）との決定的な違い。
+**追跡記録を残さない。** 元 feature に「切り出し済み」のマーキングをしない。これが `/handoff`（依頼元 `tasks.md` の `S<n>` にチェックを付けて追跡する）との決定的な違い。
 
 ## 入出力
 - **入力**: `.specs/<元feature>/review.md` および `review.p*.md` / プロンプトで直接渡された指摘 / `.specs/proposals/` の backlog 提案ファイル（`/propose` からの導線）
