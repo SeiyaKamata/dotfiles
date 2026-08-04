@@ -15,7 +15,9 @@ PR の CI が完了するまで監視し、結果を判定して次のアクシ�
 - **出力**: ファイル成果物は持たない（判定と PR の URL を報告する）
 
 ## 用語（前提）
-用語は `claude/CLAUDE.md`「用語集」に従う。**フェーズ = 大タスク = ブランチ = 1 PR**。複数フェーズは stacked PR。stacked のときは **feature の全 PR を対象に CI を監視して集約**する。
+用語は `claude/CLAUDE.md`「用語集」に従う。**フェーズ = `/sync-to-remote` が実装後に確定する PR 単位**（ブランチ `<feature>-pN`）。
+
+対象は **PR 番号が渡されればその 1 本**、渡されなければカレントブランチの PR。stacked で複数の PR が既に存在する場合は **feature の全 PR を対象に CI を監視して集約**する（`/orchestrator` Step 12 の最終確認がこれを使う）。
 
 ## モード
 CI の結果を完了カードで報告する。**Ready for review への切り替えは行わない**（draft のまま完了とし、完了カードで `gh pr ready` を案内する）。

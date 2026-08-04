@@ -13,7 +13,7 @@ argument-hint: "<feature>"
 
 ブラウザ操作は一切行わず、**`qa-browser` サブエージェントに委譲する**（Playwright はメインで触らない）。このスキルは検証環境の起動と停止・シナリオの受け渡し・結果の集約を担う。
 
-**`/qa` は feature 全体のゲート**なので、`/test` `/review` と違い**フェーズ引数を取らない**（全フェーズ実装後に最終スタックブランチで 1 回だけ回す）。
+**`/qa` は feature 全体のゲート**で、**フェーズ引数を取らない**（実装ブランチ 1 本の上で 1 回だけ回す）。`/review` の後・`/commit` の前に走るので、**PR がまだ存在しない**（分割は `/sync-to-remote` が後で判定する）。
 
 ## 入出力
 - **入力**: `.specs/<feature>/qa.md`（`/tasks` が生成した QA シナリオ）
@@ -38,7 +38,7 @@ argument-hint: "<feature>"
 
 ### Step 2: 対象確定
 
-`/orchestrator`「対象確定（工程共通）」の手順のうち `/qa` に該当する 1・2・6 を実施する（feature の確定・`tasks.md` の存在有無の確認。**フェーズ照合は行わない**）。続けて `.specs/<feature>/qa.md` の存在を確認する。無ければ「入力 `.specs/<feature>/qa.md` がありません（`/tasks` が生成します）」として中断する（この時点では何も起動していないので停止は不要）。
+`/orchestrator`「対象確定（工程共通）」の手順 1〜3 を実施する（feature の確定・ブランチの確定・実行コンテキストの確定）。続けて `.specs/<feature>/qa.md` の存在を確認する。無ければ「入力 `.specs/<feature>/qa.md` がありません（`/tasks` が生成します）」として中断する（この時点では何も起動していないので停止は不要）。
 
 **完了ゲート:** feature を確定し、`qa.md` の存在を確認したか。
 
@@ -89,16 +89,15 @@ swws status
 ### Step 5: 書き出し
 
 1. 結果配列で `.specs/<feature>/qa.md` のチェックボックスを更新する（pass → `[x]` / fail → `[ ]` のまま）
-2. `git branch --show-current` / `git rev-parse HEAD` / `git status --porcelain` で `branch` / `head` / `dirty` を確定し、`ran_at` を書き出し時点で記録する（`phase` は常に `none`）
+2. `git branch --show-current` / `git rev-parse HEAD` / `git status --porcelain` で `branch` / `head` / `dirty` を確定し、`ran_at` を書き出し時点で記録する
 3. **最新の結果を `.specs/<feature>/qa-report.md` に必ず書き出す**。これが下流 `/fix` の入力源になり、失敗原因を会話に依存させない（`/test` の `test-report.md` と同じパターン）
 4. スクショは PR 添付用に保持し、保存先パスを qa-report.md に記録する
 
-`/qa` はフェーズを持たない feature 単位のゲートなので、**保存先パスは変えない**（`phase: none` を frontmatter に記録するだけ。これにより `notion-export` は無変更で通る）。
+`/qa` は feature 単位のゲートなので、保存先は `.specs/<feature>/qa-report.md` の固定パス。
 
 ```markdown
 ---
 feature: <feature>
-phase: none                            # /qa は常に none（フェーズを持たない）
 branch: <カレントブランチ>              # 取得不能時は none
 head: 4f8c1e9b2a...                    # 取得不能時は none
 dirty: true

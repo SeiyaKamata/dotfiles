@@ -2,7 +2,7 @@
 name: test
 description: 実装完了後にテストを実行し結果を報告する。impl完了後に使う。
 allowed-tools: Read, Agent, Bash(git *)
-argument-hint: "<feature> [pN]"
+argument-hint: "<feature>"
 ---
 
 # テストスキル
@@ -13,14 +13,13 @@ argument-hint: "<feature> [pN]"
 実際のテスト実行は **`test-runner` サブエージェントに委譲**する（大量のテストログをメインコンテキストに載せず、軽量モデルで回すため）。このスキルは引数処理・対象確定・委譲・結果報告を担う。
 
 ## 入出力
-- **入力**: `.specs/<feature>/tasks.md`（対象確定に使うフェーズ構成。無ければフェーズ照合をスキップ）／ git の状態
-- **出力**: `.specs/<feature>/test-report.pN.md`（フェーズ未確定時は `test-report.md`）
+- **入力**: git の状態（対象は実装ブランチ 1 本。フェーズを持たない）
+- **出力**: `.specs/<feature>/test-report.md`
 
-**コンテキストフリー**: このスキルは会話履歴に依存しない。入力はすべて `.specs/<feature>/` と git から得るので、コールドで `/test <feature> [pN]` を叩いても同じ対象に到達する。
+**コンテキストフリー**: このスキルは会話履歴に依存しない。入力はすべて `.specs/<feature>/` と git から得るので、コールドで `/test <feature>` を叩いても同じ対象に到達する。
 
 ## 引数
 - `$ARGUMENTS[0]`: feature 名（必須）
-- `$ARGUMENTS[1]`: `pN`（省略可。対象フェーズの明示指定）
 
 ## モード
 判定を完了カードで報告する。テストコマンドを判断できない場合は**確認せず「判断できない」として中断する**（**推測で実行し直さない** — 誤ったコマンドの PASS は最も危険な嘘になる）。コマンドを聞いてその場だけ解決しても次の実行で同じところに戻るので、中断して**プロジェクト CLAUDE.md にテストコマンドを記載してもらう**（Step 4 の中断カード参照）。
@@ -28,19 +27,16 @@ argument-hint: "<feature> [pN]"
 ## 進め方
 
 ### Step 1: 引数チェック
-- `$ARGUMENTS[0]`（feature）が未指定なら「使い方: /test <feature> [pN]」を表示して終了
-- feature 名と `pN`（あれば）を確定する
+- `$ARGUMENTS[0]`（feature）が未指定なら「使い方: /test <feature>」を表示して終了
 
 ### Step 2: 対象確定
-`/orchestrator`「対象確定（工程共通）」の手順 1〜6（`/test` は差分なくすべて実行）に従い、feature・対象フェーズ・対象ブランチを確定する。
+`/orchestrator`「対象確定（工程共通）」の手順 1〜3（`/test` は差分なくすべて実行）に従い、feature・対象ブランチを確定する。
 
-- 前提が破れた場合（フェーズ指定の形式不正・範囲外・推定不能・ブランチ不一致）は中断する
-- `tasks.md` が無い、またはフェーズのブランチが 1 つも存在しない場合はフェーズ照合をスキップし `phase: none` で継続する
 
-保存先パスもここで決まる。`phase` が `pN` なら `.specs/<feature>/test-report.pN.md`、`none` なら `.specs/<feature>/test-report.md`。
+保存先は `.specs/<feature>/test-report.md`（feature 単位の単一パス）。
 
 ### Step 3: test-runner へ委譲
-`test-runner` サブエージェントを起動し、feature 名と Step 2 の確定値（`phase` / `branch` / `head` / `dirty`）・保存先パスを渡す。test-runner が行うこと：
+`test-runner` サブエージェントを起動し、feature 名と Step 2 の確定値（`branch` / `head` / `dirty`）・保存先パスを渡す。test-runner が行うこと：
 
 - プロジェクト CLAUDE.md を最優先にテストコマンドを検出して実行する
 - PASS/FAIL を判定する
@@ -69,7 +65,7 @@ test-runner が「テストコマンドを判断できない」と返した場�
 ✅ テスト実行完了（PASS）
 <実行数と判定を 1 行>
 - <主要な結果 最大 3 行>
-📄 .specs/<feature>/test-report.pN.md
+📄 .specs/<feature>/test-report.md
 
 要確認:
 - <実行時に判断で決めた点>（例: 候補が複数あったテストコマンドの選択、スキップした対象）
@@ -85,7 +81,7 @@ test-runner が「テストコマンドを判断できない」と返した場�
 
 **中断時**: 同じブロック構成でヘッダを `⚠ テスト実行中断` に差し替える。
 
-- やったこと: 一言サマリに中断理由（テストコマンドを判断できない・フェーズ指定の形式不正・ブランチ不一致など）。レポート未生成なら 📄 行は省略する。
+- やったこと: 一言サマリに中断理由（テストコマンドを判断できないなど）。レポート未生成なら 📄 行は省略する。
 - 次の一手: 復帰コマンド。判定が出ていないまま `/review` へ進む道は出さない。**テストコマンドを判断できずに中断した場合は、探した場所を要確認に挙げ、次の一手を次の 2 行にする**（コマンドを聞き直すのではなく、次回以降も効く形で解決させる）:
 
 ```
@@ -94,7 +90,7 @@ test-runner が「テストコマンドを判断できない」と返した場�
 
 次の一手:
 ▶ プロジェクト CLAUDE.md にテストコマンドを記載する（例: `## テスト` に実行コマンドを 1 行）
-▶ 記載後に再実行する：/test <feature> [pN]
+▶ 記載後に再実行する：/test <feature>
 ```
 
 ## 出力規律

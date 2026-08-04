@@ -22,7 +22,7 @@ argument-hint: "[PR番号|all] [batch]"
 
 | 起動 | 対象 |
 |---|---|
-| `/resolve-comments` | **カレントブランチの PR 1 本**（フェーズループ本流） |
+| `/resolve-comments` | **カレントブランチの PR 1 本**（PR ループ本流） |
 | `/resolve-comments <PR番号>` | その 1 本 |
 | `/resolve-comments all` | feature の全 PR を横断（最終確認・取りこぼし回収用） |
 
@@ -31,7 +31,7 @@ argument-hint: "[PR番号|all] [batch]"
 **横断が要るのは、先に閉じた PR に後からコメントが付いたとき。** 取りこぼしの回収は、全 PR を閉じきる直前（全 PR が CI green + 未返信の未解決コメントなし）に `all` で 1 回だけ回す。
 
 ## 用語（前提）
-用語は `claude/CLAUDE.md`「用語集」に従う。**フェーズ = 大タスク = ブランチ = 1 PR**。複数フェーズは stacked PR。
+用語は `claude/CLAUDE.md`「用語集」に従う。**フェーズ = `/sync-to-remote` が実装後に確定する PR 単位**（ブランチ `<feature>-pN`）。
 
 `all` で横断したときは、**指摘の付いた PR のブランチ（フェーズ）で修正**する。下位フェーズを直したら stack を rebase 伝播して上位ブランチに反映する（**安全に伝播できないと判断したら報告して停止**）。
 
