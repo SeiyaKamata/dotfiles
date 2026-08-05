@@ -15,7 +15,7 @@ allowed-tools: Bash(git *), Bash(gh *), Read
 **冪等**に作られている：既に PR があるブランチ・既にマージ済みのブランチはスキップするので、取りこぼしを拾うために何度呼んでも同じ結果になる。
 
 ## 入出力
-- **入力**: カレントブランチとコミット済みの差分・コミット列／`.specs/<feature>/tasks.md`（`PR タイトル素材:` の 1 行）
+- **入力**: カレントブランチとコミット済みの差分・コミット列／`.specs/<feature>/seed.md` の frontmatter（`pr_title`。無ければコミットメッセージから作る）
 - **出力**: draft PR（PR 運用あり）またはデフォルトブランチへの push（PR 運用なし）／分割した場合はフェーズブランチ `<feature>-pN`
 
 ## PR 運用の有無（吸収するのはこのスキルだけ）
@@ -65,7 +65,11 @@ CURRENT=$(git branch --show-current)
 - `CURRENT` が `<feature>-pN`（末尾が `-p` + 数字）→ **再呼び出し**。分割は既に確定しているので 2-2〜2-3 を飛ばし、`p(N+1)` を対象として Step 3 へ（`p(N+1)` のブランチが無ければ「全フェーズ着地済み」として終了）
 - それ以外（`<feature>` など）→ **初回**。2-2 へ
 
-feature 名は `-p<数字>` を除いて求める。`.specs/<feature>/tasks.md` の `PR タイトル素材:` の 1 行を読む（無ければコミットメッセージから主題を作る）。
+feature 名は `-p<数字>` を除いて求める。**PR タイトルの素材はここで自分で用意する**（`tasks.md` は持たない）：
+
+- `.specs/<feature>/seed.md` の frontmatter の `pr_title`（例 `[SEC-16005] ATM Auth0移行`）
+- `seed.md` が無い／`pr_title` が空なら、**コミットメッセージから主題を作る**（実装後なのでコミット列が揃っている）
+- 固定 prefix `【鎌田QA】` を頭に付ける（`claude/CLAUDE.md`「PR / ブランチ命名」）
 
 **2-2 実物を読む**
 
