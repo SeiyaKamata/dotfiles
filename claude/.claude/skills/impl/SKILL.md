@@ -51,7 +51,6 @@ argument-hint: "<feature> [task-numbers]"
 - **`## マージ後の検証`（`V<n>`）は読まない** — 人が PR マージ後に実施する項目で、配布対象でも完了条件でもない。`_Depends:_` から参照されることも無い（参照があれば tasks 側の誤りなので、中断して `/tasks` の編集モード再入に回す）
 - テスト・ビルドコマンド（`package.json`, `Makefile`, `go.mod`, `pyproject.toml` などから）
 - `git status --porcelain` でベースライン
-- **prototype コードの有無** — `git rev-parse --verify <feature>-proto` が通れば、Step 4 で「参照して昇格」を指示する
 
 ### Step 3: ブランチ準備（メインが実施）
 **PR 運用の有無に関わらず、常にブランチを切る。** 実装を隔離しておけば、途中で捨てる・作り直すのが安全になる。PR を作らない repo でも同じで、その場合は `/sync-to-remote` がデフォルトブランチへ取り込む。
@@ -75,7 +74,6 @@ git checkout -b <feature> "origin/$DEFAULT"
 - `## タスク一覧` から転記したサブタスクの説明・完了条件・`_Requirements:_`・`_Depends:_`
 - リポジトリのテスト／ビルドコマンド
 - `design.md` の「踏襲元」節（あれば）— 踏襲元のパスと踏襲する点をそのまま渡し、**その形に合わせて書く**旨を明示する
-- prototype がある場合の「参照して昇格」指示（下記）
 - 「tasks.md に書かれた順に実装し、git・tasks.md には触れず、報告フォーマットで返す」旨（`implementer` 側にも定義済みだが明示する）
 
 **配布の単位は大タスク。** `## タスク一覧` の大タスク（1., 2., ...）ごとに `implementer` を 1 体呼び、**依存順に逐次**で回す。
@@ -93,17 +91,6 @@ git checkout -b <feature> "origin/$DEFAULT"
 **`- [ ]*` のタスク:** 配布対象に含める（既定では実装する）。ただし `implementer` が完了できなかった場合、**それを理由に中断しない**（後回しにできるテストとして tasks が印を付けたもの）。未完了のまま Step 5 の「要確認」に挙げる。
 
 手動モード（タスク番号指定）では、指定サブタスクだけを 1 つの implementer に配布する。
-
-**参照して昇格（`<feature>-proto` が存在する場合のみ）**
-
-prototype 工程が `<feature>-proto` ブランチに動く参考実装を残している。implementer に次を指示する：
-- 白紙から書き起こさず、prototype コードを**読んで流用**する。参照は**読み取り専用の git** で行う（ブランチ切り替え・作業ツリー変更をする git 操作は implementer に禁止されているため使わない）：
-  - ファイル一覧: `git diff --stat $(git merge-base HEAD <feature>-proto) <feature>-proto`
-  - 中身の参照: `git show <feature>-proto:<path>`
-  - 流用は「参照して自分で書く」＝ `git show` で読んだ内容を Write/Edit で現ブランチに書き起こす（`git checkout -- <path>` 等での取り込みはしない）
-- prototype コードは**品質を問わない捨て実装**なので、そのまま写さない。**本番品質に整形して昇格**する（命名・責務分割・エラーハンドリング・型・テスト・本リポジトリのコード規約に合わせる）
-- **正典は `design.md`**。prototype コードと design.md が食い違う場合は design.md を優先する
-- 配布したサブタスクに対応する範囲だけを流用・整形する（対象外は取り込まない）
 
 **4-2 報告の取り込み**
 

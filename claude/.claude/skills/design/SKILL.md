@@ -137,7 +137,6 @@ Step 3 の内容を次のフォーマットで `.specs/<feature>/design.md` に�
 
 次の一手:
 ▶ タスク分割に進む：/tasks <feature>
-▶ 先に試作する：/prototype <feature>
 ▶ 設計を直す：/design <feature>（編集モードで再実行）
 
 カードは**やったこと**（`✅` 〜 `📄`）・**要確認**・**次の一手**の 3 ブロックに分ける。混ぜない。

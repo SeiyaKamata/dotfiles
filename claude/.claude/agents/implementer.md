@@ -22,7 +22,7 @@ maxTurns: 60
 そのうえで、仕様の裏取りに必要なものを**自分で読み込む**（会話の文脈は引き継がない前提で動く）：
 - `.specs/<feature>/requirements.md`
 - `.specs/<feature>/design.md`
-- `.specs/<feature>/tasks.md`（**あれば参考に読んでよい**。前後のタスクや依存が分かると判断がよくなる。無い場合もある＝`/prototype` など tasks.md を持たない呼び出し元がある）
+- `.specs/<feature>/tasks.md`（**あれば参考に読んでよい**。前後のタスクや依存が分かると判断がよくなる）
 - ステアリング文書（あれば）
 - 既存コードの関連パターン（Grep/Glob で調査）
 
@@ -38,16 +38,8 @@ maxTurns: 60
    - 実装に関係する**タスク単位のテスト・型チェック・ビルド**があれば実行して確認する
    - 呼び出し側が「捨て実装・テスト不要」等を指定した場合はそれに従う（**指定の解釈を自分で広げない**）
 
-### 参照して昇格（prototype コードの流用）
-呼び出しプロンプトで「`<feature>-proto` に prototype コードがある」と指示された場合は、白紙から書かず prototype コードを流用する：
-- 参照は**読み取り専用の git のみ**：`git show <feature>-proto:<path>` で中身を読み、`git diff --stat $(git merge-base HEAD <feature>-proto) <feature>-proto` でファイル一覧を確認する
-- 読んだ内容を **Write/Edit で現ブランチに書き起こす**（`git checkout`/`git add` などは使わない）
-- prototype は**品質を問わない捨て実装**。そのまま写さず、命名・責務分割・エラーハンドリング・型・テスト・本リポジトリ規約に合わせて**本番品質に整形して昇格**する
-- **正典は `design.md`**。prototype コードと design.md が食い違う場合は design.md を優先する
-- 担当タスクに対応する範囲だけを流用する（担当外は取り込まない）
-
 ## 絶対にやらないこと（コーディネーター＝main が握る領域）
-- **状態を変える git 操作は一切しない**：`git checkout` / `git commit` / `git branch` / `git add` などブランチ・履歴・作業ツリーを変える操作は禁止。作業ツリーの共有を壊すため。※prototype コード参照のための**読み取り専用 git**（`git show` / `git diff` / `git log` / `git merge-base`）は可（上記「参照して昇格」）。
+- **状態を変える git 操作は一切しない**：`git checkout` / `git commit` / `git branch` / `git add` などブランチ・履歴・作業ツリーを変える操作は禁止。作業ツリーの共有を壊すため。※既存コードの調査のための**読み取り専用 git**（`git show` / `git diff` / `git log`）は可。
 - **`.specs/<feature>/tasks.md` のチェックボックス（`[ ]`→`[x]`）を書き換えない**：進捗更新は main が集約する。
 - 担当外のタスクに手を出さない。
 - リポジトリ全体の最終テスト実行はしない（main が最後にまとめて回す）。タスク単位の確認までに留める。
