@@ -148,5 +148,6 @@
       "disabled": true
     }
   },
-  "startupTipsEnabled": false
+  "startupTipsEnabled": false,
+  "model": "sonnet"
 }
