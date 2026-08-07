@@ -128,7 +128,8 @@ height = "60%"
 # ===== popup: space を「開く場所を選んでから」作る =====
 # prefix+n: hspace の fzf ピッカー。~/Develop/*/repos/<repo> と
 # ~/Develop/*/worktrees/<SLOT>/<repo> を zoxide の frecency 順に並べ、Enter で
-# その cwd の space を作って移動する（作ってから cd する手間をなくすのが目的）。
+# その cwd の space を作って移動し、初期ペインで claude を起動する
+# （作ってから cd して claude を打つ手間をなくすのが目的）。
 # 一覧の ● は「すでにその場所で space が開いている」印。ESC で何もせず閉じる。
 # 素の新規作成（今の cwd を引き継ぐ）は prefix+shift+n（new_workspace）に退避済み。
 [[keys.command]]
