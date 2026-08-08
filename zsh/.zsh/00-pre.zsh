@@ -10,6 +10,3 @@ eval "$(starship init zsh)"
 
 # z instead of cd
 eval "$(zoxide init zsh --cmd cd)"
-
-# Load direnv
-eval "$(direnv hook zsh)"
