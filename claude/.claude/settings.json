@@ -66,6 +66,7 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "sonnet",
   "hooks": {
     "PreToolUse": [
       {
@@ -114,7 +115,7 @@
   },
   "language": "Japanese",
   "spinnerTipsEnabled": false,
-  "effortLevel": "high",
+  "effortLevel": "medium",
   "awaySummaryEnabled": false,
   "tui": "fullscreen",
   "autoMemoryEnabled": false,
@@ -148,6 +149,5 @@
       "disabled": true
     }
   },
-  "startupTipsEnabled": false,
-  "model": "sonnet"
+  "startupTipsEnabled": false
 }
