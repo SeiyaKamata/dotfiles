@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+# devws - Develop/<org>/repos/<repo> と Develop/<org>/worktrees/ws<N>/<repo> の
+# 2層ディレクトリ構成を扱う開発ワークスペース管理コマンド。
+#
+#   devws ws <N> <repo_name> [-o ORG]   worktrees/ws<N>/<repo_name> を作成し、
+#                                       claude.local.md / compose.local.md を symlink で持ち込む
+#
+# 前提: repos/<repo_name> が通常 clone 済みであること（対象repoが無ければ作成しない）。
+set -euo pipefail
+
+# --- 設定 ---
+ORG="SeiyaKamata"
+
+# --- 共通ヘルパー ---
+err() {
+  echo "devws: $*" >&2
+}
+
+develop_root() {
+  echo "$HOME/Develop/$ORG"
+}
+
+usage() {
+  cat <<EOF
+Usage: ${0##*/} ws <N> <repo_name> [-o ORG]
+
+Commands:
+  ws <N> <repo_name>   worktrees/ws<N>/<repo_name> に worktree を作成し、
+                        claude.local.md / compose.local.md を symlink で持ち込む
+
+Options:
+  -o ORG    対象 org（デフォルト ${ORG}）
+  -h        このヘルプ
+EOF
+}
+
+# --- ws: workspace（ws<N>）の作成 ---
+cmd_ws() {
+  local n="${1:-}" repo_name="${2:-}"
+  if [ -z "$n" ] || [ -z "$repo_name" ]; then
+    usage
+    exit 1
+  fi
+  shift 2
+
+  while getopts "o:h" opt; do
+    case "$opt" in
+      o) ORG="$OPTARG" ;;
+      h) usage; exit 0 ;;
+      *) usage; exit 1 ;;
+    esac
+  done
+  shift $((OPTIND - 1))
+
+  if [[ $# -ne 0 ]]; then
+    err "引数が不正です: 余分な引数があります: $*"
+    exit 1
+  fi
+  if [[ ! "$n" =~ ^[0-9]+$ ]]; then
+    err "引数が不正です: N は数値である必要があります: $n"
+    exit 1
+  fi
+  if [[ "$repo_name" == */* || "$repo_name" == "." || "$repo_name" == ".." ]]; then
+    err "引数が不正です: repo_name が不正です: $repo_name"
+    exit 1
+  fi
+  if [[ ! "$ORG" =~ ^[A-Za-z0-9][A-Za-z0-9-]*$ ]]; then
+    err "引数が不正です: ORG が不正です: $ORG"
+    exit 1
+  fi
+
+  local root repo_dir target
+  root=$(develop_root)
+  repo_dir="$root/repos/$repo_name"
+  target="$root/worktrees/ws${n}/$repo_name"
+
+  if [ ! -d "$repo_dir/.git" ]; then
+    err "対象repoが存在しません: $repo_dir"
+    exit 1
+  fi
+  if [ -e "$target" ]; then
+    err "既に存在します: $target"
+    exit 1
+  fi
+
+  mkdir -p "$root/worktrees/ws${n}"
+
+  # default ブランチの特定: リモートの HEAD が指す先を優先し、取れなければ
+  # repos/ 側の現在チェックアウト中のブランチにフォールバックする。
+  local default_branch
+  default_branch=$(git -C "$repo_dir" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null) || true
+  if [ -n "$default_branch" ]; then
+    default_branch="${default_branch#origin/}"
+  else
+    default_branch=$(git -C "$repo_dir" rev-parse --abbrev-ref HEAD)
+  fi
+
+  local branch="ws${n}"
+  if git -C "$repo_dir" show-ref --verify --quiet "refs/heads/${branch}"; then
+    git -C "$repo_dir" worktree add "$target" "$branch"
+  else
+    git -C "$repo_dir" worktree add -b "$branch" "$target" "$default_branch"
+  fi
+
+  # claude.local.md / compose.local.md は repos/ 側に置かれた個人設定を worktree
+  # へも持ち込むためのもの。相対 symlink にして Develop/<org>/ ごと持ち運んでも壊れない
+  # ようにする（worktrees/ws<N>/<repo>/ から見て3階層上が repos/<repo>/）。
+  local symlinked=()
+  local f
+  for f in claude.local.md compose.local.md; do
+    if [ -e "$repo_dir/$f" ]; then
+      ln -s "../../../repos/$repo_name/$f" "$target/$f"
+      symlinked+=("$f")
+    fi
+  done
+
+  echo "作成先: $target"
+  echo "ブランチ: $branch"
+  if [ "${#symlinked[@]}" -gt 0 ]; then
+    echo "symlink作成: ${symlinked[*]}"
+  else
+    echo "symlink作成: なし"
+  fi
+}
+
+main() {
+  local cmd="${1:-}"
+  case "$cmd" in
+    ws) shift ;;
+    -h|--help) usage; exit 0 ;;
+    "") usage; exit 1 ;;
+    *) err "不明なコマンド: $cmd"; usage; exit 1 ;;
+  esac
+
+  local runner="cmd_${cmd}"
+  "$runner" "$@"
+}
+
+main "$@"
