@@ -7,6 +7,8 @@ opt.cursorline = true
 opt.termguicolors = true
 opt.signcolumn = "yes"
 opt.wrap = false
+opt.sidescroll = 1 -- 右端で半画面ジャンプせず1文字ずつスクロールする
+opt.sidescrolloff = 8
 -- opt.winbar = "%=%f"
 opt.title = true
 opt.synmaxcol = 320 -- 長行のシンタックスハイライトを打ち切りパフォーマンス改善
