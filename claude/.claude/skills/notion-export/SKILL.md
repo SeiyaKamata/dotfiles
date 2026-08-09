@@ -10,7 +10,7 @@ argument-hint: "<feature>"
 ## 役割
 feature の実装結果を `.specs/<feature>/` の成果物と `gh` から集めて、**元の Notion タスクページの先頭に 1 セクションとして追記する**。
 
-**Notion に触れるのは `/notion-import`（入力）と `/notion-export`（出力）の 2 スキルだけ。** 他工程は Notion を知らず、`.specs/<feature>/` に成果物を残すだけでよい。
+**Notion に触れるのは `/notion-import`（入力）と `/notion-export`（出力）の 2 スキルだけ**（`CLAUDE.md`「Notion 連携」）。Notion へ書くのはここ 1 回で、入力は `.specs/<feature>/` の成果物から取る。
 
 **位置づけ**: 追記は**報告**であって仕様の正本ではない。正本は `.specs/<feature>/` と PR に残り、Notion には人が読む要約だけを載せる。**既存セクションの書き換え・削除はしない。**
 
@@ -21,7 +21,7 @@ feature の実装結果を `.specs/<feature>/` の成果物と `gh` から集め
   |---|---|
   | 書き戻し先 URL | `.specs/<feature>/seed.md` の frontmatter `notion_url`（**必須**） |
   | 実装方針 | `.specs/<feature>/requirements.md`・`design.md` |
-  | フェーズ構成・ブランチ | `.specs/<feature>/tasks.md` |
+  | PR 構成・ブランチ | `gh pr list`（実際に作られた PR） |
   | PR URL | `gh pr list`（tasks.md のブランチごと） |
   | QA 結果 | `.specs/<feature>/qa-report.md`（無ければ `qa.md`） |
 
@@ -35,11 +35,11 @@ feature の実装結果を `.specs/<feature>/` の成果物と `gh` から集め
 - 中身は `### 実装方針` / `### PR` / `### QA 結果` の 3 小見出し（この順）
 
 ## モード
-人が明示的に起動する（`/orchestrator` の自走パイプラインには組み込まない。`CLAUDE.md`「Notion 連携」参照）。
+人が明示的に起動する（`CLAUDE.md`「Notion 連携」参照）。
 
 追記内容を提示して `y/n` の承認を取ってから書き込む。
 
-> 承認を残すのは、**Notion が他の人が読む共有ページ**だから。他工程で廃した「聞かない」は自分の成果物の内容についての確認であって、外向きの発信の確認ではない。
+> 承認を残すのは、**Notion が他の人が読む共有ページ**だから。承認を取るのは外向きの発信についてで、自分の成果物の内容については確認しない。
 
 **承認を求める前に中断する条件**（勝手に書かない）:
 - `notion_url` が解決できず、ユーザーからも URL を得られない（＝どこに書けばよいか分からない）
@@ -62,9 +62,9 @@ feature の実装結果を `.specs/<feature>/` の成果物と `gh` から集め
 ### Step 3: 材料を集める
 「入出力」の表に沿って集める。
 
-- **PR**: `tasks.md` の各フェーズ見出しから `ブランチ: X（base: Y）` を拾い、ブランチごとに `gh pr list --head <branch> --state all --json number,title,url,isDraft` を引く。tasks.md が無い／ブランチが読めない場合は現在のブランチと `gh pr list --author @me` から補う
+- **PR**: `gh pr list --search "head:<feature>" --state all --json number,title,url,isDraft,headRefName` で feature の PR を列挙する（分割されていればフェーズブランチの PR が並ぶ）。0 件なら現在のブランチと `gh pr list --author @me` から補う
 - **QA 結果**: `qa-report.md` の判定（PASS / FAIL とシナリオ）。無ければ「未実施」
-- **実装方針**: `requirements.md` の概要と `design.md` の要点。フェーズ分割があれば tasks.md のフェーズ名
+- **実装方針**: `requirements.md` の概要と `design.md` の要点。PR が複数あれば各 PR のタイトル
 
 **欠けている材料は推測で埋めず**、その節に「未実施」「該当なし」と書く。PR が 1 本も見つからない場合も中断せず、その旨を節に書いて続行する（要確認にも載せて人が気づけるようにする）。
 
@@ -116,7 +116,7 @@ feature の実装結果を `.specs/<feature>/` の成果物と `gh` から集め
 ## <日付メンション> 実装報告: <feature>
 
 ### 実装方針
-<requirements の目的と design の要点を 5 行以内で。フェーズ分割があれば「PR1: … / PR2: …」の 1 行を添える>
+<requirements の目的と design の要点を 5 行以内で。PR が複数あれば「PR1: … / PR2: …」の 1 行を添える>
 
 ### PR
 - <PR タイトル>: <URL>

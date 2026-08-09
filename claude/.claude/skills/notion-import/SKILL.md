@@ -8,9 +8,9 @@ argument-hint: "<notion-url> [feature]"
 # Notion 取り込みスキル
 
 ## 役割
-Notion のタスクページを 1 回読み、パイプラインの入力 `.specs/<feature>/seed.md` を作る。この 1 ファイルが**機能要望**（`/spec` の入力）と**命名メタ**（frontmatter。`/tasks`・`/notion-export` が読む）を兼ねる。
+Notion のタスクページを 1 回読み、`.specs/<feature>/seed.md` を作る。この 1 ファイルが**機能要望**（`/spec` の入力）と**命名メタ**（frontmatter。`/tasks`・`/notion-export` が読む）を兼ねる。
 
-**Notion に触れるのは `/notion-import`（入力）と `/notion-export`（出力）の 2 スキルだけ。** 他工程は `.specs/<feature>/` のファイルしか読まない。これにより Notion 連携の有無・可否の分岐をパイプライン全体に広げない。
+**Notion に触れるのは `/notion-import`（入力）と `/notion-export`（出力）の 2 スキルだけ**（`CLAUDE.md`「Notion 連携」）。Notion を読むのはここ 1 回で、以降は `seed.md` だけが引き継がれる。
 
 **位置づけ**: seed.md は「機能要望」であって requirements.md ではない。Notion 本文に受け入れ条件や実装手順が書かれていても、ここでは EARS 要件化せず「何を・なぜ・どこまで」に絞る（詳細化は `/spec`、設計は `/design`、分割は `/tasks` の責務）。
 
@@ -19,7 +19,7 @@ Notion のタスクページを 1 回読み、パイプラインの入力 `.spec
 - **出力**: `.specs/<feature>/seed.md`
 
 ## モード
-人が明示的に起動する（`/orchestrator` の自走パイプラインには組み込まない。`CLAUDE.md`「Notion 連携」参照）。
+人が明示的に起動する（`CLAUDE.md`「Notion 連携」参照）。
 
 保存内容をユーザーに一度提示してから書き込む。ただし**要望の中身については質問しない**（不足は seed.md に「TODO: /spec で詳細化」と明記する）。対話するのは **Notion が読めないときの貼り付け依頼**だけ。
 

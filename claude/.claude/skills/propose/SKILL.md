@@ -2,7 +2,7 @@
 name: propose
 description: 各工程・PJからの改善提案の唯一の入口。skill / pipeline 改善の気づきを、規模に応じて kind: rule（一行のルールに落ちる）または kind: backlog（構成規模の改善）としてdotfilesの.specs/proposals/へ1件発行・記録する。再発判定はしない。
 argument-hint: "[target] [claim...]"
-allowed-tools: Bash(ls *), Read, Write, Glob
+allowed-tools: Bash(ls *), Bash(date *), Read, Write, Glob
 ---
 
 # 提案発行スキル
@@ -38,11 +38,17 @@ claim: <一行の主張。kind により意味が変わる>
 kind: rule | backlog
 date: <YYYY-MM-DD>
 source_feature: <発行元 feature 名。不明なら「不明」>
-status: open | applied | dropped
+status: open | applied | deferred | dropped
 ---
 
 <本文。kind により書くものが変わる>
 ```
+
+**status の語彙**（発行時は常に `open`。遷移させるのは `/proposals-sweep`）
+- **`open`**: 未判断
+- **`applied`**: 成果物に反映済み
+- **`deferred`**: 判断済みで、今は着手しない（`/proposals-sweep` のトリアージ対象から外れる。寿命管理の対象には残る）
+- **`dropped`**: 破棄
 
 **kind の語彙**
 - **`rule`**: 一行足せば次回以降防げるルール
@@ -86,7 +92,7 @@ status: open | applied | dropped
 
 **3-1 キューの解決**
 
-symlink からハードコードせず動的に解決する。**`readlink` `test` `date` `mkdir` は使わない** — ハーネスの allow リストにも組み込みの read-only コマンド群にも無く、毎回パーミッション判定に回って承認待ちの原因になるため。使ってよいのは `ls`（read-only 扱いで無条件に通る）と `Glob` / `Read` / `Write`。
+symlink からハードコードせず動的に解決する。**`readlink` `test` `mkdir` は使わない** — ハーネスの allow リストにも組み込みの read-only コマンド群にも無く、毎回パーミッション判定に回って承認待ちの原因になるため。使ってよいのは `ls` / `date` と `Glob` / `Read` / `Write`。
 
 1. `ls -ld ~/.claude/skills` を実行し、出力の `->` の右側から symlink 先を得る。相対パスなら `~/.claude/` 基準で解決する
 2. 得られたパスから末尾の `/claude/.claude/skills` を取り除いた部分が dotfiles ルート。そこに `/.specs/proposals` を付ける
@@ -97,11 +103,11 @@ symlink からハードコードせず動的に解決する。**`readlink` `test
 
 **3-2 ファイル名**
 
-命名規則: `<YYYYMMDD>-<target>-<claim-slug>.md`
+命名規則: `<YYYYMMDD>-<HHMMSS>-<target>-<claim-slug>.md`
 
-- 日付は**コンテキストに注入される今日の日付**を使う（`date` コマンドは使わない）。同日内の発行順は保持しないが、`date` frontmatter も `/proposals-sweep` の走査も日単位なので実害は無い
+- プレフィックスは `date +"%Y%m%d-%H%M%S"` で取得する。秒まで入れるのは、同一セッションで同じ target に複数発行しても衝突させないため（衝突しないので一覧による確認が要らなくなる）
 - `claim` を kebab-case 化し先頭数語を `claim-slug` とする
-- `Glob` でキュー内の `<YYYYMMDD>-<target>-*` を一覧し、同名があれば末尾に `-2` `-3` と連番を付ける
+- **同名衝突の確認はしない。** キューを `ls` / `Glob` で一覧しない — 既存提案のファイル名が視界に入ると、`/propose` が持たないはずの再発判定（`/proposals-sweep` の責務）に踏み込む誘因になる
 
 **3-3 Write**
 

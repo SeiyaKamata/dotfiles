@@ -40,7 +40,10 @@ detach = "prefix+d"
 
 # ===== space (workspace) = tmux の window 相当（主役）=====
 # tmux: bind n new-window → 新しい作業単位を作る
-new_workspace = "prefix+n"
+# 「作ってから cd する」のが面倒なので、主役の prefix+n は下の hspace ピッカー
+# （場所を選んでからその cwd で space を作る）に譲り、cwd をそのまま引き継ぐ
+# 素の新規作成は herdr 既定の prefix+shift+n に退避させる。
+new_workspace = "prefix+shift+n"
 # tmux 既定: bind 1..9 select-window（番号で作業単位を切り替え）
 switch_workspace = "prefix+1..9"
 # tmux 既定: bind p previous-window
@@ -120,4 +123,18 @@ key = "prefix+o"
 type = "popup"
 command = '''export PATH="$HOME/.nix-profile/bin:$HOME/.local/bin:$PATH"; export HP_LOG="$HOME/.cache/hp.log"; mkdir -p "$HOME/.cache"; hp pick; st=$?; [ $st -eq 0 ] || { printf '\n[hp exit %s] Enter で閉じます' "$st"; read -r _ < /dev/tty; }; sleep 0.5'''
 width = "60%"
+height = "60%"
+
+# ===== popup: space を「開く場所を選んでから」作る =====
+# prefix+n: hspace の fzf ピッカー。~/Develop/*/repos/<repo> と
+# ~/Develop/*/worktrees/<SLOT>/<repo> を zoxide の frecency 順に並べ、Enter で
+# その cwd の space を作って移動し、初期ペインで claude を起動する
+# （作ってから cd して claude を打つ手間をなくすのが目的）。
+# 一覧の ● は「すでにその場所で space が開いている」印。ESC で何もせず閉じる。
+# 素の新規作成（今の cwd を引き継ぐ）は prefix+shift+n（new_workspace）に退避済み。
+[[keys.command]]
+key = "prefix+n"
+type = "popup"
+command = '''export PATH="$HOME/.nix-profile/bin:$HOME/.local/bin:$PATH"; hspace; st=$?; [ $st -eq 0 ] || { printf '\n[hspace exit %s] Enter で閉じます' "$st"; read -r _ < /dev/tty; }'''
+width = "70%"
 height = "60%"
