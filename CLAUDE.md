@@ -13,6 +13,11 @@ symlink。**この repo を編集すると全プロジェクトの Claude Code �
 GitHub 側に「Changes must be made through a pull request」保護ルールが残っているが過去の名残で、
 bypass 権限で push は通る。このメッセージが出ても設定の食い違いとして警告しない（想定内）。
 
+## Slack 通知
+
+dotfiles の修正は Slack 投稿しなくていい。「工程完了の Slack 通知」ルール（lrm-corp/CLAUDE.md）は
+skill pipeline の完了カード向けで、dotfiles リポジトリ自体の直接編集には適用しない。
+
 ## worktree と Docker
 
 各アプリリポジトリは git worktree で複数ブランチを同時に作業する。Docker のマウント先が
