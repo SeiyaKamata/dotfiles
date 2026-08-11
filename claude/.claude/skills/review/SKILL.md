@@ -29,7 +29,7 @@ argument-hint: "<feature>"
 - `$ARGUMENTS[0]`(feature) が未指定なら「使い方: /review <feature>」を表示して終了
 
 ### Step 2: 対象確定とレビュー範囲の導出
-`/orchestrator`「対象確定（工程共通）」の手順 1〜3 に従い、feature・対象ブランチを確定する。`/review` は差分なくすべて実行する。
+`/orchestrator`「工程一覧」の `/review` の「対象確定」の手順 1〜3 に従い、feature・対象ブランチを確定する。`/review` は差分なくすべて実行する。
 
 確定したら、レビュー対象の差分を **git から導出**する：
 
@@ -93,7 +93,7 @@ OK / NG
 - 対応方針
 ```
 
-frontmatter の値の仕様は `/orchestrator`「対象確定（工程共通）」の「実行コンテキスト frontmatter」を参照する。
+frontmatter の値の仕様は `/orchestrator`「工程一覧」の `/test` の「実行コンテキスト frontmatter」（`/review` も同じ書式を使う）を参照する。
 
 ### Step 5: 出力
 

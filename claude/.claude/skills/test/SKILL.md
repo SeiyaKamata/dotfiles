@@ -33,7 +33,7 @@ argument-hint: "<feature>"
 - `$ARGUMENTS[0]`(feature) が未指定なら「使い方: /test <feature>」を表示して終了
 
 ### Step 2: 対象確定
-`/orchestrator`「対象確定（工程共通）」の手順 1〜3 に従い、feature・対象ブランチを確定する。`/test` は差分なくすべて実行する。
+`/orchestrator`「工程一覧」の `/test` の「対象確定」の手順 1〜3 に従い、feature・対象ブランチを確定する。`/test` は差分なくすべて実行する。
 
 保存先は `.specs/<feature>/test-report.md`（feature 単位の単一パス）。
 

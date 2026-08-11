@@ -20,7 +20,7 @@ argument-hint: "<feature>"
   - `.specs/<feature>/{requirements,design,tasks}.md`（「実装バグか設計の穴か」を判断する文脈）
 - **出力**: コード修正と、Step 2 で解決したパスへのテスト結果の反映（**それ以外のファイル成果物は持たない**）
 
-**コンテキストフリー**: 会話履歴に依存しない。コールドで `/fix <feature>` を叩いても動く。対象は常に実装ブランチ 1 本で、**フェーズを持たない**（`/orchestrator`「対象確定（工程共通）」の手順 1〜3 に、入力レポートの存在確認と stale 判定を加える）。
+**コンテキストフリー**: 会話履歴に依存しない。コールドで `/fix <feature>` を叩いても動く。対象は常に実装ブランチ 1 本で、**フェーズを持たない**（`/orchestrator`「工程一覧」の `/fix` の「対象確定」の手順 1〜3 に、入力レポートの存在確認と stale 判定を加える）。
 
 ## モード
 完了カードを出す。3 回試みても FAIL のとき、環境・依存の問題と診断したときはユーザーに報告して止まる。**設計が原因と診断した場合はコードを触らず、その旨を報告して止まる**（戻し先の起動は呼び出し元が行う）。
@@ -38,7 +38,7 @@ argument-hint: "<feature>"
 
 **2-2 stale 判定**
 
-読み込んだレポートの frontmatter（`branch` / `head` / `dirty`）をカレントブランチ・`git rev-parse HEAD` と照合する（判定表は `/orchestrator`「対象確定（工程共通）」の「stale 判定」）。frontmatter が無い旧形式のレポートも stale として扱う。stale と判定した事実と不一致のキーは出力に残す。
+読み込んだレポートの frontmatter（`branch` / `head` / `dirty`）をカレントブランチ・`git rev-parse HEAD` と照合する（判定表は `/orchestrator`「工程一覧」の `/test` の「stale 判定」を使う）。frontmatter が無い旧形式のレポートも stale として扱う。stale と判定した事実と不一致のキーは出力に残す。
 
 - `test-report` が stale → 根拠にせず、**自分でテストを実行して失敗を観測し直す**
 - `qa-report` が stale → **中断する**。復帰コマンドは `/qa <feature>`（`/fix` は Playwright を持たないため qa は再観測できない）

@@ -39,7 +39,7 @@ argument-hint: "<feature>"
 
 ### Step 2: 対象確定
 
-`/orchestrator`「対象確定（工程共通）」の手順 1〜3 を実施する（feature の確定・ブランチの確定・実行コンテキストの確定）。続けて `.specs/<feature>/qa.md` の存在を確認する。無ければ「入力 `.specs/<feature>/qa.md` がありません（`/tasks` が生成します）」として中断する。この時点では何も起動していないので停止は不要。
+`/orchestrator`「工程一覧」の `/qa` の「対象確定」の手順 1〜3 を実施する（feature の確定・ブランチの確定・実行コンテキストの確定）。続けて `.specs/<feature>/qa.md` の存在を確認する。無ければ「入力 `.specs/<feature>/qa.md` がありません（`/tasks` が生成します）」として中断する。この時点では何も起動していないので停止は不要。
 
 **完了ゲート:** feature を確定し、`qa.md` の存在を確認したか。
 
@@ -116,7 +116,7 @@ ran_at: 2026-07-28T22:45:00+0900
   - _Requirements: N_
 ```
 
-frontmatter の値の仕様は `/orchestrator`「対象確定（工程共通）」の「実行コンテキスト frontmatter」を参照する。
+frontmatter の値の仕様は `/orchestrator`「工程一覧」の `/test` の「実行コンテキスト frontmatter」（`/qa` も同じ書式を使う）を参照する。
 
 **完了ゲート:** `qa.md` のチェックボックスを更新し、`qa-report.md` を書き出したか。
 
