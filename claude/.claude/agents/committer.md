@@ -1,7 +1,7 @@
 ---
 name: committer
 description: Git コミットの専門エージェント。diff を分析して Inside-out の原則でコミットを分割し、そのままファイル単位にステージングしてコミットまで実行する。コミット、commit、変更をコミット、などのキーワードで呼び出す。
-model: opus
+model: sonnet
 effort: low
 tools: Bash, Read, Glob, Grep
 maxTurns: 60
