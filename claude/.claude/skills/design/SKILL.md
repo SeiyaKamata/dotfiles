@@ -153,7 +153,7 @@ argument-hint: "<feature>"
 クエリ側（`includes` / `select` / join）に残すと、宣言とコードが食い違う。
 
 ### Step 4: 書き出し
-Step 3 の内容を次のフォーマットで `.specs/<feature>/design.md` に書く。編集モードでは上書きする。ユーザー確認は取らない。
+Step 3 の内容を次のフォーマットで `.specs/<feature>/design.md` に書く。編集モードでは上書きする。
 
 ```markdown
 # 技術設計: [機能名]

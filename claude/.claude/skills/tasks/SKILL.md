@@ -149,7 +149,7 @@ qa.md に何を書くか。`qa.md` は `/qa` が `qa-browser`（Playwright）で
   - **マージ後にも検証できない** → qa.md 末尾の `## ローカル QA 対象外` に理由付きで箇条書きし、検証手段（手動確認 / CI / 別途）を1行添える。実時間の経過待ち・本番専用インフラ依存などが該当する
 
 ### Step 4: 書き出し
-Step 3 の内容を次のフォーマットで `.specs/<feature>/tasks.md` と `.specs/<feature>/qa.md` に書く。編集モードでは上書きする。ユーザー確認は取らない。
+Step 3 の内容を次のフォーマットで `.specs/<feature>/tasks.md` と `.specs/<feature>/qa.md` に書く。編集モードでは上書きする。
 
 **tasks.md**
 
