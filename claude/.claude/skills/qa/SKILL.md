@@ -16,7 +16,8 @@ argument-hint: "<feature>"
 **`/qa` は feature 全体のゲート**で、**フェーズ引数を取らない**。実装ブランチ 1 本の上で 1 回だけ回す。`/review` の後・`/commit` の前に走るので、**PR がまだ存在しない**。分割は `/sync-to-remote` が後で判定する。
 
 ## 入出力
-- **入力**: `.specs/<feature>/qa.md`（`/tasks` が生成した QA シナリオ）
+- **入力**: `.specs/<feature>/qa.md` の `## ローカルQAシナリオ`（`/tasks` が生成した QA シナリオ）。
+  `qa.md` にはデプロイ後でないと検証できない `## デプロイ環境QAシナリオ` も含まれるが、これはローカル環境では検証できないので `/qa` は読まない
 - **出力**:
   - `.specs/<feature>/qa.md`（チェックボックス更新）
   - `.specs/<feature>/qa-report.md` — `/fix` が読む失敗の内訳。毎回上書きする
@@ -78,9 +79,9 @@ swws status
 **完了ゲート:** 自分の worktree の環境に到達できたか。できなければ BLOCKED を確定し、起動フラグを控えたか。
 
 ### Step 4: シナリオ実行の委譲
-`.specs/<feature>/qa.md` を読み、`qa-browser` を Agent で起動する。**全シナリオを 1 回の委譲で**渡す（ブラウザセッション共有・メインのコンテキスト消費最小）。
+`.specs/<feature>/qa.md` の `## ローカルQAシナリオ` を読み、`qa-browser` を Agent で起動する。**全シナリオを 1 回の委譲で**渡す（ブラウザセッション共有・メインのコンテキスト消費最小）。`## デプロイ環境QAシナリオ` と `## ローカルQA対象外` は対象外（渡さない）。
 
-渡す入力: ベース URL / シナリオ配列（qa.md の該当ブロックそのまま）/ スクリーンショット保存先ディレクトリ（スクラッチパッド等の git 管理外）。
+渡す入力: ベース URL / シナリオ配列（`## ローカルQAシナリオ` のブロックそのまま）/ スクリーンショット保存先ディレクトリ（スクラッチパッド等の git 管理外）。
 
 `qa-browser` からは `S<n>: pass|fail` ＋原因 1 行＋スクショパスの配列だけを受領する。
 
@@ -88,7 +89,7 @@ swws status
 
 ### Step 5: 書き出し
 
-1. 結果配列で `.specs/<feature>/qa.md` のチェックボックスを更新する（pass → `[x]` / fail → `[ ]` のまま）
+1. 結果配列で `.specs/<feature>/qa.md` の `## ローカルQAシナリオ` のチェックボックスを更新する（pass → `[x]` / fail → `[ ]` のまま）
 2. `git branch --show-current` / `git rev-parse HEAD` / `git status --porcelain` で `branch` / `head` / `dirty` を確定し、`ran_at` を書き出し時点で記録する
 3. **最新の結果を `.specs/<feature>/qa-report.md` に必ず書き出す**。これが下流 `/fix` の入力源になり、失敗原因を会話に依存させない（`/test` の `test-report.md` と同じパターン）
 4. スクショは PR 添付用に保持し、保存先パスを qa-report.md に記録する
