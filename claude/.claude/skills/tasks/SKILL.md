@@ -285,4 +285,4 @@ Step 3 の内容を次のフォーマットで `.specs/<feature>/tasks.md` と `
 - 次の一手: 復帰コマンド。`- タスクを作り直す: /tasks <feature>` など。未完成のタスクのまま `/impl` へ進む道は出さない。
 
 ## 完了条件
-全要件をカバーするタスクが `.specs/<feature>/tasks.md` に、QA シナリオが `.specs/<feature>/qa.md` に書き出せたら完了。次工程の起動は完了条件に含めない。判断は呼び出し元に委ねる。
+全要件をカバーするタスクが `.specs/<feature>/tasks.md` に、QA シナリオが `.specs/<feature>/qa.md` に書き出せたら完了。

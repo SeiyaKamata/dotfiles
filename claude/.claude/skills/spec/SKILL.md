@@ -220,4 +220,3 @@ Step 3 の内容を次のフォーマットで `.specs/<feature>/requirements.md
 
 ## 完了条件
 in-scope の全項目が「受け入れ条件の書式」で `.specs/<feature>/requirements.md` に書き出せたら完了。
-次工程の起動は完了条件に含めない。判断は呼び出し元に委ねる。
