@@ -64,7 +64,7 @@ swws status
 | 何も起動していない | `/swws <profile>` で起動する | **立てる** |
 | 自分の worktree が起動中 | そのまま使う（触らない） | 立てない |
 | 別 worktree が起動中 | `/swws -loop <profile>` で空くのを待って切り替える | **立てる** |
-| `⚠️ 混在:`（複数 worktree が同居） | `/swws stop` で全停止してから `/swws <profile>` で起動し直す | **立てる** |
+| 混在（複数 worktree が同居） | `/swws stop` で全停止してから `/swws <profile>` で起動し直す | **立てる** |
 
 プロファイルは既定 `web`。別プロファイルが要るなら対象リポジトリの `CLAUDE.md` に従う。
 
