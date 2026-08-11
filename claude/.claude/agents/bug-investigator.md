@@ -2,7 +2,6 @@
 name: bug-investigator
 description: bug-report.md の症状を起点に、再現確認と原因の一次特定（疑わしい箇所の絞り込み）を行う。/bughunt スキルから呼ばれる調査専用エージェント。根本原因の確定診断とコード修正はしない（それは /fix か /hotfix）。
 tools: Read, Bash, Glob, Grep
-model: opus
 effort: high
 maxTurns: 30
 ---
