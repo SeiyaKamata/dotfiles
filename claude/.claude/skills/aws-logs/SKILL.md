@@ -210,8 +210,10 @@ aws logs get-log-events --log-group-name <group> --log-stream-name <stream> \
 
 ### Step 7: 出力
 
-次の完了カードを**コードフェンスで囲まず**プレーンテキストで出力して終了する。カードの前後に作業サマリ・所感・補足を足さない。
+次の完了カードを、コードフェンス自体は出さずに中身だけそのまま出力して終了する。
+カードの前後に作業サマリ・所感・補足を足さない。
 
+```markdown
 ### ログ調査完了
 <何を調べて何が分かったかを 1 行>
 - <主要な結果 最大 3 行>
@@ -224,6 +226,7 @@ aws logs get-log-events --log-group-name <group> --log-stream-name <stream> \
 ### 次の一手
 - 原因を特定する: `/bughunt \<feature\>`
 - 窓を変えて再調査: `/aws-logs \<feature\> [条件]`
+```
 
 カードは**やったこと**・**要確認**・**次の一手**の 3 ブロックに分ける。混ぜない。
 
