@@ -32,7 +32,9 @@ effort: low
 1. ベース URL に navigate する
 2. 各シナリオを **ID 昇順** で順に実行する:
    - `前提` の開始状態に遷移する
-   - `手順` を Playwright MCP（navigate / click / type / snapshot 等）で1手順ずつ実行する
+   - `手順` を Playwright MCP で1手順ずつ実行する。**用途でツールを使い分け、`snapshot`（フルの accessibility tree）は要素特定に他の手段では足りないときだけ呼ぶ**:
+     - 操作（navigate / click / type 等）: 対象要素の特定は `find` を優先する
+     - `期待` との照合: ピンポイントな確認は `evaluate` を優先する。DOM 構造ごと確認しないと判定できないときだけ `snapshot` を使う
    - `期待` と実際の状態を照合し、合否を判定する
    - シナリオ末に **必ずスクショを取得** し、保存先ディレクトリに `S<n>.png` で保存する
 3. ブラウザセッションは全シナリオで共有する（委譲は1回・セッションは1つ）
