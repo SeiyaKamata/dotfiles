@@ -149,20 +149,9 @@ gh pr list --search "head:<feature>" --state all \
 
 **完了カードは読み捨てない。** 「要確認」に載る「判断で埋めた点」は、成果物本文には注記が残らないのでカードにしか現れない。これを spec / design / tasks の妥当性検証で `stage-reviewer` へのプロンプトに含める。orchestrator は各工程のカードを受け取ったら、遷移先を 1 行で記録しつつ「要確認」の内容は次のレビューまで保持する。
 
-### `/spec`
+### 共通: 妥当性検証ループ（spec / design / tasks）
 
-- 起動: `/spec <feature>`
-- 前提成果物: なし
-- 開始 Step: Step 2
-- 対象フェーズ: 不要
-
-**妥当性検証**: `/spec` の完了後、orchestrator が `stage-reviewer` を起動して `requirements.md` を検証し、NG なら `/spec` を再起動して直させる（最大 2 巡）。
-
-`stage-reviewer` に渡すもの（受け取り側の仕様は `agents/stage-reviewer.md`）:
-- 上流成果物: 起動時の要望テキスト + `seed.md`（あれば）
-- レビュー対象: `requirements.md`
-- 検証条件リスト: `spec/SKILL.md`「書き出し」Step の「書き出しの時点で次を満たす」をそのまま全項目
-- 参照ドキュメント: なし
+`/spec` `/design` `/tasks` は完了後、orchestrator が `stage-reviewer` を起動して成果物を検証し、NG ならその工程を再起動して直させる（最大 2 巡）。`stage-reviewer` に渡すもの（上流成果物・レビュー対象・検証条件リスト・参照ドキュメント）は各工程の見出しに書く。受け取り側の仕様は `agents/stage-reviewer.md`。
 
 ループ（最大 2 巡）:
 ```
@@ -174,12 +163,25 @@ loop:
         確定 → 次工程へ
     if review_round == 2:
         人に報告して停止（成果物は未確定。次工程へ進めない）
-    /spec を再起動し、指摘を変更要望として渡す → loop
+    対象工程を再起動し、指摘を変更要望として渡す → loop
 ```
-- 再起動は編集モードになる（成果物が既にあるため）。指摘は起動時の変更要望として渡し、`/spec` は白紙に戻さず**指摘箇所だけを直す**
+- 再起動は編集モードになる（成果物が既にあるため）。指摘は起動時の変更要望として渡し、対象工程は白紙に戻さず**指摘箇所だけを直す**
 - 2 巡目のレビューには前巡の指摘も渡す（反映されたかを見させるため。`review_round` も渡す）
 - **「判断できなかった点」は OK 扱いしない。** 1 巡目なら渡した材料から補える範囲を補って再レビューし、2 巡目でも残るなら停止する
 - レビューは 1 体で観点 A（上流突合）と観点 B（検証条件リスト）の両方を見る。**観点を分けて複数体を並列起動しない**
+
+### `/spec`
+
+- 起動: `/spec <feature>`
+- 前提成果物: なし
+- 開始 Step: Step 2
+- 対象フェーズ: 不要
+
+**妥当性検証**: 「共通: 妥当性検証ループ」に従う。`stage-reviewer` に渡すもの:
+- 上流成果物: 起動時の要望テキスト + `seed.md`（あれば）
+- レビュー対象: `requirements.md`
+- 検証条件リスト: `spec/SKILL.md`「書き出し」Step の「書き出しの時点で次を満たす」をそのまま全項目
+- 参照ドキュメント: なし
 
 **完了後**:
 - OK → `.specs/<feature>/requirements.md` を確定成果物として `/design` へ、承認を待たず次へ
@@ -192,30 +194,11 @@ loop:
 - 開始 Step: Step 3
 - 対象フェーズ: 不要
 
-**妥当性検証**: `/design` の完了後、orchestrator が `stage-reviewer` を起動して `design.md` を検証し、NG なら `/design` を再起動して直させる（最大 2 巡）。
-
-`stage-reviewer` に渡すもの（受け取り側の仕様は `agents/stage-reviewer.md`）:
+**妥当性検証**: 「共通: 妥当性検証ループ」に従う。`stage-reviewer` に渡すもの:
 - 上流成果物: `requirements.md`
 - レビュー対象: `design.md`
 - 検証条件リスト: `design/SKILL.md`「書き出し」Step の「書き出しの時点で次を満たす」をそのまま全項目
 - 参照ドキュメント: なし
-
-ループ（最大 2 巡）:
-```
-review_round = 0
-loop:
-    review_round += 1
-    stage-reviewer を起動 → 判定と指摘を受け取る
-    if 判定 == OK:
-        確定 → 次工程へ
-    if review_round == 2:
-        人に報告して停止（成果物は未確定。次工程へ進めない）
-    /design を再起動し、指摘を変更要望として渡す → loop
-```
-- 再起動は編集モードになる（成果物が既にあるため）。指摘は起動時の変更要望として渡し、`/design` は白紙に戻さず**指摘箇所だけを直す**
-- 2 巡目のレビューには前巡の指摘も渡す（反映されたかを見させるため。`review_round` も渡す）
-- **「判断できなかった点」は OK 扱いしない。** 1 巡目なら渡した材料から補える範囲を補って再レビューし、2 巡目でも残るなら停止する
-- レビューは 1 体で観点 A（上流突合）と観点 B（検証条件リスト）の両方を見る。**観点を分けて複数体を並列起動しない**
 
 **完了後**:
 - OK → `.specs/<feature>/design.md` を確定成果物として `/tasks` へ、承認を待たず次へ
@@ -228,30 +211,11 @@ loop:
 - 開始 Step: Step 4
 - 対象フェーズ: 不要
 
-**妥当性検証**: `/tasks` の完了後、orchestrator が `stage-reviewer` を起動して `tasks.md` + `qa.md` を検証し、NG なら `/tasks` を再起動して直させる（最大 2 巡）。
-
-`stage-reviewer` に渡すもの（受け取り側の仕様は `agents/stage-reviewer.md`）:
+**妥当性検証**: 「共通: 妥当性検証ループ」に従う。`stage-reviewer` に渡すもの:
 - 上流成果物: `design.md`
 - レビュー対象: `tasks.md` + `qa.md`
 - 検証条件リスト: `tasks/SKILL.md`「書き出し」Step の「書き出しの時点で次を満たす」をそのまま全項目
 - 参照ドキュメント: `tasks/SKILL.md`「大タスク = 関心のグルーピング（PR 単位ではない）」
-
-ループ（最大 2 巡）:
-```
-review_round = 0
-loop:
-    review_round += 1
-    stage-reviewer を起動 → 判定と指摘を受け取る
-    if 判定 == OK:
-        確定 → 次工程へ
-    if review_round == 2:
-        人に報告して停止（成果物は未確定。次工程へ進めない）
-    /tasks を再起動し、指摘を変更要望として渡す → loop
-```
-- 再起動は編集モードになる（成果物が既にあるため）。指摘は起動時の変更要望として渡し、`/tasks` は白紙に戻さず**指摘箇所だけを直す**
-- 2 巡目のレビューには前巡の指摘も渡す（反映されたかを見させるため。`review_round` も渡す）
-- **「判断できなかった点」は OK 扱いしない。** 1 巡目なら渡した材料から補える範囲を補って再レビューし、2 巡目でも残るなら停止する
-- レビューは 1 体で観点 A（上流突合）と観点 B（検証条件リスト）の両方を見る。**観点を分けて複数体を並列起動しない**
 
 **完了後**:
 - OK → `.specs/<feature>/tasks.md` と `qa.md` を確定成果物として `/impl` へ、承認を待たず次へ
@@ -268,14 +232,9 @@ loop:
 
 **完了後**: → `/test` へ
 
-### `/test`
+### 共通: 対象確定（test / review / qa / fix）
 
-- 起動: `/test <feature>`
-- 前提成果物: + `tasks.md`
-- 開始 Step: Step 6
-- 対象フェーズ: 不要（フェーズを持たない。実装ブランチ 1 本の上で動く）
-
-**対象確定**: 会話履歴に依存せず単体でコールド起動しても同じ対象に到達できるよう、起動時に対象 feature と実行コンテキストを自力で確定する。`/test` は差分なく次の手順をそのまま実行する。
+`/test` `/review` `/qa` `/fix` は会話履歴に依存せず単体でコールド起動しても同じ対象に到達できるよう、起動時に対象 feature と実行コンテキストを自力で確定する。差分なく次の手順をそのまま実行する。
 
 1. feature の確定 — 第 1 引数。未指定なら使い方を表示して終了する。
 2. ブランチの確定 — `git branch --show-current` をそのまま採用する。
@@ -285,7 +244,7 @@ loop:
    - フェーズブランチ `<feature>-pN` にいる場合も続行する（PR ループ中に `/fix` などを呼ぶケース）。比較対象はデフォルトブランチのまま
 3. 実行コンテキストの確定 — `feature` / `branch` / `head`（`git rev-parse HEAD`） / `dirty`（`git status --porcelain` が空でなければ `true`）を確定し、以降の入力導出とレポート出力をこの確定値に基づいて行う。
 
-実行コンテキスト frontmatter（`test-report` 共通）:
+実行コンテキスト frontmatter（`test-report` / `review` / `qa-report` 共通）:
 ```yaml
 ---
 feature: stage-context-free
@@ -302,11 +261,9 @@ git rev-parse HEAD                              # head
 [ -n "$(git status --porcelain)" ] && echo true # dirty
 date +"%Y-%m-%dT%H:%M:%S%z"                     # ran_at
 ```
-`phase` キーは持たない（`/test` はフェーズを持たず実装ブランチ 1 本の上で 1 回ずつ回るため。対象の同一性は `branch` と `head` で判定できる）。
+`phase` キーは持たない（これらの工程はフェーズを持たず実装ブランチ 1 本の上で 1 回ずつ回るため。対象の同一性は `branch` と `head` で判定できる）。
 
-保存先: `.specs/<feature>/test-report.md`（feature 単位の単一パス。フェーズ別サフィックスは付けない）。対象を確定するのは `/test`（親）であり、`test-runner` サブエージェントは対象を推定・判定せず、親が渡した確定値をそのまま frontmatter に書き写す（`ran_at` だけは書き出し時点でサブエージェント自身が記録する）。
-
-stale 判定（`test-report.md` を読み込むときに現在値と照合する）:
+stale 判定（保存済みレポートを読み込むときに現在値と照合する。工程ごとの保存先は各見出し参照）:
 
 | 条件 | 判定 |
 |---|---|
@@ -314,6 +271,17 @@ stale 判定（`test-report.md` を読み込むときに現在値と照合する
 | `head` が `git rev-parse HEAD` と不一致 | stale |
 | `dirty: true` | stale（実行時の作業ツリーが再現できないため、`head` 一致でも stale） |
 | frontmatter が無い（旧形式のレポート） | stale（照合材料が無い） |
+
+### `/test`
+
+- 起動: `/test <feature>`
+- 前提成果物: + `tasks.md`
+- 開始 Step: Step 6
+- 対象フェーズ: 不要（フェーズを持たない。実装ブランチ 1 本の上で動く）
+
+**対象確定**: 「共通: 対象確定」に従う。
+
+保存先: `.specs/<feature>/test-report.md`（feature 単位の単一パス。フェーズ別サフィックスは付けない）。対象を確定するのは `/test`（親）であり、`test-runner` サブエージェントは対象を推定・判定せず、親が渡した確定値をそのまま frontmatter に書き写す（`ran_at` だけは書き出し時点でサブエージェント自身が記録する）。
 
 **完了後**:
 - PASS → `/review` へ
@@ -326,45 +294,9 @@ stale 判定（`test-report.md` を読み込むときに現在値と照合する
 - 開始 Step: Step 7
 - 対象フェーズ: 不要（フェーズを持たない。実装ブランチ 1 本の上で動く）
 
-**対象確定**: 会話履歴に依存せず単体でコールド起動しても同じ対象に到達できるよう、起動時に対象 feature と実行コンテキストを自力で確定する。`/review` は差分なく次の手順をそのまま実行する。
-
-1. feature の確定 — 第 1 引数。未指定なら使い方を表示して終了する。
-2. ブランチの確定 — `git branch --show-current` をそのまま採用する。
-   - 実装ブランチ `<feature>` にいる → 想定どおり
-   - デフォルトブランチにいる（PR を作らない運用で直接コミットしている）→ そのまま続行する
-   - detached HEAD → `branch: none` として続行する（レポートは書けるが stale 判定の材料が減る）
-   - フェーズブランチ `<feature>-pN` にいる場合も続行する（PR ループ中に `/fix` などを呼ぶケース）。比較対象はデフォルトブランチのまま
-3. 実行コンテキストの確定 — `feature` / `branch` / `head`（`git rev-parse HEAD`） / `dirty`（`git status --porcelain` が空でなければ `true`）を確定し、以降の入力導出とレポート出力をこの確定値に基づいて行う。
-
-実行コンテキスト frontmatter（`review` 共通）:
-```yaml
----
-feature: stage-context-free
-branch: stage-context-free             # detached・照合不可時は none
-head: 4f8c1e9b2a...                    # git rev-parse HEAD（40文字。短縮しない）
-dirty: true                            # 実行時に未コミット変更があったか
-ran_at: 2026-07-28T22:45:00+0900       # レポートを書き出した時刻
----
-```
-収集コマンド（macOS の BSD `date` は `-Iseconds` 非対応なのでフォーマット指定を使う）:
-```bash
-git branch --show-current                       # branch
-git rev-parse HEAD                              # head
-[ -n "$(git status --porcelain)" ] && echo true # dirty
-date +"%Y-%m-%dT%H:%M:%S%z"                     # ran_at
-```
-`phase` キーは持たない（`/review` はフェーズを持たず実装ブランチ 1 本の上で 1 回ずつ回るため。対象の同一性は `branch` と `head` で判定できる）。
+**対象確定**: 「共通: 対象確定」に従う。
 
 保存先: `.specs/<feature>/review.md`（feature 単位の単一パス。フェーズ別サフィックスは付けない）。
-
-stale 判定（`review.md` を読み込むときに現在値と照合する）:
-
-| 条件 | 判定 |
-|---|---|
-| `branch` が現在のブランチと不一致 | stale |
-| `head` が `git rev-parse HEAD` と不一致 | stale |
-| `dirty: true` | stale（実行時の作業ツリーが再現できないため、`head` 一致でも stale） |
-| frontmatter が無い（旧形式のレポート） | stale（照合材料が無い） |
 
 **完了後**:
 - NG かつ「設計の根本的な問題」が含まれる → `/design` に戻す
@@ -378,46 +310,9 @@ stale 判定（`review.md` を読み込むときに現在値と照合する）:
 - 開始 Step: Step 8
 - 対象フェーズ: 不要（フェーズを持たない。実装ブランチ 1 本の上で動く）
 
-**対象確定**: 会話履歴に依存せず単体でコールド起動しても同じ対象に到達できるよう、起動時に対象 feature と実行コンテキストを自力で確定する。`/qa` は次の手順 1〜3 を実施したうえで、`.specs/<feature>/qa.md` の存在確認を加える（無ければ中断する）。
-
-1. feature の確定 — 第 1 引数。未指定なら使い方を表示して終了する。
-2. ブランチの確定 — `git branch --show-current` をそのまま採用する。
-   - 実装ブランチ `<feature>` にいる → 想定どおり
-   - デフォルトブランチにいる（PR を作らない運用で直接コミットしている）→ そのまま続行する
-   - detached HEAD → `branch: none` として続行する（レポートは書けるが stale 判定の材料が減る）
-   - フェーズブランチ `<feature>-pN` にいる場合も続行する（PR ループ中に `/fix` などを呼ぶケース）。比較対象はデフォルトブランチのまま
-3. 実行コンテキストの確定 — `feature` / `branch` / `head`（`git rev-parse HEAD`） / `dirty`（`git status --porcelain` が空でなければ `true`）を確定し、以降の入力導出とレポート出力をこの確定値に基づいて行う。
-4. `.specs/<feature>/qa.md` の存在確認 — 無ければ「入力 `.specs/<feature>/qa.md` がありません（`/tasks` が生成します）」として中断する。この時点では何も起動していないので停止は不要。
-
-実行コンテキスト frontmatter（`qa-report` 共通）:
-```yaml
----
-feature: stage-context-free
-branch: stage-context-free             # detached・照合不可時は none
-head: 4f8c1e9b2a...                    # git rev-parse HEAD（40文字。短縮しない）
-dirty: true                            # 実行時に未コミット変更があったか
-ran_at: 2026-07-28T22:45:00+0900       # レポートを書き出した時刻
----
-```
-収集コマンド（macOS の BSD `date` は `-Iseconds` 非対応なのでフォーマット指定を使う）:
-```bash
-git branch --show-current                       # branch
-git rev-parse HEAD                              # head
-[ -n "$(git status --porcelain)" ] && echo true # dirty
-date +"%Y-%m-%dT%H:%M:%S%z"                     # ran_at
-```
-`phase` キーは持たない（`/qa` はフェーズを持たず実装ブランチ 1 本の上で 1 回ずつ回るため。対象の同一性は `branch` と `head` で判定できる）。
+**対象確定**: 「共通: 対象確定」の手順 1〜3 に加えて、`.specs/<feature>/qa.md` の存在確認を行う（無ければ「入力 `.specs/<feature>/qa.md` がありません（`/tasks` が生成します）」として中断する。この時点では何も起動していないので停止は不要）。
 
 保存先: `.specs/<feature>/qa-report.md`（feature 単位の固定パス。フェーズ別サフィックスは付けない）。
-
-stale 判定（`qa-report.md` を読み込むときに現在値と照合する）:
-
-| 条件 | 判定 |
-|---|---|
-| `branch` が現在のブランチと不一致 | stale |
-| `head` が `git rev-parse HEAD` と不一致 | stale |
-| `dirty: true` | stale（実行時の作業ツリーが再現できないため、`head` 一致でも stale） |
-| frontmatter が無い（旧形式のレポート） | stale（照合材料が無い） |
 
 **qa は commit より前にある。** 実装が 1 ブランチで完結するので、PR を作る前に feature 全体の受け入れを確認できる。これにより qa FAIL 時の rebase 伝播が発生しない（まだ PR が無く、実装ブランチ 1 本の上で直せる）。
 
@@ -432,26 +327,9 @@ stale 判定（`qa-report.md` を読み込むときに現在値と照合する�
 - 起動されるタイミング: `/test` FAIL または `/qa` fail のとき、呼び出し元から `/fix <feature>` で起動される
 - 対象フェーズ: 不要（フェーズを持たない。実装ブランチ 1 本の上で動く）
 
-**対象確定**: 会話履歴に依存せず単体でコールド起動しても同じ対象に到達できるよう、起動時に対象 feature と実行コンテキストを自力で確定する。`/fix` は次の手順 1〜3 を実施したうえで、入力レポート（`test-report.md` / `qa-report.md`）の存在確認と stale 判定を加える。
+**対象確定**: 「共通: 対象確定」の手順 1〜3 に加えて、入力レポート（`test-report.md` / `qa-report.md`）の存在確認と stale 判定を行う。
 
-1. feature の確定 — 第 1 引数。未指定なら使い方を表示して終了する。
-2. ブランチの確定 — `git branch --show-current` をそのまま採用する。
-   - 実装ブランチ `<feature>` にいる → 想定どおり
-   - デフォルトブランチにいる（PR を作らない運用で直接コミットしている）→ そのまま続行する
-   - detached HEAD → `branch: none` として続行する（レポートは書けるが stale 判定の材料が減る）
-   - フェーズブランチ `<feature>-pN` にいる場合も続行する（PR ループ中に呼ばれるケース）。比較対象はデフォルトブランチのまま
-3. 実行コンテキストの確定 — `feature` / `branch` / `head`（`git rev-parse HEAD`） / `dirty`（`git status --porcelain` が空でなければ `true`）を確定する。
-
-入力レポートのパスは `test-report` が `.specs/<feature>/test-report.md`、`qa-report` が `.specs/<feature>/qa-report.md`（どちらも feature 単位の固定パス）。
-
-stale 判定（読み込んだレポートの frontmatter を現在値と照合する）:
-
-| 条件 | 判定 |
-|---|---|
-| `branch` が現在のブランチと不一致 | stale |
-| `head` が `git rev-parse HEAD` と不一致 | stale |
-| `dirty: true` | stale（実行時の作業ツリーが再現できないため、`head` 一致でも stale） |
-| frontmatter が無い（旧形式のレポート） | stale（照合材料が無い） |
+入力レポートのパスは `test-report` が `.specs/<feature>/test-report.md`、`qa-report` が `.specs/<feature>/qa-report.md`（どちらも feature 単位の固定パス）。stale 判定は「共通: 対象確定」の表を、読み込んだレポートの frontmatter と現在値の照合に使う。
 
 `test-report` が stale → 根拠にせず、自分でテストを実行して失敗を観測し直す。`qa-report` が stale → 中断する（`/fix` は Playwright を持たないため qa は再観測できない。復帰コマンドは `/qa <feature>`）。stale と判定した事実と不一致のキーは出力に残す。
 
@@ -492,14 +370,9 @@ stale 判定（読み込んだレポートの frontmatter を現在値と照合�
 
 **完了後**: PR 作成 → `/watch-ci` へ
 
-### `/watch-ci`
+### 共通: 対象確定（フェーズ）（watch-ci / resolve-comments）
 
-- 起動: `/watch-ci <PR番号>`（feature ではなく解決した PR 番号を渡す）
-- 前提成果物: + 対象 PR
-- 開始 Step: Step 10-2
-- 対象フェーズ: 必要
-
-**対象確定（フェーズ）**: `/watch-ci` `/resolve-comments` は PR 単位なので、対象 PR（＝フェーズ）を確定する必要がある。
+`/watch-ci` `/resolve-comments` は PR 単位なので、対象 PR（＝フェーズ）を確定する必要がある。
 
 1. フェーズ指定の検証（`pN` が渡されているとき）
    - `p` + 数字の形式でない → 形式不正として中断
@@ -513,6 +386,15 @@ stale 判定（読み込んだレポートの frontmatter を現在値と照合�
 **フェーズ構成を `tasks.md` から読まない。** 実在するフェーズブランチと PR だけが材料（tasks.md はフェーズを持たない）。
 
 `/orchestrator` 経由で呼ばれるときはこの推定・照合は発火しない（理由は「開始工程からの起動」の「orchestrator 経由では推定と照合が発火しない理由」参照）。
+
+### `/watch-ci`
+
+- 起動: `/watch-ci <PR番号>`（feature ではなく解決した PR 番号を渡す）
+- 前提成果物: + 対象 PR
+- 開始 Step: Step 10-2
+- 対象フェーズ: 必要
+
+**対象確定（フェーズ）**: 「共通: 対象確定（フェーズ）」に従う。
 
 **実行**: この周で作った PR の CI green を待つ。CI green でも draft のまま次へ（Ready 化は停止点で人が判断する）。
 
@@ -527,20 +409,7 @@ stale 判定（読み込んだレポートの frontmatter を現在値と照合�
 - 開始 Step: Step 10-3
 - 対象フェーズ: 必要
 
-**対象確定（フェーズ）**: `/watch-ci` `/resolve-comments` は PR 単位なので、対象 PR（＝フェーズ）を確定する必要がある。
-
-1. フェーズ指定の検証（`pN` が渡されているとき）
-   - `p` + 数字の形式でない → 形式不正として中断
-   - 対応するフェーズブランチが存在しない → 範囲外として中断
-2. フェーズの推定（`pN` が渡されていないとき） — 「対象フェーズの推定」の `/watch-ci` `/resolve-comments` 行のルールを使う（PR が存在し「CI green かつ未返信の未解決コメントなし」を満たさない最小フェーズ。該当なしなら PR が存在する最大フェーズ）
-   - 推定結果と根拠を提示して `y/n` を取る
-   - `n` → `pN` を明示した再実行を促して終了
-   - 一つに絞れない → 判断に使った状態を示して中断
-3. ブランチ照合 — `git branch --show-current` と対象フェーズのブランチを比較する。一致しなければ中断する。
-
-**フェーズ構成を `tasks.md` から読まない。** 実在するフェーズブランチと PR だけが材料（tasks.md はフェーズを持たない）。
-
-`/orchestrator` 経由で呼ばれるときはこの推定・照合は発火しない（理由は「開始工程からの起動」の「orchestrator 経由では推定と照合が発火しない理由」参照）。
+**対象確定（フェーズ）**: 「共通: 対象確定（フェーズ）」に従う。
 
 `/resolve-comments` は処理方式に選択肢がある（1 件ずつ確認 / 全件を自己確定）。自走では止まれないので `batch` を付けて起動する。
 
