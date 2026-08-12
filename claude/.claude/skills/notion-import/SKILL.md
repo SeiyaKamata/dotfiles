@@ -99,14 +99,11 @@ Notion に書かれていた対象範囲や既知の手がかり（参考情報�
 | `pr_title` | `[SEC-16005] ATM Auth0移行` | `/sync-to-remote` が PR タイトルを組む素材 |
 | `branch_name` | `feature/SEC-16005/atm-auth0-migration` | 記録のみ・ブランチ作成には使わない |
 
-書き出しの時点で次を満たす：
+**完了ゲート:** 次を満たして seed.md を Write したか。
 - frontmatter が揃っている（Notion に無かった項目は空でよい）
 - 本文が Notion の要点を落とさず**要約**になっている（長文の丸写しをしない）
-- **受け入れ条件・実装手順・EARS 要件が混入していない**
-- 判断できない箇所に「TODO: /spec で詳細化」が明記されている
-- `requirements.md` を生成していない
-
-**完了ゲート:** seed.md を Write したか。
+- 「位置づけ」（EARS 要件化しない・`requirements.md` を生成しない）
+- テンプレートどおり、判断できない箇所に「TODO: /spec で詳細化」が明記されている
 
 ### Step 5: 出力
 

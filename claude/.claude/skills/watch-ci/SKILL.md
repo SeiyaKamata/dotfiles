@@ -77,7 +77,7 @@ gh pr view <PR番号> --json reviewThreads --jq '.reviewThreads[] | select(.isRe
 ```
 
 - **未解決あり** → 件数と概要を押さえ、`/resolve-comments` を次の一手に出す（切り替えは行わない）
-- **未解決なし** → **draft のまま完了とする**。切り替えは行わず、完了カードの次の一手に `- Ready for review にする: gh pr ready <PR番号>` を出す
+- **未解決なし** → 「モード」の通り draft のまま完了とし、完了カードの次の一手に `- Ready for review にする: gh pr ready <PR番号>` を出す
   ```
   gh pr view <PR番号> --json isDraft --jq '.isDraft'   # draft か確認（案内文に含めるため）
   ```

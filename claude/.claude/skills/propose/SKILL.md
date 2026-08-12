@@ -84,7 +84,7 @@ status: open | applied | deferred | dropped
 - `target`: スキル名・`CLAUDE.md`・`pipeline` のいずれか。引数または文脈から確定する
 - `claim`: 「claim の書き分け」に沿って `kind` に応じた粒度で書く
 
-**`claim` を一行で書けないときは発行しない。この敷居は `kind: rule` にのみ適用**し、`kind: backlog` には適用しない（backlog は主題の一行要約で足りるため）。
+「claim の書き分け」の敷居（`claim` を一行で書けないときは発行しない。`kind: rule` にのみ適用）に従う。
 
 **完了ゲート:** `target`・`claim`・`kind` の 3 つが揃ったか（**1 つでも欠けていたら Write しない**）。
 
