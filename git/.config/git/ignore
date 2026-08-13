@@ -1,8 +1,24 @@
-**/.claude/settings.local.json
+# Dev
 .specs
+.playwright-mcp/
 .envrc
+**/.claude/settings.local.json
+
+# Python
 __pycache__/
 *.pyc
 
+# Mac
+.DS_Store
 
-.playwright-mcp/
+# Nix
+result
+result-*
+
+# secret
+zsh/.zshenv.local
+
+# herdr runtime files
+herdr/.config/herdr/*.log
+herdr/.config/herdr/session.json
+herdr/.config/herdr/release-notes.json
