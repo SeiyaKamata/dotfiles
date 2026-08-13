@@ -1,36 +1,102 @@
 # Homebrew Brewfile
-# nixpkgsに移行しないパッケージのみを管理する。
-# bat, eza, fd, fzf, jq, git, neovim, tmux, starship 等の
-# nixpkgsで入手可能なパッケージはHome Managerで管理するため、ここには含めない。
+# macOS のパッケージ管理はすべて Homebrew に一元化する（旧 Nix 分を含む）。
 
 # ─── Taps ──────────────────────────────────────────────────────────────────
 
-# Infisical公式tap（nixpkgsに存在しないため）
+# Infisical公式tap（homebrew-coreに存在しないため）
 tap "infisical/get-cli"
 
-# im-select公式tap（nixpkgsに存在しないため）
+# im-select公式tap（homebrew-coreに存在しないため）
 tap "daipeihust/tap"
+
+# HashiCorp公式tap（terraformはライセンス変更でhomebrew-coreから削除されたため）
+tap "hashicorp/tap"
 
 # ─── Brews ─────────────────────────────────────────────────────────────────
 
+# CLI
+brew "tree-sitter"
+brew "bat"
+brew "bottom"
+brew "eza"
+brew "fd"
+brew "fzf"
+brew "jq"
+brew "procs"
+brew "stow"
+brew "make"
+brew "unzip"
+brew "duf"
+
+# Docker（Docker Desktopではなくcolimaをruntimeとして使うためCLIのみ）
+brew "docker"
+brew "docker-compose"
+brew "docker-buildx"
+
+# AWS
+brew "awscli"
+# awslogs はHomebrew未提供（pip製）。`pipx install awslogs` で導入する。
+
+# ファイル処理
+brew "imagemagick"
+brew "nkf"
+brew "fswatch"
+# flock はHomebrewでの提供有無を要確認（macOS標準にはflock(1)が無い）。
+
+# 言語ランタイム
+brew "node"
+brew "uv"
+brew "go"
+brew "gcc"
+
+# インフラ
+brew "hashicorp/tap/terraform"
+
+# データベース
+brew "mycli"
+
+# Go ツール
+brew "golangci-lint"
+
+# TUI
+brew "yazi"
+
+# 検索・差分
+brew "ripgrep"
+brew "git-delta"
+
+# Git
+brew "git"
+brew "gh"
+
+# shell
+brew "sheldon"
+brew "starship"
+brew "zoxide"
+brew "direnv"
+
+# Editor
+brew "neovim"
+
 # colima: Mac・Linux両環境でのDocker runtime安定性のため
-# nixpkgsのcolimaはLinux非対応・動作が不安定なケースがある
 brew "colima"
 
 # pyenv: プロジェクトごとのPythonバージョン管理のため
-# nixpkgsのpyenvはpython buildの互換性問題が発生するケースがある
 brew "pyenv"
 
 # rbenv-gemset: プロジェクトごとのgemセット管理のため
-# nixpkgsに存在しない
 brew "rbenv-gemset"
 
-# aws-sam-cli: nixpkgsのバージョンが古くAWSの最新機能に追随できないため
+# aws-sam-cli: 最新のAWS機能に追随するため
 brew "aws-sam-cli"
 
-# infisical: nixpkgsに存在しないため公式tapから取得
+# infisical: 公式tapから取得
 brew "infisical/get-cli/infisical"
 
 # im-select: macOS専用のIME切り替えツール（Neovim連携用）
-# nixpkgsに存在せず、macOS専用のため
 brew "daipeihust/tap/im-select"
+
+# ─── Casks ─────────────────────────────────────────────────────────────────
+
+# Alacritty: ターミナルエミュレータ
+cask "alacritty"
