@@ -7,6 +7,8 @@ UNAME    := $(shell uname -s)
 	nix-install \
 	nix-upgrade \
 	nix-update \
+	apt-install \
+	standalone-tools-install \
 	stow-install \
 	brew-install \
 	brew-dump \
@@ -26,8 +28,10 @@ STOW_PACKAGES_COMMON := zsh git vim sheldon starship yazi claude herdr npm gh sw
 STOW_PACKAGES_MAC    := alacritty
 ifeq ($(UNAME), Darwin)
   STOW_PACKAGES := $(STOW_PACKAGES_COMMON) $(STOW_PACKAGES_MAC)
+  PKG_INSTALL_TARGETS := brew-install
 else
   STOW_PACKAGES := $(STOW_PACKAGES_COMMON)
+  PKG_INSTALL_TARGETS := apt-install standalone-tools-install
 endif
 
 define log
@@ -35,11 +39,13 @@ define log
 endef
 
 # ===== setup =====
-setup: brew-install nix-install stow-install sshd-restrict-locale-env
+# パッケージ管理は Homebrew (macOS) / apt + 各ツール公式インストーラー (Linux) で行う。
+# Nix は使わなくなったため setup からは外している（nix-* ターゲットは参照用に残す）。
+setup: $(PKG_INSTALL_TARGETS) stow-install sshd-restrict-locale-env
 	$(call log,Done)
 
 
-# ===== nix =====
+# ===== nix (未使用・参照用に残置) =====
 nix-install:
 	$(call log,Installing Nix packages)
 	@nix profile install .#
@@ -54,6 +60,18 @@ nix-update:
 	$(call log,Updating Nix packages)
 	@nix flake update
 	@nix profile upgrade '.*'
+	$(call log,Done)
+
+
+# ===== apt (Linux) =====
+apt-install:
+	$(call log,Installing apt packages)
+	@$(DOTFILES_DIR)apt/apt-install.sh
+	$(call log,Done)
+
+standalone-tools-install:
+	$(call log,Installing tools without apt packages)
+	@$(DOTFILES_DIR)apt/install-standalone-tools.sh
 	$(call log,Done)
 
 
