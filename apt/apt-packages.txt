@@ -1,0 +1,38 @@
+# apt でインストールするパッケージ一覧。
+# 3rd-party リポジトリ(docker/hashicorp/github-cli/yazi)の登録は apt-install.sh が行う。
+# 一覧に無いツールは apt に存在しない/古すぎるため install-standalone-tools.sh が担当する。
+
+# bat は batcat、fd-find は fdfind としてインストールされる（Debian/Ubuntuの命名衝突回避）。
+# 各自の shell 設定で alias する必要がある。
+bat
+fd-find
+eza
+duf
+ripgrep
+fzf
+jq
+direnv
+git-delta
+tree-sitter-cli
+nodejs
+golang-go
+gcc
+make
+stow
+unzip
+imagemagick
+nkf
+fswatch
+mycli
+zoxide
+git
+
+# 3rd-party リポジトリ経由
+gh
+terraform
+yazi
+docker-ce
+docker-ce-cli
+containerd.io
+docker-buildx-plugin
+docker-compose-plugin
