@@ -1,24 +1,22 @@
 # dotfiles
 
-My dotfiles managed with Nix + stow.
+My dotfiles managed with Homebrew (macOS) / apt (Linux) + stow.
 
-- **Nix** — パッケージ管理（mac/Linux 共通）
-- **Homebrew** — macOS 向けパッケージ・GUI アプリ
+- **Homebrew** — macOS のパッケージ管理・GUI アプリ
+- **apt + 各ツール公式インストーラー** — Linux のパッケージ管理
 - **stow** — dotfiles のシンボリックリンク管理
+
+以前は Nix（flake.nix）でパッケージ管理していたが、`/nix/store` の肥大化・GC運用のコストに見合わないため撤退した。`flake.nix` / `flake.lock` はファイルとして残置しているが `make setup` からは呼ばれない。
 
 ## Prerequisites
 
-### 1. Install Nix
-
-```bash
-curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
-```
-
-### 2. Install Homebrew (macOS only)
+### 1. Install Homebrew (macOS only)
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
+
+Linux は追加の前提インストールは不要（`apt` を使用）。
 
 ## Setup
 
@@ -29,18 +27,11 @@ make setup
 ```
 
 `make setup` は以下を実行します：
-1. `brew bundle install` — Homebrew パッケージのインストール（macOS のみ）
-2. `nix profile install .#` — Nix パッケージのインストール
-3. `stow` — dotfiles のシンボリックリンクを `~` に展開
+1. macOS: `brew bundle install` — Homebrew パッケージのインストール
+   Linux: `apt/apt-install.sh` + `apt/install-standalone-tools.sh` — apt パッケージ・公式インストーラー経由のツールのインストール
+2. `stow` — dotfiles のシンボリックリンクを `~` に展開
 
 ## Usage
-
-### Nix パッケージを更新する
-
-```bash
-# flake.lock を更新してパッケージを最新化
-make nix-update
-```
 
 ### dotfiles のリンクを張り直す
 
@@ -70,10 +61,14 @@ make reload-sheldon
 
 ```
 dotfiles/
-├── flake.nix             # Nix パッケージ定義
+├── flake.nix             # (未使用・参照用) 旧 Nix パッケージ定義
 ├── flake.lock
 ├── homebrew/
-│   └── .Brewfile         # Homebrew パッケージ
+│   └── .Brewfile         # Homebrew パッケージ（macOS）
+├── apt/
+│   ├── apt-packages.txt             # apt パッケージ一覧（Linux）
+│   ├── apt-install.sh               # 3rd-party repo 登録 + apt-packages.txt のインストール（Linux）
+│   └── install-standalone-tools.sh  # apt に無いツールの公式インストーラー（Linux）
 ├── zsh/                  # zsh 設定
 ├── git/                  # git 設定 (.gitconfig)
 ├── vim/                  # Neovim 設定
