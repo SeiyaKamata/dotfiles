@@ -103,7 +103,8 @@
     "slack@claude-plugins-official": false,
     "skill-creator@claude-plugins-official": false,
     "figma@claude-plugins-official": false,
-    "github@claude-plugins-official": false
+    "github@claude-plugins-official": false,
+    "slack-notify@lrm-equipment": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -111,12 +112,26 @@
         "source": "github",
         "repo": "anthropics/skills"
       }
+    },
+    "lrm-equipment": {
+      "source": {
+        "source": "github",
+        "repo": "lrm-corp/agent-equipment"
+      }
     }
   },
   "language": "Japanese",
   "spinnerTipsEnabled": false,
   "effortLevel": "medium",
   "awaySummaryEnabled": false,
+  "pluginConfigs": {
+    "slack-notify@lrm-equipment": {
+      "options": {
+        "slack_thread_url": "https://lrm-corp.slack.com/archives/C0A96PAPKS4/p1786349062268979",
+        "slack_mention_user": "U09BLFK8BUN"
+      }
+    }
+  },
   "tui": "fullscreen",
   "autoMemoryEnabled": false,
   "autoDreamEnabled": false,
