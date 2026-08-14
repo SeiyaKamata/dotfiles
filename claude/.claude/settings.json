@@ -124,14 +124,6 @@
   "spinnerTipsEnabled": false,
   "effortLevel": "medium",
   "awaySummaryEnabled": false,
-  "pluginConfigs": {
-    "slack-notify@lrm-equipment": {
-      "options": {
-        "slack_thread_url": "https://lrm-corp.slack.com/archives/C0A96PAPKS4/p1786349062268979",
-        "slack_mention_user": "U09BLFK8BUN"
-      }
-    }
-  },
   "tui": "fullscreen",
   "autoMemoryEnabled": false,
   "autoDreamEnabled": false,
