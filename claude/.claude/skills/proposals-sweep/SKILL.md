@@ -22,7 +22,7 @@ allowed-tools: Bash(ls *), Bash(grep *), Bash(awk *), Bash(date *), Bash(readlin
   - `status` の更新（`applied` / `deferred` / `dropped`）
   - 人が「反映する」と決めた提案の**スキル本体・`CLAUDE.md` への適用**
 
-## モード
+## 判断ポリシー
 **手動スイープ**として人が起動する。引数は取らない。
 
 `status` の書き換えと成果物の変更は、**Step 4 で人が選んだ結果としてのみ**行う。勝手に反映しない・勝手に落とさない（例外は Step 2-2 の寿命管理）。

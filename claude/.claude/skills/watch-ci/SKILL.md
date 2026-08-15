@@ -19,7 +19,7 @@ PR の CI が完了するまで監視し、結果を判定して次のアクシ�
 
 対象は **PR 番号が渡されればその 1 本**、渡されなければカレントブランチの PR。stacked で複数の PR が既に存在する場合は **feature の全 PR を対象に CI を監視して集約**する（`/orchestrator` Step 11 の全 PR 最終確認がこれを使う）。
 
-## モード
+## 判断ポリシー
 CI の結果を完了カードで報告する。**Ready for review への切り替えは行わない**（draft のまま完了とし、完了カードで `gh pr ready` を案内する）。
 
 > Ready for review は**レビュアーに通知が飛ぶ外向きの操作**で、しかも取り消しても通知は戻らない。このスキルは監視と報告までを担い、外向きの操作は人が明示的に実行する。
@@ -77,7 +77,7 @@ gh pr view <PR番号> --json reviewThreads --jq '.reviewThreads[] | select(.isRe
 ```
 
 - **未解決あり** → 件数と概要を押さえ、`/resolve-comments` を次の一手に出す（切り替えは行わない）
-- **未解決なし** → 「モード」の通り draft のまま完了とし、完了カードの次の一手に `- Ready for review にする: gh pr ready <PR番号>` を出す
+- **未解決なし** → 「判断ポリシー」の通り draft のまま完了とし、完了カードの次の一手に `- Ready for review にする: gh pr ready <PR番号>` を出す
   ```
   gh pr view <PR番号> --json isDraft --jq '.isDraft'   # draft か確認（案内文に含めるため）
   ```

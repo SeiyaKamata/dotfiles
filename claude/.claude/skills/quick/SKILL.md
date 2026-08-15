@@ -26,7 +26,7 @@ design（アーキテクチャ判断）・tasks（大タスクへの分割）は
 ## 引数
 - `$ARGUMENTS[0]`: feature 名（必須）
 
-## モード
+## 判断ポリシー
 途中でユーザーに何も聞かない。ただし**実装を続けられない事態**（`requirements.md` が無い・implementer の blockers・最終テストの失敗継続）では止まる。
 
 ## 用語（前提）

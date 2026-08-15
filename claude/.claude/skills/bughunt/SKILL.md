@@ -30,7 +30,7 @@ argument-hint: "<feature>"
   - 実際のコード（`bug-investigator` が Grep/Read で調査）
 - **出力**: `.specs/<feature>/bug-report.md`
 
-## モード
+## 判断ポリシー
 バグ報告の受領に対話が要るため、人が明示的に起動する。
 
 **症状の聞き取りだけは質問する。** 入力が人からしか得られないため。聞くのは Step 3 だけで、調査結果や記録内容の確認はしない。
