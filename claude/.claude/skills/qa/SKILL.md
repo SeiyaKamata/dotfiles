@@ -88,9 +88,10 @@ swws status
 ### Step 5: 書き出し
 
 1. 結果配列で `.specs/<feature>/qa.md` の `## ローカルQAシナリオ` のチェックボックスを更新する（pass → `[x]` / fail → `[ ]` のまま）
-2. `git branch --show-current` / `git rev-parse HEAD` / `git status --porcelain` で `branch` / `head` / `dirty` を確定し、`ran_at` を書き出し時点で記録する
-3. **最新の結果を `.specs/<feature>/qa-report.md` に必ず書き出す**。これが下流 `/fix` の入力源になり、失敗原因を会話に依存させない（`/test` の `test-report.md` と同じパターン）
-4. スクショは PR 添付用に保持し、保存先パスを qa-report.md に記録する
+2. `git branch --show-current` / `git rev-parse HEAD` で `branch` / `head` を確定し、`ran_at` を書き出し時点で記録する
+3. 既存の `qa-report.md` があれば、上書きする前に前回の判定（PASS/FAIL/BLOCKED）と `count` を読む。今回が非 PASS（FAIL/BLOCKED）かつ既存レポートも非 PASS だったなら `count` を既存値 +1、それ以外（PASS・既存レポート無し・既存レポートが PASS）なら `count: 1` にする。`fixed` は常に `false` を書く（`/fix` だけが `true` に変える）
+4. **最新の結果を `.specs/<feature>/qa-report.md` に必ず書き出す**。これが下流 `/fix` の入力源になり、失敗原因を会話に依存させない（`/test` の `test-report.md` と同じパターン）
+5. スクショは PR 添付用に保持し、保存先パスを qa-report.md に記録する
 
 `/qa` は feature 単位のゲートなので、保存先は `.specs/<feature>/qa-report.md` の固定パス。
 
@@ -99,8 +100,9 @@ swws status
 feature: <feature>
 branch: <カレントブランチ>              # 取得不能時は none
 head: 4f8c1e9b2a...                    # 取得不能時は none
-dirty: true
 ran_at: 2026-07-28T22:45:00+0900
+fixed: false                           # 直前に /fix が対象コードを修正していたか
+count: 1                               # 非 PASS が何回連続か（PASS なら 1 にリセット）
 ---
 
 # QA結果: [機能名]

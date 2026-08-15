@@ -38,11 +38,13 @@ argument-hint: "<feature>"
 保存先は `.specs/<feature>/test-report.md`（feature 単位の単一パス）。
 
 ### Step 3: test-runner へ委譲
-`test-runner` サブエージェントを起動し、feature 名と Step 2 の確定値（`branch` / `head` / `dirty`）・保存先パスを渡す。test-runner が行うこと：
+保存先に既存の `test-report.md` があれば、上書きする前に前回の判定（PASS/FAIL）と `count` を読んでおく（`count` の再計算に使う）。
+
+`test-runner` サブエージェントを起動し、feature 名と Step 2 の確定値（`branch` / `head`）・保存先パス・上で読んだ既存値を渡す。test-runner が行うこと：
 
 - プロジェクト CLAUDE.md を最優先にテストコマンドを検出して実行する
 - PASS/FAIL を判定する
-- 最新結果を保存先パスに書き出す。frontmatter に確定値を書き写し、`ran_at` だけ自分で記録する。`/fix` の入力源になる
+- 最新結果を保存先パスに書き出す。frontmatter に確定値を書き写し、`ran_at` だけ自分で記録する。`fixed` は常に `false` を書く（`/fix` だけが `true` に変える。仕様は `/orchestrator`「工程一覧」の「実行コンテキスト frontmatter」参照）。今回が FAIL かつ既存レポートも FAIL だったなら `count` を既存値 +1、それ以外（PASS・既存レポート無し・既存レポートが PASS）なら `count: 1` にする。`/fix` の入力源になる
 - **判定・要点・レポートパスだけを返す**。テストログ本体はサブエージェント側に閉じる。記録項目が増えても戻り情報量は増やさない
 
 レポートに書く内訳（ターミナルには列挙しない）：

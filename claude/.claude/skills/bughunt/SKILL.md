@@ -62,9 +62,13 @@ argument-hint: "<feature>"
 - 再現できなければ「再現できず＋必要な追加情報」を返す
 
 ### Step 5: 書き出し
-bug-investigator の所見を `.specs/<feature>/bug-report.md` にマージ保存する。
+bug-investigator の所見を `.specs/<feature>/bug-report.md` にマージ保存する。`fixed` は既存ファイルの値を読まず常に `false` を書く。`/fix` が着手すると `true` に変える。既存値を読まない理由・仕組みは `/orchestrator`「工程一覧」の「実行コンテキスト frontmatter」の `fixed` の決め方を参照。ただし `branch`/`head`/`count` はここでは持たない。
 
 ```markdown
+---
+fixed: false                           # /fix が着手済みか
+---
+
 # バグ報告: [機能名]
 
 ## サマリ
