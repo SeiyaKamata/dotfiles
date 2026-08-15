@@ -77,17 +77,11 @@
             "command": "~/.claude/hooks/restrict-edits.sh"
           }
         ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/no-cd.sh"
-          }
-        ]
       }
     ]
+  },
+  "env": {
+    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1"
   },
   "enableWorkflows": false,
   "workflowKeywordTriggerEnabled": false,
