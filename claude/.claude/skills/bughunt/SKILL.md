@@ -30,8 +30,6 @@ argument-hint: "<feature>"
   - 実際のコード（`bug-investigator` が Grep/Read で調査）
 - **出力**: `.specs/<feature>/bug-report.md`
 
-**コンテキストフリー**: 会話履歴に依存しない。コールドで `/bughunt <feature>` を叩いても動く。
-
 ## モード
 バグ報告の受領に対話が要るため、人が明示的に起動する。
 

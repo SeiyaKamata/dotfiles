@@ -16,8 +16,6 @@ argument-hint: "<feature>"
 - **入力**: git の状態。対象は実装ブランチ 1 本、フェーズを持たない
 - **出力**: `.specs/<feature>/test-report.md`
 
-**コンテキストフリー**: このスキルは会話履歴に依存しない。入力はすべて `.specs/<feature>/` と git から得るので、コールドで `/test <feature>` を叩いても同じ対象に到達する。
-
 ## 引数
 - `$ARGUMENTS[0]`: feature 名（必須）
 

@@ -13,8 +13,6 @@ argument-hint: "<feature>"
 - **入力**: `.specs/<feature>/` の requirements / design / tasks と、デフォルトブランチとの git 差分（導出は Step 2）
 - **出力**: `.specs/<feature>/review.md`
 
-**コンテキストフリー**: このスキルは会話履歴に依存しない。入力はすべて `.specs/<feature>/` と git から得るので、コールドで `/review <feature>` を叩いても同じ対象に到達する。
-
 ## 引数
 - `$ARGUMENTS[0]`: feature 名（必須）
 
