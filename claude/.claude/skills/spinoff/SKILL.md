@@ -13,7 +13,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls *)
 **追跡記録を残さない。** 元 feature に「切り出し済み」のマーキングをしない。これが `/handoff`（依頼元 `tasks.md` の `S<n>` にチェックを付けて追跡する）との決定的な違い。
 
 ## 入出力
-- **入力**: `.specs/<元feature>/review.md` および `review.p*.md` / プロンプトで直接渡された指摘 / `.specs/proposals/` の backlog 提案ファイル（`/propose` からの導線）
+- **入力**: `.specs/<元feature>/review.md` / プロンプトで直接渡された指摘 / `.specs/proposals/` の backlog 提案ファイル（`/propose` からの導線）
 - **出力**: `.specs/<新feature>/seed.md`（1 件以上）
 
 ## 判断ポリシー
@@ -36,7 +36,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls *)
 
 ### Step 2: 入力の特定と候補の抽出
 
-- `$ARGUMENTS[0]`（元 feature）があれば `.specs/<feature>/review.md`（フェーズ未確定・単一フェーズ運用）と `.specs/<feature>/review.p*.md`（フェーズ別）を `ls`/`Glob` で探し、**見つかったものをすべて読む**。複数あればフェーズ番号の昇順（`review.md` があれば先頭）で全件を候補に挙げる（一部だけ読んで終わらない）
+- `$ARGUMENTS[0]`（元 feature）があれば `.specs/<feature>/review.md` を `ls`/`Glob` で探し、見つかれば読む
 - プロンプトで指摘が直接渡されていれば、それも候補に含める
 - **`.specs/proposals/` 配下の backlog 提案ファイルのパスが渡された場合**は Read して候補に含める（`/propose` の完了カードが案内する導線の受け口）。提案ファイルの `target`・`claim`・本文をそのまま候補の内容として扱う
 - 元 feature が未指定かつプロンプトの指摘も無ければ「使い方: /spinoff <feature>」を表示して終了
