@@ -25,8 +25,8 @@ argument-hint: "[<stage>] <feature> [pN]"
   → 実装（実装ブランチ <feature> 1 本・フェーズを持たない直線）:
         /impl → /test → /review → /qa → /commit
                   ↓FAIL   ↓NG      ↓FAIL
-                 /fix    /design   /fix（設計起因なら /design・/impl）
-                  →/test  or /impl  → /test→/review → /qa に再合流
+                 /fix    /fix（設計起因なら /design）  /fix（設計起因なら /design・/impl）
+                  →/test  →/test→/review              → /test→/review → /qa に再合流
   → PR ループ（/sync-to-remote が分割を判定。1 周 = 1 PR を green まで閉じる）:
         /sync-to-remote(draft, 1 本だけ。初回に分割を判定)
         → /watch-ci(この PR) → /resolve-comments(この PR の全 author)
@@ -240,9 +240,8 @@ loop:
 2. ブランチの確定 — `git branch --show-current` をそのまま採用する。
    - 実装ブランチ `<feature>` にいる → 想定どおり
    - デフォルトブランチにいる（PR を作らない運用で直接コミットしている）→ そのまま続行する
-   - detached HEAD → `branch: none` として続行する（レポートは書けるが stale 判定の材料が減る）
-   - フェーズブランチ `<feature>-pN` にいる場合も続行する（PR ループ中に `/fix` などを呼ぶケース）。比較対象はデフォルトブランチのまま
-3. 実行コンテキストの確定 — `feature` / `branch` / `head`（`git rev-parse HEAD`） / `dirty`（`git status --porcelain` が空でなければ `true`）を確定し、以降の入力導出とレポート出力をこの確定値に基づいて行う。
+   - detached HEAD → `branch: none` として続行する（レポートは書けるが、後で `/fix` が行う branch 照合の材料が減る）
+3. 実行コンテキストの確定 — `feature` / `branch` / `head`（`git rev-parse HEAD`）を確定し、以降の入力導出とレポート出力をこの確定値に基づいて行う。
 
 実行コンテキスト frontmatter（`test-report` / `review` / `qa-report` 共通）:
 ```yaml
@@ -250,27 +249,28 @@ loop:
 feature: stage-context-free
 branch: stage-context-free             # detached・照合不可時は none
 head: 4f8c1e9b2a...                    # git rev-parse HEAD（40文字。短縮しない）
-dirty: true                            # 実行時に未コミット変更があったか
 ran_at: 2026-07-28T22:45:00+0900       # レポートを書き出した時刻
+fixed: false                           # 直前に /fix がこのレポートの対象コードを修正していたか
+count: 1                               # この判定が何回連続で非 PASS/OK か（PASS/OK なら 1 にリセット）
 ---
 ```
 収集コマンド（macOS の BSD `date` は `-Iseconds` 非対応なのでフォーマット指定を使う）:
 ```bash
 git branch --show-current                       # branch
 git rev-parse HEAD                              # head
-[ -n "$(git status --porcelain)" ] && echo true # dirty
 date +"%Y-%m-%dT%H:%M:%S%z"                     # ran_at
 ```
 `phase` キーは持たない（これらの工程はフェーズを持たず実装ブランチ 1 本の上で 1 回ずつ回るため。対象の同一性は `branch` と `head` で判定できる）。
 
-stale 判定（保存済みレポートを読み込むときに現在値と照合する。工程ごとの保存先は各見出し参照）:
+**`fixed` の決め方（`/test` `/qa` `/review` 共通）**: 新しいレポートを書き出すときは既存ファイルの値を読まず、**常に `fixed: false` を書く**（＝「まだ `/fix` が着手していない」がレポートの初期状態）。`fixed: true` に変えるのは `/fix` だけで、修正を適用したときにそのレポートの `fixed` フィールドだけを直接書き換える（判定内容は変えない。`/fix` の唯一のレポート更新）。これにより:
 
-| 条件 | 判定 |
-|---|---|
-| `branch` が現在のブランチと不一致 | stale |
-| `head` が `git rev-parse HEAD` と不一致 | stale |
-| `dirty: true` | stale（実行時の作業ツリーが再現できないため、`head` 一致でも stale） |
-| frontmatter が無い（旧形式のレポート） | stale（照合材料が無い） |
+- `fixed: false` のレポート = まだ `/fix` が着手していない、または前回の修正が効かず `/test`/`/qa`/`/review` の再実行で差し戻された状態
+- `fixed: true` のレポート = `/fix` が着手済みで、まだ下流の再検証を経ていない状態
+
+`/fix` は自分の Step で `fixed` を読み、`true`（＝二重着手になる）なら中断する（詳細は `/fix` 自身の Step 参照）。
+
+**`count` の決め方（`/test` `/qa` `/review` 共通）**: 保存先を上書きする直前に、既存ファイルの**判定**（PASS/FAIL・OK/NG・PASS/FAIL/BLOCKED）と `count` を読む。今回の判定が非 PASS/OK で、かつ既存ファイルの判定も非 PASS/OK だったなら `count` を **+1** して書く。今回が PASS/OK、または既存ファイルが無い／既存ファイルの判定が PASS/OK だったなら `count: 1` にリセットする。これにより「何連続で失敗しているか」がレポート単体から読み取れ、`/orchestrator` は自分でターンをまたいで数えなくても、書き出された `count` を見るだけで「test FAIL 3 回連続」「review NG 3 回連続」のような停止条件を判定できる（`/orchestrator` がコールドで再開しても数え直しにならない）。
+
 
 ### `/test`
 
@@ -285,7 +285,7 @@ stale 判定（保存済みレポートを読み込むときに現在値と照�
 
 **完了後**:
 - PASS → `/review` へ
-- FAIL → `/fix <feature>` → `/test <feature>` を再実行。**test FAIL が 3 回連続 → 報告して停止**
+- FAIL → `/fix <feature>` → `/test <feature>` を再実行。**`test-report.md` の `count` が 3 以上（FAIL 3 回連続）→ 報告して停止**
 
 ### `/review`
 
@@ -300,7 +300,7 @@ stale 判定（保存済みレポートを読み込むときに現在値と照�
 
 **完了後**:
 - NG かつ「設計の根本的な問題」が含まれる → `/design` に戻す
-- NG かつそれ以外（コード品質・実装ミス）→ `/impl` に戻す
+- NG かつそれ以外（コード品質・実装ミス）→ `/fix <feature>` → `/test <feature>` → `/review <feature>` を再実行。**`review.md` の `count` が 3 以上（NG 3 回連続）→ 報告して停止**
 - OK → `/qa` へ。ただし `review.md` の推奨対応に**上流 doc の記述修正**が挙がっていれば、`/spec`・`/design` を編集モードで再入して記述だけ直す（`/tasks` と実装はやり直さない。実装は正しいため）
 
 ### `/qa`
@@ -320,18 +320,14 @@ stale 判定（保存済みレポートを読み込むときに現在値と照�
 
 **完了後**:
 - 全 pass → `/commit` へ
-- fail → `/fix <feature>`（設計起因なら `/design`・`/impl <feature>`）→ `/test <feature>`→`/review <feature>` を通して `/qa` に再合流。**qa↔fix が 2 周しても収束しない → 報告して停止**
+- fail → `/fix <feature>`（設計起因なら `/design`・`/impl <feature>`）→ `/test <feature>`→`/review <feature>` を通して `/qa` に再合流。**`qa-report.md` の `count` が 2 以上（非 PASS 2 回連続）→ 報告して停止**
 
 ### `/fix`（自己修正ループの内部工程。開始工程には指定できない）
 
-- 起動されるタイミング: `/test` FAIL または `/qa` fail のとき、呼び出し元から `/fix <feature>` で起動される
+- 起動されるタイミング: `/test` FAIL・`/qa` fail・`/review` NG（設計起因以外）・`/bughunt` 完了のとき、呼び出し元から `/fix <feature>` で起動される
 - 対象フェーズ: 不要（フェーズを持たない。実装ブランチ 1 本の上で動く）
 
-**対象確定**: 「共通: 対象確定」の手順 1〜3 に加えて、入力レポート（`test-report.md` / `qa-report.md`）の存在確認と stale 判定を行う。
-
-入力レポートのパスは `test-report` が `.specs/<feature>/test-report.md`、`qa-report` が `.specs/<feature>/qa-report.md`（どちらも feature 単位の固定パス）。stale 判定は「共通: 対象確定」の表を、読み込んだレポートの frontmatter と現在値の照合に使う。
-
-`test-report` が stale → 根拠にせず、自分でテストを実行して失敗を観測し直す。`qa-report` が stale → 中断する（`/fix` は Playwright を持たないため qa は再観測できない。復帰コマンドは `/qa <feature>`）。stale と判定した事実と不一致のキーは出力に残す。
+**存在確認・着手判定・対象確認**: `/fix` 自身の Step 2〜4 を参照。入力レポート（`test-report.md` / `qa-report.md` / `review.md` / `bug-report.md`）の存在確認、`fixed` による二重着手防止、`branch`/`head` の照合を行う。
 
 **完了後**:
 - 「設計の問題」と判断 → `/design` に戻す
@@ -450,7 +446,7 @@ stale 判定（保存済みレポートを読み込むときに現在値と照�
 12. **停止点**: 「## 完了条件」を満たしたら、PR の URL と結果を人に報告して止まる
 
 ## 例外処理（人を呼ぶ＝停止する条件）
-回復可能なものは自己修正ループで潰し、以下のときだけ停止して人に報告する。各工程固有の停止条件（test FAIL 3 連続・review NG の戻し先・qa↔fix 2 周・CI 失敗 2 回・未解決コメント 2 巡など）は「## 工程一覧」の該当工程「完了後」に書いてあるので、ここでは工程をまたぐ／ディスパッチ由来の条件だけを挙げる：
+回復可能なものは自己修正ループで潰し、以下のときだけ停止して人に報告する。各工程固有の停止条件（test FAIL 3 連続・review NG 3 連続・qa↔fix 2 周・CI 失敗 2 回・未解決コメント 2 巡など）は「## 工程一覧」の該当工程「完了後」に書いてあるので、ここでは工程をまたぐ／ディスパッチ由来の条件だけを挙げる：
 
 - **rebase 伝播が必要になるのは Step 11 の `all` で下位フェーズを直したときだけ**（PR ループで 1 本ずつ閉じきっているため、CI / 未解決コメント起因の修正は常に先端で完結する）。自走で安全に行えない → 報告して停止
 - **CodeRabbit のレビューが一定時間来ない** → 報告して停止
