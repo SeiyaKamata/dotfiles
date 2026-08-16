@@ -2,7 +2,6 @@ alias exe="pbpaste | ./a.out"
 alias clip="pbcopy"
 alias vi="nvim"
 alias vim="nvim"
-alias vis="nvim .specs"
 alias q="exit"
 
 # Rust command
