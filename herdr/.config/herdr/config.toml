@@ -71,10 +71,7 @@ split_vertical = "prefix+h"
 # tmux: bind x kill-pane
 close_pane = "prefix+x"
 # tmux: bind z resize-pane -Z
-# prefix なしの直接バインド。高頻度操作なので即座に押せるようにする。
-# herdr が先取りするため、herdr 内では ctrl+z の OS サスペンドは発火しない
-# （herdr 外の裸シェルでは従来通り SIGTSTP が効く点に注意）。
-zoom = "ctrl+z"
+zoom = "prefix+z"
 # tmux: bind -n C-t select-pane -t :.+（次のペインへ巡回、prefix 不要）
 cycle_pane_next = "ctrl+t"
 
@@ -104,11 +101,14 @@ agent_panel_sort = "spaces"
 hide_tab_bar_when_single_tab = true
 
 # ===== popup: .specs 関連ショートカット =====
-# prefix+s: .specs を nvim で開く（zsh エイリアス vis と同等の実体コマンド）
+# prefix+s: .specs を nvim で開く（zsh エイリアス vis と同等の実体コマンド）。
+# TARGET_FEATURE が選択されていれば .specs/<feature> を開く。
+# ポップアップは pane の env を引き継がないため、選択は zsh 関数 tf が書き出す
+# .specs/.target-feature ファイル経由で受け渡す（env var 自体は別プロセスなので見えない）。
 [[keys.command]]
 key = "prefix+s"
 type = "popup"
-command = '''export PATH="$HOME/.nix-profile/bin:$PATH"; nvim .specs'''
+command = '''export PATH="$HOME/.nix-profile/bin:$PATH"; f=""; [ -f .specs/.target-feature ] && f=$(cat .specs/.target-feature); if [ -n "$f" ] && [ -d ".specs/$f" ]; then nvim ".specs/$f"; else nvim .specs; fi'''
 width = "95%"
 height = "95%"
 
