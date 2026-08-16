@@ -44,16 +44,11 @@ detach = "prefix+d"
 # （場所を選んでからその cwd で space を作る）に譲り、cwd をそのまま引き継ぐ
 # 素の新規作成は herdr 既定の prefix+shift+n に退避させる。
 new_workspace = "prefix+shift+n"
-# tmux 既定: bind 1..9 select-window（番号で作業単位を切り替え）
-switch_workspace = "prefix+1..9"
-# tmux 既定: bind p previous-window
-previous_workspace = "prefix+p"
-# tmux は n を new-window に上書きしており「次」への割り当ては無いので無効化
-next_workspace = ""
-# ワークスペースピッカー（herdr 既定を維持、一覧から選ぶ）
-workspace_picker = "prefix+w"
-# worktree 運用（CLAUDE.md）向け。worktree から space を起こす（herdr 既定を維持）
-new_worktree = "prefix+shift+g"
+# 上下移動は vim 流に j=次 / k=前（prefix 不要、連打しやすい単独キー）
+# ctrl+j/k はペイン内アプリに渡らなくなる。vim の行移動マッピングは削除し
+# （V選択+d+pで代替）、Claude Code の改行は shift+enter を使う前提にしている
+next_workspace = "ctrl+j"
+previous_workspace = "ctrl+k"
 
 # ===== tab は使わない =====
 # space 中心運用のため tab 系キーは無効化し、上部タブバーも隠す（下の ui を参照）。
