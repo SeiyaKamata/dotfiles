@@ -100,20 +100,6 @@ agent_panel_sort = "spaces"
 # tab を使わない運用。1 tab のときは上部タブバーを隠す（space 内は基本 1 tab なので常に非表示）。
 hide_tab_bar_when_single_tab = true
 
-# ===== popup: .specs 関連ショートカット =====
-# prefix+s: .specs を nvim で開く（zsh エイリアス vis と同等の実体コマンド）。
-# TARGET_FEATURE が選択されていれば .specs/<feature> を開く。
-# ポップアップは pane の env を引き継がないため、選択は zsh 関数 tf が書き出す
-# .target_feature ファイル経由で受け渡す（env var 自体は別プロセスなので見えない）。
-# .specs は worktree 間で symlink 共有なのでマーカーは repo ルート直下（git ignore 済み、
-# worktree ごとに別ファイル）に置いている。
-[[keys.command]]
-key = "prefix+s"
-type = "popup"
-command = '''export PATH="$HOME/.nix-profile/bin:$PATH"; f=""; [ -f .target_feature ] && f=$(cat .target_feature); if [ -n "$f" ] && [ -d ".specs/$f" ]; then nvim ".specs/$f"; else nvim .specs; fi'''
-width = "95%"
-height = "95%"
-
 # ===== popup: space を「開く場所を選んでから」作る =====
 # prefix+n: hspace の fzf ピッカー。~/Develop/*/repos/<repo> と
 # ~/Develop/*/worktrees/<SLOT>/<repo> を zoxide の frecency 順に並べ、Enter で

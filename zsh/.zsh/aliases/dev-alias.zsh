@@ -25,3 +25,14 @@ tfc() {
   unset TARGET_FEATURE
   rm -f .target_feature
 }
+
+# .target_feature が設定されていればそのディレクトリ、無ければ .specs を開く
+vitf() {
+  local feature
+  if [ -f .target_feature ]; then
+    feature=$(cat .target_feature)
+    nvim ".specs/$feature"
+  else
+    nvim .specs
+  fi
+}
