@@ -21,13 +21,6 @@ map("n", "L",          "$",                                                "行�
 map("n", "J",          "}",                                                "段落を下へ")
 map("n", "K",          "{",                                                "段落を上へ")
 
-map("n", "<C-j>",      "<cmd>m .+1<CR>==",                                 "現在行を下へ移動")
-map("n", "<C-k>",      "<cmd>m .-2<CR>==",                                 "現在行を上へ移動")
-map("v", "<C-j>",      "<cmd>m '>+1<CR>gv=gv",                            "選択行を下へ移動")
-map("v", "<C-k>",      "<cmd>m '<-2<CR>gv=gv",                            "選択行を上へ移動")
-map("i", "<C-j>",      "<Esc><cmd>m .+1<CR>==gi",                         "挿入モードで現在行を下へ移動")
-map("i", "<C-k>",      "<Esc><cmd>m .-2<CR>==gi",                         "挿入モードで現在行を上へ移動")
-
 map("n", "<leader>sr", ":%s//g<Left><Left>",                               "バッファ全体を置換")
 map("v", "<leader>sr", ":s//g<Left><Left>",                                "選択範囲を置換")
 map("n", "<leader>sw", ":%s/\\<<C-r><C-w>\\>//gI<Left><Left><Left>",      "カーソル単語をバッファ全体で置換")
