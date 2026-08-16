@@ -1,107 +1,57 @@
 onboarding = false
-# herdr configuration
-# 配置先: ~/.config/herdr/config.toml (stow で symlink)
-#
-# 方針: 既存の tmux 設定 (~/.config/tmux/) と同じ操作感になるよう合わせている。
-#       設定できる項目は `herdr --default-config` を参照。
-#
-# 【階層の対応】
-#   tmux は session をほぼ使わず window を作業単位にしていた。
-#   herdr はサイドバー・エージェント状態一覧・通知・worktree 連携が
-#   すべて space (workspace) 単位なので、tmux の window は space に対応させる。
-#     tmux window → herdr space (workspace) … 並列で走る作業単位（主役）
-#     tmux pane   → herdr tab / pane        … 単位内の画面切り替え・分割（補助）
-#
-# 【tmux との命名差に注意（ペイン分割）】
-#   herdr は Vim 流の命名 (split_vertical=左右 / split_horizontal=上下)、
-#   tmux は逆 (split-window -v=上下 / -h=左右)。
-#   ここでは「キーを押したときの挙動」を tmux に合わせているため、
-#   split_horizontal に v、split_vertical に h を割り当てている。
+# 配置先: ~/.config/herdr/config.toml (stow で symlink)。tmux 設定と同じ操作感に合わせている。
+# 対応関係: tmux window → herdr space（作業単位・主役） / tmux pane → herdr tab / pane（補助）
+# ペイン分割の命名差に注意: herdr は Vim 流 (split_vertical=左右 / split_horizontal=上下)、tmux は逆。
 
 [theme]
-# tmux 20-style.conf のパレット (#1a1b26 / #c0caf5 / accent #7aa2f7) と同系の Tokyo Night
-name = "tokyo-night"
+name = "tokyo-night"                # tmux 20-style.conf と同系の Tokyo Night
 
 [terminal]
-# tmux: set-option -g default-shell /bin/zsh
-default_shell = "/bin/zsh"
-# tmux: set-option -g default-command "zsh -l"（ログインシェル起動）
-shell_mode = "login"
-# tmux: new-window / split-window の -c "#{pane_current_path}"（親のカレントディレクトリを引き継ぐ）
-new_cwd = "follow"
+default_shell = "/bin/zsh"          # tmux: set-option -g default-shell /bin/zsh
+shell_mode = "login"                # tmux: set-option -g default-command "zsh -l"
+new_cwd = "follow"                  # tmux: new-window/split-window -c "#{pane_current_path}"
 
 [keys]
-# ===== prefix =====
-# tmux: set -g prefix C-Space
-prefix = "ctrl+space"
+prefix = "ctrl+space"               # tmux: set -g prefix C-Space
+detach = "prefix+d"                 # tmux 既定 bind d detach-client に合わせる
 
-# tmux 既定: bind d detach-client（herdr 既定は prefix+q なので合わせる）
-detach = "prefix+d"
+# space (workspace) = tmux window 相当
+new_workspace = "prefix+shift+n"    # 素の新規作成（cwd 引き継ぎ）。場所を選んで作るのは prefix+n の hspace ピッカーへ
+next_workspace = "ctrl+j"           # 上下移動は vim 流 j=次/k=前、prefix 不要の単独キー
+previous_workspace = "ctrl+k"       # ctrl+j/k はペインへ渡らなくなるため nvim 側の同キー割り当ては削除済み
 
-# ===== space (workspace) = tmux の window 相当（主役）=====
-# tmux: bind n new-window → 新しい作業単位を作る
-# 「作ってから cd する」のが面倒なので、主役の prefix+n は下の hspace ピッカー
-# （場所を選んでからその cwd で space を作る）に譲り、cwd をそのまま引き継ぐ
-# 素の新規作成は herdr 既定の prefix+shift+n に退避させる。
-new_workspace = "prefix+shift+n"
-# 上下移動は vim 流に j=次 / k=前（prefix 不要、連打しやすい単独キー）
-# ctrl+j/k はペイン内アプリに渡らなくなる。vim の行移動マッピングは削除し
-# （V選択+d+pで代替）、Claude Code の改行は shift+enter を使う前提にしている
-next_workspace = "ctrl+j"
-previous_workspace = "ctrl+k"
-
-# ===== tab は使わない =====
-# space 中心運用のため tab 系キーは無効化し、上部タブバーも隠す（下の ui を参照）。
-# space 内は 1 tab が基本になるので、実質タブバーは常に非表示になる。
+# tab は使わない運用（space 内は基本 1 tab、タブバーも [ui] hide_tab_bar_when_single_tab で隠す）
 new_tab = ""
 switch_tab = ""
 next_tab = ""
 previous_tab = ""
 
-# ===== ペイン分割 (tmux 40-keymaps.conf) =====
-# tmux: bind v split-window -v（上下に分割）→ herdr では上下=split_horizontal
-split_horizontal = "prefix+v"
-# tmux: bind h split-window -h（左右に分割）→ herdr では左右=split_vertical
-split_vertical = "prefix+h"
-# tmux: bind x kill-pane
-close_pane = "prefix+x"
-# tmux: bind z resize-pane -Z
-zoom = "prefix+z"
-# tmux: bind -n C-t select-pane -t :.+（次のペインへ巡回、prefix 不要）
-cycle_pane_next = "ctrl+t"
+# ペイン分割 (tmux 40-keymaps.conf)
+split_horizontal = "prefix+v"       # tmux: bind v split-window -v（上下）
+split_vertical = "prefix+h"         # tmux: bind h split-window -h（左右）
+close_pane = "prefix+x"             # tmux: bind x kill-pane
+zoom = "prefix+z"                   # tmux: bind z resize-pane -Z
+cycle_pane_next = "ctrl+t"          # tmux: bind -n C-t select-pane -t :.+（prefix 不要）
 
-# ===== 方向移動は tmux に合わせて無効化 =====
-# tmux はペイン移動を C-t の巡回のみで行い、hjkl の方向移動は使っていない。
-# また prefix+h は上の左右分割で使うため、既定の focus_pane_left(prefix+h) とも衝突する。
-focus_pane_left = ""
+# 方向移動は tmux に合わせて無効化（tmux は ctrl+t 巡回のみで hjkl 移動を使っていない）
+focus_pane_left = ""                # prefix+h は split_vertical で使用中のため空けておく
 focus_pane_down = ""
 focus_pane_up = ""
 focus_pane_right = ""
 
-# herdr 既定の edit_scrollback(prefix+e) を無効化。
-# 下の [[keys.command]] で prefix+e を nvim 起動popupに割り当てるため衝突を避ける。
-edit_scrollback = ""
+edit_scrollback = ""                # 下の [[keys.command]] prefix+e (nvim popup) と衝突するため無効化
 
-# ===== 補足（tmux から素直に移せない項目）=====
-# - リサイズ: tmux は C-Left/Right/Up/Down に直接割り当てていたが、
-#   herdr は prefix+r（resize_mode 既定）で入ってから矢印/hjkl で調整する方式。
-# - コピー/クリップボード: tmux は vi コピーモード + pbcopy/OSC52 を設定していたが、
-#   herdr はマウス選択とクリップボード連携を内蔵で処理するため個別設定は不要。
-# - ステータスライン: tmux 30-status.conf の凝った表示は herdr のサイドバー UI に置き換わる。
+# 補足（tmux から素直に移せない項目）:
+# リサイズは prefix+r (resize_mode) → 矢印/hjkl。コピペはマウス選択+内蔵クリップボード連携で代替。
+# ステータスラインは herdr のサイドバー UI に置き換わる。
 
 [ui]
-# エージェントパネルを space（作業単位）ごとにグループ表示。
-agent_panel_sort = "spaces"
-# tab を使わない運用。1 tab のときは上部タブバーを隠す（space 内は基本 1 tab なので常に非表示）。
-hide_tab_bar_when_single_tab = true
+agent_panel_sort = "spaces"         # エージェントパネルを space ごとにグループ表示
+hide_tab_bar_when_single_tab = true # tab を使わない運用のため 1 tab 時は上部タブバーを隠す
 
-# ===== popup: space を「開く場所を選んでから」作る =====
-# prefix+n: hspace の fzf ピッカー。~/Develop/*/repos/<repo> と
-# ~/Develop/*/worktrees/<SLOT>/<repo> を zoxide の frecency 順に並べ、Enter で
-# その cwd の space を作って移動し、初期ペインで claude を起動する
-# （作ってから cd して claude を打つ手間をなくすのが目的）。
-# 一覧の ● は「すでにその場所で space が開いている」印。ESC で何もせず閉じる。
-# 素の新規作成（今の cwd を引き継ぐ）は prefix+shift+n（new_workspace）に退避済み。
+# popup: space を「開く場所を選んでから」作る。hspace は ~/Develop/*/repos/<repo> と
+# ~/Develop/*/worktrees/<SLOT>/<repo> を zoxide frecency 順の fzf で選ばせ、選んだ cwd で space を作って
+# 初期ペインで claude まで起動する（● はすでに space が開いている印、ESC で中止）。
 [[keys.command]]
 key = "prefix+n"
 type = "popup"
