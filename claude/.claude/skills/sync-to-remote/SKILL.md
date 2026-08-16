@@ -246,7 +246,7 @@ gh pr create --draft --base <base> --head <feature>-pN \
 
 ### 要確認
 - <PR 運用の判定が `不明` で `あり` に倒した、など>
-- <stacked のとき>未作成の後続フェーズ: <残り本数> — この PR が green + 全件返信済みになったら `<feature>-pN` で /sync-to-remote を再実行
+- <stacked のとき>未作成の後続フェーズ: <残り本数> — この PR が green + 全件返信済みになったら `<feature>-pN` に switch して `/sync-to-remote` を再実行
 
 ### 次の一手
 - CI を監視する: `/watch-ci`
