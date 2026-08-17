@@ -26,10 +26,6 @@
     file-removed-label = [-]
     file-copied-label = [C]
     file-added-label = [+]
-[includeIf "gitdir:~/work/"]
-    path = ~/.gitconfig-work
-[includeIf "gitdir:~/personal/"]
-    path = ~/.gitconfig-personal
 [include]
     path = ~/.gitconfig.local
 
