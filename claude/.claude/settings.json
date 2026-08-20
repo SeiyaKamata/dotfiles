@@ -1,4 +1,7 @@
 {
+  "env": {
+    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(git add *)",
@@ -79,9 +82,6 @@
         ]
       }
     ]
-  },
-  "env": {
-    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1"
   },
   "enableWorkflows": false,
   "workflowKeywordTriggerEnabled": false,
