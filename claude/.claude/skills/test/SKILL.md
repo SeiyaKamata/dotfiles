@@ -31,7 +31,38 @@ argument-hint: "<feature>"
 - `$ARGUMENTS[0]`(feature) が未指定なら「使い方: /test <feature>」を表示して終了
 
 ### Step 2: 対象確定
-`/orchestrator`「工程一覧」の `/test` の「対象確定」の手順 1〜3 に従い、feature・対象ブランチを確定する。`/test` は差分なくすべて実行する。
+
+起動時に対象 feature と実行コンテキストを次の手順で確定する。
+
+1. feature の確定 — 第 1 引数。未指定なら使い方を表示して終了する。
+2. ブランチの確定 — `git branch --show-current` をそのまま採用する。
+   - 実装ブランチ `<feature>` にいる → 想定どおり
+   - デフォルトブランチにいる（PR を作らない運用で直接コミットしている）→ そのまま続行する
+   - detached HEAD → `branch: none` として続行する（レポートは書けるが、後で `/fix` が行う branch 照合の材料が減る）
+3. 実行コンテキストの確定 — `feature` / `branch` / `head`（`git rev-parse HEAD`）を確定し、以降の入力導出とレポート出力をこの確定値に基づいて行う。
+
+実行コンテキスト frontmatter（`test-report` / `review` / `qa-report` 共通）:
+```yaml
+---
+feature: stage-context-free
+branch: stage-context-free             # detached・照合不可時は none
+head: 4f8c1e9b2a...                    # git rev-parse HEAD（40文字。短縮しない）
+ran_at: 2026-07-28T22:45:00+0900       # レポートを書き出した時刻
+fixed: false                           # 直前に /fix がこのレポートの対象コードを修正していたか
+count: 1                               # この判定が何回連続で非 PASS/OK か（PASS/OK なら 1 にリセット）
+---
+```
+収集コマンド（macOS の BSD `date` は `-Iseconds` 非対応なのでフォーマット指定を使う）:
+```bash
+git branch --show-current                       # branch
+git rev-parse HEAD                              # head
+date +"%Y-%m-%dT%H:%M:%S%z"                     # ran_at
+```
+`phase` キーは持たない。`/test` はフェーズを持たず実装ブランチ 1 本の上で 1 回ずつ回るためで、対象の同一性は `branch` と `head` で判定できる。
+
+**`fixed` の決め方**: 新しいレポートを書き出すときは既存ファイルの値を読まず、**常に `fixed: false` を書く**。これは「まだ `/fix` が着手していない」というレポートの初期状態を表す。`fixed: true` に変えるのは `/fix` だけで、修正を適用したときにそのレポートの `fixed` フィールドだけを直接書き換える。判定内容は変えない — これが `/fix` の唯一のレポート更新である。
+
+**`count` の決め方**: 保存先を上書きする直前に、既存ファイルの**判定**（PASS/FAIL）と `count` を読む。今回の判定が FAIL で、かつ既存ファイルの判定も FAIL だったなら `count` を **+1** して書く。今回が PASS、または既存ファイルが無い／既存ファイルの判定が PASS だったなら `count: 1` にリセットする。これにより「何連続で失敗しているか」がレポート単体から読み取れる。
 
 保存先は `.specs/<feature>/test-report.md`（feature 単位の単一パス）。
 
@@ -42,7 +73,7 @@ argument-hint: "<feature>"
 
 - プロジェクト CLAUDE.md を最優先にテストコマンドを検出して実行する
 - PASS/FAIL を判定する
-- 最新結果を保存先パスに書き出す。frontmatter に確定値を書き写し、`ran_at` だけ自分で記録する。`fixed` は常に `false` を書く（`/fix` だけが `true` に変える。仕様は `/orchestrator`「工程一覧」の「実行コンテキスト frontmatter」参照）。今回が FAIL かつ既存レポートも FAIL だったなら `count` を既存値 +1、それ以外（PASS・既存レポート無し・既存レポートが PASS）なら `count: 1` にする。`/fix` の入力源になる
+- 最新結果を保存先パスに書き出す。frontmatter に確定値を書き写し、`ran_at` だけ自分で記録する。`fixed` は常に `false` を書く（`/fix` だけが `true` に変える。仕様は本スキル Step 2 の「`fixed` の決め方」参照）。今回が FAIL かつ既存レポートも FAIL だったなら `count` を既存値 +1、それ以外（PASS・既存レポート無し・既存レポートが PASS）なら `count: 1` にする。`/fix` の入力源になる
 - **判定・要点・レポートパスだけを返す**。テストログ本体はサブエージェント側に閉じる。記録項目が増えても戻り情報量は増やさない
 
 レポートに書く内訳（ターミナルには列挙しない）：

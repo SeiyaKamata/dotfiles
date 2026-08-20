@@ -25,7 +25,21 @@ argument-hint: "<feature>"
 - `$ARGUMENTS[0]`(feature) が未指定なら「使い方: /review <feature>」を表示して終了
 
 ### Step 2: 対象確定とレビュー範囲の導出
-`/orchestrator`「工程一覧」の `/review` の「対象確定」の手順 1〜3 に従い、feature・対象ブランチを確定する。`/review` は差分なくすべて実行する。
+
+起動時に対象 feature と実行コンテキストを次の手順で確定する。
+
+1. feature の確定 — 第 1 引数。未指定なら使い方を表示して終了する。
+2. ブランチの確定 — `git branch --show-current` をそのまま採用する。
+   - 実装ブランチ `<feature>` にいる → 想定どおり
+   - デフォルトブランチにいる（PR を作らない運用で直接コミットしている）→ そのまま続行する
+   - detached HEAD → `branch: none` として続行する（レポートは書けるが、後で `/fix` が行う branch 照合の材料が減る）
+3. 実行コンテキストの確定 — `feature` / `branch` / `head`（`git rev-parse HEAD`）を確定する。収集コマンド（macOS の BSD `date` は `-Iseconds` 非対応なのでフォーマット指定を使う）:
+   ```bash
+   git branch --show-current                       # branch
+   git rev-parse HEAD                              # head
+   date +"%Y-%m-%dT%H:%M:%S%z"                     # ran_at
+   ```
+   `phase` キーは持たない。`/review` はフェーズを持たず実装ブランチ 1 本の上で 1 回ずつ回るためで、対象の同一性は `branch` と `head` で判定できる。
 
 確定したら、レビュー対象の差分を **git から導出**する：
 
@@ -89,8 +103,6 @@ OK / NG
 ### 推奨対応
 - 対応方針
 ```
-
-frontmatter の値の仕様は `/orchestrator`「工程一覧」の `/test` の「実行コンテキスト frontmatter」（`/review` も同じ書式を使う）を参照する。
 
 ### Step 5: 出力
 

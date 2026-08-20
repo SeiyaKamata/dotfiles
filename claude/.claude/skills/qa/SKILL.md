@@ -35,7 +35,16 @@ argument-hint: "<feature>"
 
 ### Step 2: 対象確定
 
-`/orchestrator`「工程一覧」の `/qa` の「対象確定」の手順 1〜3 を実施する（feature の確定・ブランチの確定・実行コンテキストの確定）。続けて `.specs/<feature>/qa.md` の存在を確認する。無ければ「入力 `.specs/<feature>/qa.md` がありません（`/tasks` が生成します）」として中断する。この時点では何も起動していないので停止は不要。
+起動時に対象 feature と実行コンテキストを次の手順で確定する。
+
+1. feature の確定 — 第 1 引数。未指定なら使い方を表示して終了する。
+2. ブランチの確定 — `git branch --show-current` をそのまま採用する。
+   - 実装ブランチ `<feature>` にいる → 想定どおり
+   - デフォルトブランチにいる → そのまま続行する
+   - detached HEAD → `branch: none` として続行する
+3. 実行コンテキストの確定 — `feature`/`branch`/`head`（`git rev-parse HEAD`）を確定する。`phase` キーは持たない。`/qa` はフェーズを持たず実装ブランチ 1 本の上で 1 回ずつ回るためで、対象の同一性は `branch` と `head` で判定できる。
+
+続けて `.specs/<feature>/qa.md` の存在を確認する。無ければ「入力 `.specs/<feature>/qa.md` がありません（`/tasks` が生成します）」として中断する。この時点では何も起動していないので停止は不要。
 
 **完了ゲート:** feature を確定し、`qa.md` の存在を確認したか。
 
@@ -113,8 +122,6 @@ count: 1                               # 非 PASS が何回連続か（PASS な�
 - S<n> [タイトル]: [原因] — スクショ: <path>
   - _Requirements: N_
 ```
-
-frontmatter の値の仕様は `/orchestrator`「工程一覧」の `/test` の「実行コンテキスト frontmatter」（`/qa` も同じ書式を使う）を参照する。
 
 **完了ゲート:** `qa.md` のチェックボックスを更新し、`qa-report.md` を書き出したか。
 

@@ -208,46 +208,6 @@ loop:
 
 **完了後**: → `/test` へ
 
-### 共通: 対象確定（test / review / qa / fix）
-
-`/test` `/review` `/qa` `/fix` は会話履歴に依存せず単体でコールド起動しても同じ対象に到達できるよう、起動時に対象 feature と実行コンテキストを自力で確定する。差分なく次の手順をそのまま実行する。
-
-1. feature の確定 — 第 1 引数。未指定なら使い方を表示して終了する。
-2. ブランチの確定 — `git branch --show-current` をそのまま採用する。
-   - 実装ブランチ `<feature>` にいる → 想定どおり
-   - デフォルトブランチにいる（PR を作らない運用で直接コミットしている）→ そのまま続行する
-   - detached HEAD → `branch: none` として続行する（レポートは書けるが、後で `/fix` が行う branch 照合の材料が減る）
-3. 実行コンテキストの確定 — `feature` / `branch` / `head`（`git rev-parse HEAD`）を確定し、以降の入力導出とレポート出力をこの確定値に基づいて行う。
-
-実行コンテキスト frontmatter（`test-report` / `review` / `qa-report` 共通）:
-```yaml
----
-feature: stage-context-free
-branch: stage-context-free             # detached・照合不可時は none
-head: 4f8c1e9b2a...                    # git rev-parse HEAD（40文字。短縮しない）
-ran_at: 2026-07-28T22:45:00+0900       # レポートを書き出した時刻
-fixed: false                           # 直前に /fix がこのレポートの対象コードを修正していたか
-count: 1                               # この判定が何回連続で非 PASS/OK か（PASS/OK なら 1 にリセット）
----
-```
-収集コマンド（macOS の BSD `date` は `-Iseconds` 非対応なのでフォーマット指定を使う）:
-```bash
-git branch --show-current                       # branch
-git rev-parse HEAD                              # head
-date +"%Y-%m-%dT%H:%M:%S%z"                     # ran_at
-```
-`phase` キーは持たない。これらの工程はフェーズを持たず実装ブランチ 1 本の上で 1 回ずつ回るためで、対象の同一性は `branch` と `head` で判定できる。
-
-**`fixed` の決め方（`/test` `/qa` `/review` 共通）**: 新しいレポートを書き出すときは既存ファイルの値を読まず、**常に `fixed: false` を書く**。これは「まだ `/fix` が着手していない」というレポートの初期状態を表す。`fixed: true` に変えるのは `/fix` だけで、修正を適用したときにそのレポートの `fixed` フィールドだけを直接書き換える。判定内容は変えない — これが `/fix` の唯一のレポート更新である。これにより:
-
-- `fixed: false` のレポート = まだ `/fix` が着手していない、または前回の修正が効かず `/test`/`/qa`/`/review` の再実行で差し戻された状態
-- `fixed: true` のレポート = `/fix` が着手済みで、まだ下流の再検証を経ていない状態
-
-`/fix` は自分の Step で `fixed` を読み、`true`（＝二重着手になる）なら中断する（詳細は `/fix` 自身の Step 参照）。
-
-**`count` の決め方（`/test` `/qa` `/review` 共通）**: 保存先を上書きする直前に、既存ファイルの**判定**（PASS/FAIL・OK/NG・PASS/FAIL/BLOCKED）と `count` を読む。今回の判定が非 PASS/OK で、かつ既存ファイルの判定も非 PASS/OK だったなら `count` を **+1** して書く。今回が PASS/OK、または既存ファイルが無い／既存ファイルの判定が PASS/OK だったなら `count: 1` にリセットする。これにより「何連続で失敗しているか」がレポート単体から読み取れ、`/orchestrator` は自分でターンをまたいで数えなくても、書き出された `count` を見るだけで「test FAIL 3 回連続」「review NG 3 回連続」のような停止条件を判定できる（`/orchestrator` がコールドで再開しても数え直しにならない）。
-
-
 ### Step 6: `/test`
 
 - 起動: `/test <feature>`
