@@ -24,6 +24,7 @@ try:
 except: data = {}
 
 model = data.get("model", {}).get("display_name", "Claude")
+effort = (data.get("effort") or {}).get("level")
 
 # context_window の直下に used_percentage がある
 ctx = data.get("context_window") or {}
@@ -49,4 +50,6 @@ else:
 rate_color = GREEN if rate_pct < 50 else (YELLOW if rate_pct < 80 else RED)
 rate_msg = f"{rate_color}rate {rate_pct}%{reset_str}{RESET}"
 
-print(f"{model} | {bar_color}{bar}{RESET} {pct}% | {rate_msg}")
+effort_part = f"{GRAY}{effort}{RESET} | " if effort else ""
+
+print(f"{model} | {effort_part}{bar_color}{bar}{RESET} {pct}% | {rate_msg}")
