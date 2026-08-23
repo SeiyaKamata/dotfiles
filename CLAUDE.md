@@ -2,7 +2,7 @@
 
 個人の開発環境設定を管理するリポジトリ。
 
-`~/.claude/` の `CLAUDE.md` / `settings.json` / `skills` / `agents` / `.mcp.json` は `claude/.claude/` への
+`~/.claude/` の `CLAUDE.md` / `settings.json` / `skills` / `agents` / `.mcp.json` / `keybindings.json` は `claude/.claude/` への
 symlink。**この repo を編集すると全プロジェクトの Claude Code 設定が即座に変わる**（インストール操作は不要）。
 
 ## ブランチ運用
