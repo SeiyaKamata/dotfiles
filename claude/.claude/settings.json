@@ -58,8 +58,10 @@
       "Bash(docker compose ps *)",
       "Bash(docker compose exec *)",
       "Read(~/Develop/*)",
-      "Edit(.specs/**)",
       "Edit(~/Develop/**/.specs/**)"
+    ],
+    "deny": [
+      "AskUserQuestion"
     ],
     "ask": [
       "Bash(git push --force*)",
