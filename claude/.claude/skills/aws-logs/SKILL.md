@@ -244,8 +244,5 @@ aws logs get-log-events --log-group-name <group> --log-stream-name <stream> \
 - **`ThrottlingException` / クエリが遅い** → 期間を短く割って回す。並列に投げない
 - **ページャで止まる** → すべての `aws` に `--no-cli-pager` を付ける（付け忘れが原因）
 
-## 出力規律
-実行中の逐次ナレーション（「〜します」「〜しました」）は出さない（ツール実行はターミナルに表示されるため二重になる）。Step 2 のプロファイル選択・Step 4 のロググループ選択は**対話ゲート**なのでこの制限の対象外。
-
 ## 完了条件
 指定された条件で CloudWatch Logs を検索し、**所見（見つかった／見つからなかった）を `.specs/<feature>/log-report.md` に記録したら完了**。原因の確定は完了条件に含めない（それは `/bughunt`・`/fix`）。
