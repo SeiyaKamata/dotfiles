@@ -1,6 +1,7 @@
 ---
 name: review
 description: 実装を受け取りコードレビューを行う。test PASS 後に使う。
+allowed-tools: Read, Write, Glob, Grep, Bash(git *), Bash(date *), Skill
 argument-hint: "<feature>"
 ---
 

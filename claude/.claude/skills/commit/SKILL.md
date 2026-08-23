@@ -1,6 +1,7 @@
 ---
 name: commit
 description: 変更内容を確認し、committer エージェントに計画とコミット実行を委譲して結果を報告する。
+allowed-tools: Bash(git *), Agent
 argument-hint: ""
 ---
 

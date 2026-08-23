@@ -1,7 +1,7 @@
 ---
 name: proposals-sweep
 description: 提案キューを棚卸しし、open な提案を 1 件ずつ既存対応状況と突合して反映するか落とすかを決める手動スイープ。dotfiles の .specs/proposals/ を走査し、再発クラスタ（kind: rule で target+claim が近いもの 3 件以上）と着手待ち backlog を報告したうえで、open を古い順に 1 件ずつトリアージする。各件で対象スキル・CLAUDE.md を実際に grep して「既に対応済みか・前提が崩れていないか」を確認し、価値判断の推奨を付けて提示する。人が決めた反映・却下をその場で実行する。90日超の singleton は dropped に落とす。
-allowed-tools: Bash(ls *), Bash(grep *), Bash(awk *), Bash(date *), Bash(readlink *), Bash(git log *), Bash(git show *), Bash(git diff *), Read, Edit, Write, WebFetch, AskUserQuestion
+allowed-tools: Bash(ls *), Bash(grep *), Bash(awk *), Bash(date *), Bash(readlink *), Bash(git log *), Bash(git show *), Bash(git diff *), Read, Edit, Write, WebFetch
 ---
 
 # 提案キュー棚卸しスキル

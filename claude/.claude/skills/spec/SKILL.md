@@ -1,7 +1,7 @@
 ---
 name: spec
 description: ユーザーから機能要望を受け取り、要件を詳細化してEARS形式で出力する。新機能追加や新規開発の話が出たら使う。
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Write, Edit, Glob, Grep
 argument-hint: "<feature>"
 ---
 

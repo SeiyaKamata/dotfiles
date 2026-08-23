@@ -2,6 +2,7 @@
 name: orchestrator
 description: 開発パイプライン全体を管理する。新規開発や機能追加の指示を受けたら使う。
 disable-model-invocation: true
+allowed-tools: Bash(git *), Bash(gh *), Skill, Agent
 argument-hint: "[<stage>] <feature>"
 ---
 

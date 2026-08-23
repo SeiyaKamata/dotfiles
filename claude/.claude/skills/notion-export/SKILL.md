@@ -1,7 +1,7 @@
 ---
 name: notion-export
 description: 実装結果（実装方針・PR URL・QA結果）を Notion の元タスクページ先頭に追記する。PRが揃って結果をNotionに報告するとき使う。
-allowed-tools: Read, Glob, Grep, Bash(git *), Bash(gh *), Bash(ls *), Bash(test *), Bash(date *), AskUserQuestion, mcp__claude_ai_Notion__*, mcp__plugin_Notion_notion__*
+allowed-tools: Read, Glob, Grep, Bash(git *), Bash(gh *), Bash(test *), Bash(date *), mcp__claude_ai_Notion__*, mcp__plugin_Notion_notion__*
 argument-hint: "<feature>"
 ---
 

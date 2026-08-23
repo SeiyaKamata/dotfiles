@@ -2,7 +2,7 @@
 name: handoff
 description: 今のタスクを進めるのに別PJの変更が必要なとき、その依頼を作業ディレクトリ外の別PJに投げる。相手PJの.specs/配下に要望書(seed.md)を書いて受け渡し、相手は/specで拾う。別PJのファイルを直接編集できずブロックされたときにも使う。
 argument-hint: "[依頼先PJのパスまたは略称] [機能名]"
-allowed-tools: Bash(ls *), Bash(git -C *), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(git -C *), Read, Write, Edit, Glob, Grep
 ---
 
 # 他 PJ への修正依頼スキル

@@ -1,6 +1,7 @@
 ---
 name: hotfix
 description: 調査済みのバグ報告を受け、本番tagからreleaseブランチとworkブランチを切って修正し、release宛・main宛の2つのPRを作成する。
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git *), Bash(gh *), Skill
 argument-hint: "<feature> [tag]"
 ---
 

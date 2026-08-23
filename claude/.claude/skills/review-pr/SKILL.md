@@ -1,6 +1,7 @@
 ---
 name: review-pr
 description: 他人のPRを人間と一緒にペアレビューする。PRレビューを依頼された時に使う。
+allowed-tools: Bash(gh *)
 argument-hint: "[PR番号]"
 ---
 

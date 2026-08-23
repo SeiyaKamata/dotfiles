@@ -1,7 +1,7 @@
 ---
 name: tasks
 description: 設計を受け取り実装タスクを生成する。.specs/<feature>/design.mdが出来上がったら使う。
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Write, Edit, Glob, Grep
 argument-hint: "<feature>"
 ---
 

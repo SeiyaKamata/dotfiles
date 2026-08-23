@@ -1,7 +1,7 @@
 ---
 name: notion-import
 description: Notion のタスクページから機能要望(seed.md)を作る。Notion のチケット URL を渡されたら spec の前に使う。
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls *), Bash(test *), AskUserQuestion, mcp__claude_ai_Notion__*, mcp__plugin_Notion_notion__*
+allowed-tools: Read, Write, Edit, Glob, Grep, mcp__claude_ai_Notion__*, mcp__plugin_Notion_notion__*
 argument-hint: "<notion-url> [feature]"
 ---
 

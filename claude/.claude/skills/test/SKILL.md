@@ -1,7 +1,7 @@
 ---
 name: test
 description: 実装完了後にテスト・lint・フォーマットチェックなどの検証を実行し結果を報告する。impl完了後に使う。
-allowed-tools: Read, Write, Bash
+allowed-tools: Read, Write, Edit, Bash
 argument-hint: "<feature>"
 ---
 
