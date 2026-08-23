@@ -48,7 +48,7 @@ edit_scrollback = ""                # 下の [[keys.command]] prefix+e (nvim pop
 new_worktree = ""                   # herdr 内蔵の worktree 作成は使わない（swws/devpick で自前管理しているため無効化）
 
 [ui]
-agent_panel_sort = "spaces"         # エージェントパネルを space ごとにグループ表示
+agent_panel_sort = "spaces"
 hide_tab_bar_when_single_tab = true # tab を使わない運用のため 1 tab 時は上部タブバーを隠す
 show_agent_labels_on_pane_borders = true # タブバーを隠す運用のため、ペイン境界に agent 名を出して見分ける
 
