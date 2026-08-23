@@ -16,7 +16,7 @@ prefix = "ctrl+space"               # tmux: set -g prefix C-Space
 detach = "prefix+d"                 # tmux 既定 bind d detach-client に合わせる
 
 # space (workspace) = tmux window 相当
-new_workspace = "prefix+n"    # 素の新規作成（cwd 引き継ぎ）。場所を選んで作るのは prefix+n の hspace ピッカーへ
+new_workspace = "prefix+shift+n"    # 素の新規作成（cwd 引き継ぎ）。場所を選んで作るのは prefix+n の hspace ピッカーへ
 next_workspace = "ctrl+j"           # 上下移動は vim 流 j=次/k=前、prefix 不要の単独キー
 previous_workspace = "ctrl+k"       # ctrl+j/k はペインへ渡らなくなるため nvim 側の同キー割り当ては削除済み
 
@@ -45,7 +45,20 @@ edit_scrollback = ""                # 下の [[keys.command]] prefix+e (nvim pop
 # リサイズは prefix+r (resize_mode) → 矢印/hjkl。コピペはマウス選択+内蔵クリップボード連携で代替。
 # ステータスラインは herdr のサイドバー UI に置き換わる。
 
+new_worktree = ""                   # herdr 内蔵の worktree 作成は使わない（swws/devpick で自前管理しているため無効化）
+
 [ui]
 agent_panel_sort = "spaces"         # エージェントパネルを space ごとにグループ表示
 hide_tab_bar_when_single_tab = true # tab を使わない運用のため 1 tab 時は上部タブバーを隠す
+show_agent_labels_on_pane_borders = true # タブバーを隠す運用のため、ペイン境界に agent 名を出して見分ける
+
+[ui.toast]
+delivery = "terminal"               # 端末側の通知機能経由でデスクトップ通知（SSH越しでも動く。system直叩きより確実）
+
+[[keys.command]]
+key = "prefix+n"
+type = "popup"
+command = '''export PATH="$HOME/.nix-profile/bin:$HOME/.local/bin:$PATH"; dir=$(zsh -c "source $HOME/.zsh/50-herdr.zsh; devpick"); [ -n "$dir" ] && herdr workspace create --cwd "$dir" --focus'''
+width = "70%"
+height = "60%"
 
