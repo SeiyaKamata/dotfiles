@@ -94,6 +94,14 @@ vim.api.nvim_create_autocmd("BufReadPre", {
 	end,
 })
 
+-- プレーンテキスト・コミットメッセージ・ドキュメントは折り返し表示にする
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = { "text", "markdown", "gitcommit" },
+	callback = function()
+		vim.opt_local.wrap = true
+	end,
+})
+
 -- 長い行（10000文字以上）を含むバッファも大ファイルとして扱う
 vim.api.nvim_create_autocmd("BufReadPost", {
 	callback = function(ev)
