@@ -28,19 +28,6 @@ alias ghlo='gh pr list --author @me'                     # 自分がowner
 alias ghprn='gh pr view --json number --jq .number'
 
 # CodeRabbit
-# sync-to-remote が PR 本文に埋め込む `@coderabbitai ignore` を外し、レビューを走らせる。
-# セルフレビューが終わったカレントブランチの PR で叩く。
-ghcr() {
-  local tmpfile
-  tmpfile=$(mktemp)
-  gh pr view --json body --jq .body > "$tmpfile"
-
-  if head -n1 "$tmpfile" | grep -qF '@coderabbitai ignore'; then
-    sed -i '' '1d' "$tmpfile"
-    [ -z "$(head -n1 "$tmpfile")" ] && sed -i '' '1d' "$tmpfile"
-  fi
-
-  gh pr edit --body-file "$tmpfile"
-  gh pr comment --body "@coderabbitai review"
-  rm -f "$tmpfile"
-}
+# sync-to-remote が本文に埋め込む `@coderabbitai ignore` は自動レビューだけを止めるため、
+# コメントで明示的にレビューを頼めばそのつど実行される。セルフレビュー後にカレントブランチの PR で叩く。
+alias ghcr='gh pr comment --body "@coderabbitai review"'
