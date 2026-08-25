@@ -12,7 +12,6 @@ return {
 	require("plugins.mason"),
 	require("plugins.none-ls"),
 	require("plugins.nvim-tree"),
-	require("plugins.octo"),
 	require("plugins.surround"),
 	require("plugins.telescope"),
 	require("plugins.tokyonight"),
