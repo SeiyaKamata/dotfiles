@@ -34,8 +34,11 @@ alias gP="git push origin HEAD"
 alias gPf="git push -f origin HEAD"
 
 # Pull aliases (gp)
-alias pg="git pull"
+alias gp="git pull"
 alias gpd="git pull origin develop"
+
+# Fetch aliases (gf)
+alias gf="git fetch"
 
 # Rebase aliases (gr)
 alias grb="git rebase"
