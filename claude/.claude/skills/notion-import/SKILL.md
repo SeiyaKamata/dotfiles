@@ -89,7 +89,7 @@ Notion に書かれていた対象範囲や既知の手がかり（参考情報�
 （`.specs/<feature>/seed.md` は `/spec` が自動で読み込む）。
 ```
 
-本文は `/spinoff`・`/handoff` の seed.md と同じ構成で、**Notion 由来のときだけ命名メタの frontmatter が先頭に付く**。
+本文は `/spinoff` の seed.md と同じ構成で、**Notion 由来のときだけ命名メタの frontmatter が先頭に付く**。
 
 | 項目 | 例 | 使い先 |
 |---|---|---|

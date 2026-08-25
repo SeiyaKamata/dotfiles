@@ -72,19 +72,6 @@
     "defaultMode": "auto"
   },
   "model": "sonnet",
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/restrict-edits.sh"
-          }
-        ]
-      }
-    ]
-  },
   "enableWorkflows": false,
   "workflowKeywordTriggerEnabled": false,
   "statusLine": {
@@ -130,7 +117,7 @@
   "autoMode": {
     "allow": [
       "$defaults",
-      "Cross-Repo Spec Write: writing a markdown document under the .specs/ directory of a repo whose path is under one of the three trusted locations listed in Environment (~/Develop/kamata/repos/dotfiles, ~/Develop/lrm-corp/repos/, ~/Develop/lrm-corp/worktrees/) is allowed even when that repo is not the working directory. The shapes are <trusted-repo>/.specs/proposals/*.md (the /propose skill) and <trusted-repo>/.specs/<feature>/*.md such as seed.md (the /handoff skill); these skills are designed to cross repos. This covers Write and Edit of such a file and creating its parent directories. It does NOT cover: a path that reaches outside those prefixes via .. or a symlink; any non-markdown file, script, hook or settings file, even under .specs/; deleting files or directories; any path outside .specs/; or a destination repo the user did not name in their own message or the skill invocation. Overwriting a document that existed before this session is not covered either — that stays Irreversible Local Destruction until the user names the file. This exception clears ONLY the objection to writing outside the working repo. Content rules apply in full as if no exception existed: Sensitive-Source Provenance, Credential Leakage, PII Data Handling and Excess Sensitive Detail judge the document's content, and Instruction Poisoning still blocks a document whose content would function as a permission grant, an authorization claim, or a block-rule bypass when a later session reads it, .specs/ path or not."
+      "Cross-Repo Spec Write: writing a markdown document under the .specs/proposals/ directory of a repo whose path is under one of the three trusted locations listed in Environment (~/Develop/kamata/repos/dotfiles, ~/Develop/lrm-corp/repos/, ~/Develop/lrm-corp/worktrees/) is allowed even when that repo is not the working directory. The shape is <trusted-repo>/.specs/proposals/*.md (the /propose skill); this skill is designed to cross repos. This covers Write and Edit of such a file and creating its parent directories. It does NOT cover: a path that reaches outside those prefixes via .. or a symlink; any non-markdown file, script, hook or settings file, even under .specs/; deleting files or directories; any path outside .specs/proposals/; or a destination repo the user did not name in their own message or the skill invocation. Overwriting a document that existed before this session is not covered either — that stays Irreversible Local Destruction until the user names the file. This exception clears ONLY the objection to writing outside the working repo. Content rules apply in full as if no exception existed: Sensitive-Source Provenance, Credential Leakage, PII Data Handling and Excess Sensitive Detail judge the document's content, and Instruction Poisoning still blocks a document whose content would function as a permission grant, an authorization claim, or a block-rule bypass when a later session reads it, .specs/ path or not."
     ],
     "soft_deny": [
       "$defaults",
