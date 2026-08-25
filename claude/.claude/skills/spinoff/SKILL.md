@@ -13,7 +13,7 @@ allowed-tools: Read, Write, Glob, Grep, Bash(ls *)
 **追跡記録を残さない。** 元 feature に「切り出し済み」のマーキングをしない。これが別 PJ 依頼のブロッカー（依頼元 `tasks.md` の `S<n>` で追跡する）との決定的な違い。
 
 ## 入出力
-- **入力**: `.specs/<元feature>/review.md` / プロンプトで直接渡された指摘 / `.specs/proposals/` の backlog 提案ファイル（`/propose` からの導線）/ `/spec` が分割候補として挙げた Requirement（`.specs/<元feature>/requirements.md` の該当部分。`/spec` の完了カードが案内する導線）
+- **入力**: `.specs/<元feature>/review.md` / プロンプトで直接渡された指摘 / `/spec` が分割候補として挙げた Requirement（`.specs/<元feature>/requirements.md` の該当部分。`/spec` の完了カードが案内する導線）
 - **出力**: `.specs/<新feature>/seed.md`（1 件以上）
 
 ## 判断ポリシー
@@ -38,7 +38,6 @@ allowed-tools: Read, Write, Glob, Grep, Bash(ls *)
 
 - `$ARGUMENTS[0]`（元 feature）があれば `.specs/<feature>/review.md` を `ls`/`Glob` で探し、見つかれば読む
 - プロンプトで指摘が直接渡されていれば、それも候補に含める
-- **`.specs/proposals/` 配下の backlog 提案ファイルのパスが渡された場合**は Read して候補に含める（`/propose` の完了カードが案内する導線の受け口）。提案ファイルの `target`・`claim`・本文をそのまま候補の内容として扱う
 - **`/spec` が挙げた分割候補の切り出しとして起動された場合**（`/spec` の完了カードが案内する導線）は、`.specs/<元feature>/requirements.md` の指定された Requirement（見出し・受け入れ条件・関連するスコープ項目）を候補として扱う。要件形式のまま seed.md に転記してよい（詳細化は切り出し先の `/spec` の責務）。元 feature の requirements.md からの除去はここでは行わない — 人が `/spec <元feature>` の編集モードで「含まない」へ移す
 - 元 feature が未指定かつプロンプトの指摘も無ければ「使い方: /spinoff <feature>」を表示して終了
 - review も無くプロンプトの指摘も無ければ「切り出せるスコープ外指摘が無い」旨を伝えて終了
