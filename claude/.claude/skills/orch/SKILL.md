@@ -49,23 +49,23 @@ argument-hint: "[<stage>] <feature>"
 
 ### 工程レジストリ（早見表）
 
-指定可能な開始工程は次の 11 個（`/fix` は自己修正ループの内部工程のため対象外）。「前提成果物」の「+」は 1 つ上の行までの前提をすべて含む。各工程の詳しい手順・注意点は「## 工程一覧」の同名見出しを参照。
+指定可能な開始工程は次の 11 個（`/fix` は自己修正ループの内部工程のため対象外）。各工程の詳しい手順・注意点は「## 工程一覧」の同名見出しを参照。
 
-**前提成果物は事前チェックしない。** 開始工程をそのまま起動し、不足していれば起動した skill 自身がそれを検知して案内する（各 skill は単体起動でも同じ案内を出す設計になっている）。orch はその案内に従うだけでよい（Step 1-4 参照）。
+**前提成果物は事前チェックしない。** 開始工程をそのまま起動し、不足していれば起動した skill 自身がそれを検知して案内する（各 skill は単体起動でも同じ案内を出す設計になっている）。orch はその案内に従うだけでよい（Step 1-4 参照）。この理由により工程レジストリは前提成果物を列に持たない。
 
-| 開始工程 | 前提成果物 | 開始 Step | 対象フェーズ | 起動コマンド |
-|---|---|---|---|---|
-| `spec` | なし | Step 2 | 不要 | `/spec <feature>` |
-| `design` | `requirements.md` | Step 3 | 不要 | `/design <feature>` |
-| `tasks` | + `design.md` | Step 4 | 不要 | `/tasks <feature>` |
-| `impl` | + `tasks.md` | Step 5 | 不要 | `/impl <feature>` |
-| `test` | + `tasks.md` | Step 6 | 不要 | `/test <feature>` |
-| `review` | + `tasks.md` | Step 7 | 不要 | `/review <feature>` |
-| `qa` | + `tasks.md` | Step 8 | 不要 | `/qa <feature>` |
-| `commit` | + `tasks.md` | Step 9 | 不要 | `/commit`（feature を渡さない） |
-| `sync-to-remote` | + コミット済みの実装 | Step 10-1 | 不要（初回）／必要（再呼び出し） | `/sync-to-remote`（feature を渡さない） |
-| `watch-ci` | + 対象 PR | Step 10-2 | 必要 | `/watch-ci <PR番号>`（feature ではなく解決した PR 番号を渡す） |
-| `resolve-comments` | + 対象 PR | Step 10-3 | 必要 | `/resolve-comments batch`（引数なし＝カレントブランチの PR） |
+| 開始工程 | 開始 Step | 対象フェーズ | 起動コマンド |
+|---|---|---|---|
+| `spec` | Step 2 | 不要 | `/spec <feature>` |
+| `design` | Step 3 | 不要 | `/design <feature>` |
+| `tasks` | Step 4 | 不要 | `/tasks <feature>` |
+| `impl` | Step 5 | 不要 | `/impl <feature>` |
+| `test` | Step 6 | 不要 | `/test <feature>` |
+| `review` | Step 7 | 不要 | `/review <feature>` |
+| `qa` | Step 8 | 不要 | `/qa <feature>` |
+| `commit` | Step 9 | 不要 | `/commit`（feature を渡さない） |
+| `sync-to-remote` | Step 10-1 | 不要（初回）／必要（再呼び出し） | `/sync-to-remote`（feature を渡さない） |
+| `watch-ci` | Step 10-2 | 必要 | `/watch-ci <PR番号>`（feature ではなく解決した PR 番号を渡す） |
+| `resolve-comments` | Step 10-3 | 必要 | `/resolve-comments batch`（引数なし＝カレントブランチの PR） |
 
 フェーズを必要とするのは `watch-ci` / `resolve-comments` / `sync-to-remote` の再呼び出しだけ（PR が確定した後の工程）。それ以外は実装ブランチ 1 本の上で動くのでフェーズを取らない。
 
@@ -153,9 +153,7 @@ loop:
 
 ### Step 2: `/spec`
 
-- 起動: `/spec <feature>`
-- 前提成果物: なし
-- 対象フェーズ: 不要
+起動条件・対象フェーズは「工程レジストリ」表を参照。
 
 **妥当性検証**: 「共通: 妥当性検証ループ」に従う。`stage-reviewer` に渡すもの:
 - 上流成果物: 起動時の要望テキスト + `seed.md`（あれば）
@@ -169,9 +167,7 @@ loop:
 
 ### Step 3: `/design`
 
-- 起動: `/design <feature>`
-- 前提成果物: `requirements.md`
-- 対象フェーズ: 不要
+起動条件・対象フェーズは「工程レジストリ」表を参照。
 
 **妥当性検証**: 「共通: 妥当性検証ループ」に従う。`stage-reviewer` に渡すもの:
 - 上流成果物: `requirements.md`
@@ -185,9 +181,7 @@ loop:
 
 ### Step 4: `/tasks`
 
-- 起動: `/tasks <feature>`
-- 前提成果物: + `design.md`
-- 対象フェーズ: 不要
+起動条件・対象フェーズは「工程レジストリ」表を参照。
 
 **妥当性検証**: 「共通: 妥当性検証ループ」に従う。`stage-reviewer` に渡すもの:
 - 上流成果物: `design.md`
@@ -201,9 +195,7 @@ loop:
 
 ### Step 5: `/impl`
 
-- 起動: `/impl <feature>`。実装ブランチ `<feature>` 1 本で全タスクを実装する
-- 前提成果物: + `tasks.md`
-- 対象フェーズ: 不要
+起動条件・対象フェーズは「工程レジストリ」表を参照。実装ブランチ `<feature>` 1 本で全タスクを実装する。
 
 **実行**: `impl/SKILL.md` に従って実装ブランチ `<feature>` を 1 本切って全タスクを実装する。
 
@@ -211,9 +203,7 @@ loop:
 
 ### Step 6: `/test`
 
-- 起動: `/test <feature>`
-- 前提成果物: + `tasks.md`
-- 対象フェーズ: 不要
+起動条件・対象フェーズは「工程レジストリ」表を参照。
 
 保存先: `.specs/<feature>/test-report.md`（feature 単位の固定パス）。
 
@@ -223,9 +213,7 @@ loop:
 
 ### Step 7: `/review`
 
-- 起動: `/review <feature>`
-- 前提成果物: + `tasks.md`
-- 対象フェーズ: 不要
+起動条件・対象フェーズは「工程レジストリ」表を参照。
 
 保存先: `.specs/<feature>/review.md`（feature 単位の固定パス）。
 
@@ -236,9 +224,7 @@ loop:
 
 ### Step 8: `/qa`
 
-- 起動: `/qa <feature>`
-- 前提成果物: + `tasks.md`
-- 対象フェーズ: 不要
+起動条件・対象フェーズは「工程レジストリ」表を参照。
 
 保存先: `.specs/<feature>/qa-report.md`（feature 単位の固定パス）。
 
@@ -261,9 +247,7 @@ loop:
 
 ### Step 9: `/commit`
 
-- 起動: `/commit`（feature を渡さない）
-- 前提成果物: + `tasks.md`（実装完了）
-- 対象フェーズ: 不要
+起動条件・対象フェーズは「工程レジストリ」表を参照。
 
 **実行**: 実装ブランチにコミットする（分割はまだ行わない）。
 
@@ -275,9 +259,7 @@ loop:
 
 ### Step 10-1: `/sync-to-remote`
 
-- 起動: `/sync-to-remote`（feature を渡さない）
-- 前提成果物: + コミット済みの実装
-- 対象フェーズ: 不要（初回）／必要（再呼び出し）
+起動条件・対象フェーズは「工程レジストリ」表を参照。
 
 **なぜ PR を 1 本ずつ出すのか（設計意図）**:
 - 一斉作成すると、CI と CodeRabbit の指摘が `p1` に返ってくるのが `pN` まで作り終えた後になり、**`p1` の修正が全スタックへの rebase 伝播を要求する**。rebase 伝播は自走で安全に行えないため、PR 数に比例して停止リスクが上がる
@@ -294,9 +276,7 @@ loop:
 
 ### Step 10-2: `/watch-ci`
 
-- 起動: `/watch-ci <PR番号>`（feature ではなく解決した PR 番号を渡す。対象フェーズは Step 1-2/1-3 で解決済み）
-- 前提成果物: + 対象 PR
-- 対象フェーズ: 必要
+起動条件・対象フェーズは「工程レジストリ」表を参照。`<PR番号>` は feature ではなく解決した PR 番号を渡す（対象フェーズは Step 1-2/1-3 で解決済み）。
 
 **実行**: `watch-ci/SKILL.md` に従い、この周で作った PR の CI green を待つ。
 
@@ -306,9 +286,7 @@ loop:
 
 ### Step 10-3: `/resolve-comments`
 
-- 起動: `/resolve-comments batch`（引数なし＝カレントブランチの PR。対象フェーズは Step 1-2/1-3 で解決済み）
-- 前提成果物: + 対象 PR
-- 対象フェーズ: 必要
+起動条件・対象フェーズは「工程レジストリ」表を参照。引数なし＝カレントブランチの PR（対象フェーズは Step 1-2/1-3 で解決済み）。
 
 `/resolve-comments` は処理方式に選択肢がある（1 件ずつ確認 / 全件を自己確定）。自走では止まれないので `batch` を付けて起動する。
 
