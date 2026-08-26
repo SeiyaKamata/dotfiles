@@ -5,6 +5,9 @@
 .target_feature
 **/.claude/settings.local.json
 
+# Claude
+CLAUDE.local.md
+
 # Python
 __pycache__/
 *.pyc
