@@ -2,7 +2,7 @@
 name: resolve-comments
 description: 自分のPRに付いた未解決コメントに対応する。CI完了後に使う。
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(gh *), Bash(find *), Bash(test *)
-argument-hint: "[PR番号] [batch]"
+argument-hint: "[PR番号 | <feature>] [batch]"
 ---
 
 # PRコメント対応スキル
@@ -20,6 +20,7 @@ argument-hint: "[PR番号] [batch]"
 
 ## 引数
 - `$ARGUMENTS` のうち数字部分: PR 番号（省略可）
+- `$ARGUMENTS` のうち数字以外の文字列: feature 名（省略可）
 - `batch`: 全件の方針を自分で確定して一括処理する（省略時は 1 件ずつ確認する）
 
 ## 対象範囲
@@ -28,6 +29,7 @@ argument-hint: "[PR番号] [batch]"
 |---|---|
 | `/resolve-comments` | カレントブランチの PR |
 | `/resolve-comments <PR番号>` | その PR |
+| `/resolve-comments <feature>` | その feature の実在するフェーズブランチ（`<feature>-pN`。1 件のみのはず）の PR へ `git switch` してから対象にする |
 
 常に 1 PR だけを対象にする。他フェーズの PR には踏み込まないため、rebase 伝播は発生しない。
 
@@ -55,12 +57,18 @@ argument-hint: "[PR番号] [batch]"
 gh pr view <PR番号> --json number,title,url,headRefName
 ```
 
-**2. 渡されていない（既定）** → カレントブランチの PR：
+**2. feature 名が渡されている** → 実在するフェーズブランチを探す：
+```
+git branch --list "<feature>-p*"
+```
+1 件見つかればそのブランチへ `git switch` して `gh pr view` で PR を特定する。0 件または 2 件以上は中断する（0 件なら `/sync-to-remote` が復帰先、2 件以上は前提が崩れているので状況を報告する）。
+
+**3. 渡されていない（既定）** → カレントブランチの PR：
 ```
 gh pr view --json number,title,url,headRefName
 ```
 
-**PR を特定できなければ中断する**（PR 番号を渡して再実行するよう復帰コマンドに書く）。特定できた場合は確認を求めず先へ進む。
+**PR を特定できなければ中断する**（PR 番号か feature 名を渡して再実行するよう復帰コマンドに書く）。特定できた場合は確認を求めず先へ進む。
 
 **完了ゲート:** 対象 PR と feature 名（head ブランチが `<feature>-pN` なら `<feature>`、それ以外はブランチ名をそのまま feature 候補とする）を確定したか。
 
