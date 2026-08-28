@@ -1,7 +1,7 @@
 ---
 name: watch-ci
 description: PRのCIを監視し、完了後に結果に応じて分岐対応する。push後やPR作成後に使う。
-argument-hint: "[PR番号]"
+argument-hint: "[PR番号 | <feature>]"
 allowed-tools: Bash(gh *), Bash(git *)
 ---
 
@@ -13,7 +13,7 @@ PR の CI が完了するまで監視し、結果を判定して次のアクシ�
 **Ready for review への切り替えは行わない**（draft のまま完了とし、完了カードで `gh pr ready` を案内する）。Ready for review は**レビュアーに通知が飛ぶ外向きの操作**で、しかも取り消しても通知は戻らない。このスキルは監視と報告までを担い、外向きの操作は人が明示的に実行する。
 
 ## 入出力
-- **入力**: 対象 PR（引数の PR 番号、またはカレントブランチから導出）
+- **入力**: 対象 PR（引数の PR 番号、引数の feature 名、またはカレントブランチから導出）
 - **出力**: ファイル成果物は持たない（判定と PR の URL を報告する）
 
 ## 用語（前提）
@@ -25,25 +25,30 @@ PR の CI が完了するまで監視し、結果を判定して次のアクシ�
 CI の結果を完了カードで報告する。
 
 ## 引数
-- `$ARGUMENTS` のうち数字部分: PR 番号（省略時はカレントブランチに紐づく PR を使う）
+- `$ARGUMENTS` が数字のみ: PR 番号
+- `$ARGUMENTS` が数字以外の文字列: feature 名
+- 省略時: カレントブランチから導出する
 
 ## 進め方
 
 ### Step 1: 対象 PR の特定（単一 / stacked）
 
-PR 番号が指定されていればそれを使う（単一 PR）。未指定ならカレントブランチから判定する：
+PR 番号が指定されていればそれを使う（単一 PR）。未指定なら feature 名を求める。引数に feature 名が渡されていればそれを使い、渡されていなければカレントブランチから求める（`<feature>-pN` ならフェーズブランチ名から、それ以外ならブランチ名そのものから）。
 
-- `<feature>-pN`（末尾 `-p` + 数字）→ **stacked の可能性**。feature 名を求めてフェーズブランチの PR を番号順に列挙する：
+feature 名が求まったら、フェーズブランチの PR を番号順に列挙する：
+```
+for b in $(git branch --list "<feature>-p*" | sed 's/^[ *]*//' | sort -t p -k2 -n); do
+  gh pr list --head "$b" --json number,url,isDraft,headRefName,state --jq '.[]'
+done
+```
+- 2 件以上ヒット → **stacked モード**（Step 2 を各 PR について回して集約する）
+- 1 件ヒット → その PR を対象にする（単一 PR）
+- 0 件ヒット → まだフェーズ分割前とみなし、`<feature>` ブランチの PR を見る：
   ```
-  for b in $(git branch --list "<feature>-p*" | sed 's/^[ *]*//' | sort -t p -k2 -n); do
-    gh pr list --head "$b" --json number,url,isDraft,headRefName,state --jq '.[]'
-  done
+  gh pr list --head "<feature>" --json number,url,isDraft,headRefName,state --jq '.[]'
   ```
-  2 件以上ヒットしたら **stacked モード**（Step 2 を各 PR について回して集約する）
-- それ以外は単一 PR：
-  ```
-  gh pr view --json number,url,isDraft,headRefName,state
-  ```
+
+feature 名も求まらない場合（未指定でカレントブランチが `<feature>` / `<feature>-pN` の形でない）は `gh pr view` でカレントブランチの PR を使う。
 
 PR が見つからない場合は中断する（未 push・未作成なら `/sync-to-remote` が復帰先）。
 
