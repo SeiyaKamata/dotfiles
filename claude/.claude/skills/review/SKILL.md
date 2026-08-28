@@ -30,10 +30,14 @@ argument-hint: "<feature>"
 起動時に対象 feature と実行コンテキストを次の手順で確定する。
 
 1. feature の確定 — 第 1 引数。未指定なら使い方を表示して終了する。
-2. ブランチの確定 — `git branch --show-current` をそのまま採用する。
-   - 実装ブランチ `<feature>` にいる → 想定どおり
-   - デフォルトブランチにいる（PR を作らない運用で直接コミットしている）→ そのまま続行する
-   - detached HEAD → `branch: none` として続行する（レポートは書けるが、後で `/fix` が行う branch 照合の材料が減る）
+2. ブランチの確定 — カレントブランチが実装ブランチ `<feature>` でなければ、まず自分で switch を試みる：
+   ```
+   git switch <feature>
+   ```
+   - switch できた → 実装ブランチ `<feature>` にいる。想定どおり
+   - `<feature>` ブランチが存在しない → 現在のブランチをそのまま採用する（PR を作らない運用で直接コミットしているとみなす）
+   - 未コミットの変更があって switch できない → 報告して中断する（stash などの作業ツリー操作はしない）
+   - detached HEAD のまま `<feature>` も無い → `branch: none` として続行する（レポートは書けるが、後で `/fix` が行う branch 照合の材料が減る）
 3. 実行コンテキストの確定 — `feature` / `branch` / `head`（`git rev-parse HEAD`）を確定する。収集コマンド（macOS の BSD `date` は `-Iseconds` 非対応なのでフォーマット指定を使う）:
    ```bash
    git branch --show-current                       # branch
