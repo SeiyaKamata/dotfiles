@@ -1,7 +1,7 @@
 ---
 name: sync-to-remote
 description: コミット済みの変更をリモートへ反映する。PR運用ありならdraft PRを作成し、なければデフォルトブランチへ取り込んでpushする。commit完了後に使う。
-argument-hint: ""
+argument-hint: "[<feature>]"
 allowed-tools: Bash(git *), Bash(gh *), Read
 ---
 
@@ -15,7 +15,7 @@ allowed-tools: Bash(git *), Bash(gh *), Read
 **冪等**に作られている：既に PR があるブランチ・既にマージ済みのブランチはスキップするので、取りこぼしを拾うために何度呼んでも同じ結果になる。
 
 ## 入出力
-- **入力**: カレントブランチとコミット済みの差分・コミット列／`.specs/<feature>/seed.md` の frontmatter の `pr_title`。無ければコミットメッセージから作る
+- **入力**: カレントブランチ（または引数の feature 名から解決したブランチ）とコミット済みの差分・コミット列／`.specs/<feature>/seed.md` の frontmatter の `pr_title`。無ければコミットメッセージから作る
 - **出力**: draft PR（PR 運用あり）またはデフォルトブランチへの push（PR 運用なし）／分割した場合はフェーズブランチ `<feature>-pN`
 
 ## PR 運用の有無
@@ -60,9 +60,25 @@ DEFAULT=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
 CURRENT=$(git branch --show-current)
 ```
 
+**2-0 feature 名が引数で渡されている場合のブランチ解決**
+
+`CURRENT` が `<feature>`（引数の feature 名）とも `<feature>-pN` とも一致しなければ、対象ブランチを自分で探して `git switch` する：
+```
+git branch --list "<feature>-p*"
+```
+- 1 件 → そのフェーズブランチへ switch（再呼び出し）
+- 0 件 → `<feature>` ブランチへ switch（初回）。存在しなければ中断し、`/impl` が実装ブランチを切っていないと案内する
+- 2 件以上 → 前提が崩れている（通常は 1 周を閉じきってから次を作るため起きないはず）ので状況を報告して中断する
+
+switch 後、`CURRENT` を読み直して 2-1 へ進む。
+
 **2-1 呼ばれ方の判定**
 
-- `CURRENT` が `<feature>-pN`（末尾が `-p` + 数字）→ **再呼び出し**。分割の方針は既に決まっているので 2-2〜2-3 を飛ばし、**2-6（載せ直し）を経て** `p(N+1)` を作る。実装ブランチ `<feature>` に未反映のコミットが残っていなければ「全フェーズ着地済み」として終了する
+- `CURRENT` が `<feature>-pN`（末尾が `-p` + 数字）→ **再呼び出し**。まずこの PR が閉じきっているかを確認する：
+  ```bash
+  gh pr view --json statusCheckRollup,reviewThreads
+  ```
+  CI green かつ未返信の未解決コメントなしを満たしていなければ、このフェーズはまだ閉じきっていないので中断し、`/watch-ci` または `/resolve-comments` から再開するよう案内する。満たしていれば分割の方針は既に決まっているので 2-2〜2-3 を飛ばし、**2-6（載せ直し）を経て** `p(N+1)` を作る。実装ブランチ `<feature>` に未反映のコミットが残っていなければ「全フェーズ着地済み」として終了する
 - それ以外（`<feature>` など）→ **初回**。2-2 へ
 
 feature 名は `-p<数字>` を除いて求める。**PR タイトルの素材はここで自分で用意する**。`tasks.md` は持たない：
