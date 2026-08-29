@@ -1,0 +1,7 @@
+theme = "auto"
+mode = "auto"
+vcs = "git"
+line_numbers = true
+tab_width = 4
+wrap_lines = false
+sidebar = "auto"
