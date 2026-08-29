@@ -12,7 +12,7 @@ background-blur-radius = 0
 
 scrollback-limit = 5000000
 
-command = /bin/zsh -l -c herdr
+command = direct:/opt/homebrew/bin/herdr
 
 shell-integration-features = no-cursor,no-sudo,title,no-ssh-env,no-ssh-terminfo,path
 
