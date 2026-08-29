@@ -1,7 +1,6 @@
 # apt-install.sh が apt-get install に渡す一覧。リポジトリ登録も同スクリプト。
 # apt に無い/古いツールは install-standalone-tools.sh 側。
 
-# bat→batcat, fd-find→fdfind に名前が変わる（Debian の命名衝突回避）。alias は shell 設定で。
 bat
 fd-find
 eza
