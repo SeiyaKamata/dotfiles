@@ -137,5 +137,6 @@
       "disabled": true
     }
   },
-  "startupTipsEnabled": false
+  "startupTipsEnabled": false,
+  "agentPushNotifEnabled": true
 }
