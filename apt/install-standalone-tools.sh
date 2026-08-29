@@ -2,6 +2,7 @@
 # apt に存在しない/追随が遅いツールを、各ツール公式のインストール方法で導入する。
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BIN_DIR="$HOME/.local/bin"
 mkdir -p "$BIN_DIR"
 
@@ -88,8 +89,9 @@ CODERABBIT_INSTALL_DIR="$BIN_DIR" sh "$cr_sh"
 rm -f "$cr_sh"
 
 if command -v npm >/dev/null 2>&1; then
-  echo "Installing hunkdiff via npm..."
-  npm i -g hunkdiff
+  echo "Installing global npm packages..."
+  grep -v '^#' "$SCRIPT_DIR/../npm/global-packages.txt" | grep -v '^[[:space:]]*$' \
+    | xargs -r npm i -g
 else
-  echo "npm が見つからないため hunkdiff はスキップしました。" >&2
+  echo "npm が見つからないため npm グローバルパッケージはスキップしました。" >&2
 fi
