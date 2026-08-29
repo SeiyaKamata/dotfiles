@@ -89,6 +89,11 @@ Requirement の説明文と受け入れ条件を重複させない。
   -  frontmatterは命名メタなので要件化に使わない
 - `.specs/<feature>/requirements.md`(あれば)
 
+次のどちらかに当てはまれば中断し、Step 7「要件定義中断」に従って報告する。パイプラインの起点で
+前提のズレを通すと下流すべてに波及するため、ここで止める。
+- seed.md の frontmatter `feature` が引数の `<feature>` と食い違う。別の feature ディレクトリを指定した可能性がある
+- `requirements.md` が無いのに `design.md` / `tasks.md` が存在する。工程の成果物が不整合
+
 `requirements.md` の有無で分岐する:
 - **無い → 新規作成モード**: Step 3 へ。
 - **有る → 編集モード**: 既存 `requirements.md` をベースに、ユーザーの変更要望に該当する箇所だけを直す。
