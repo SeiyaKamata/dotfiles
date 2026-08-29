@@ -194,7 +194,7 @@ loop:
 
 **対象ブランチ**（再呼び出しのとき）: `sync-to-remote` 自身が `<feature>` から解決して switch する。次の PR `p(N+1)` の作成も `/sync-to-remote` 自身が Step 2-6 で行うため、orch は先回りして作らない。
 
-**実行**: `sync-to-remote/SKILL.md` に従う。draft でも CodeRabbit が自動でレビューを開始する。カードの次の一手（`/watch-ci`）で進む。
+**実行**: `sync-to-remote/SKILL.md` に従う。PR 本文には `@coderabbitai ignore` が入っていて自動レビューは走らないので、**PR ができたら orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って最初のレビューを発火させる**。以降 CodeRabbit のレビューは orch が打った時だけ走る。そのうえでカードの次の一手（`/watch-ci`）へ進む。
 
 ### Step 11-2: `/watch-ci`
 
@@ -213,9 +213,9 @@ loop:
 `/resolve-comments` は処理方式に選択肢がある（1 件ずつ確認 / 全件を自己確定）。自走では止まれないので `batch` を付けて起動する。
 
 **未解決コメント対応ループ**（この PR について最大 2 巡）:
-- `/resolve-comments` の Step 2 のコマンドで PR のレビュー／コメントを取得し、**現在の HEAD コミットより後**の `coderabbitai[bot]` のレビューが届くまでポーリングする。1 巡目は最初のレビュー、2 巡目以降は push 後の再レビューを待つ。一定時間来なければ報告して停止する
+- `/resolve-comments` の Step 2 のコマンドで PR のレビュー／コメントを取得し、**現在の HEAD コミットより後**の `coderabbitai[bot]` のレビューが届くまでポーリングする。1 巡目は Step 11-1 で orch が打った `@coderabbitai review` によるレビュー、2 巡目以降は下の push 後に orch が打ち直した `@coderabbitai review` によるレビューを待つ。一定時間来なければ報告して停止する
 - CodeRabbit は対応済みと判断したスレッドを自分で resolve するため CodeRabbit 分の未解決コメントは自動で消える。人間分は `/resolve-comments` の返信済み判定で消える。未返信の未解決コメントの有無が終了シグナルになる
-- 未返信の未解決コメントが**あり** → `/resolve-comments batch` を起動（人間 + CodeRabbit の全 author を対応）→ `/commit` → push → `/watch-ci` に戻る（push で CI も再レビューも自動で再実行される）
+- 未返信の未解決コメントが**あり** → `/resolve-comments batch` を起動（人間 + CodeRabbit の全 author を対応）→ `/commit` → push → **orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って再レビューを発火** → `/watch-ci` に戻る（CI は push で自動で回る。`@coderabbitai ignore` があるので再レビューは orch が打たないと走らない）
 - 未返信の未解決コメントが**なし** → 完了後の分岐へ
 - 2 巡しても未返信の未解決コメントが残る → 報告して停止
 

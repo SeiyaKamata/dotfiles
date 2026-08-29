@@ -200,8 +200,6 @@ gh pr create --draft --base <ベースブランチ> --title "<タイトル>" --b
 ```
 未 push なら先に `git push -u origin HEAD`。
 
-**CodeRabbit は本文の `@coderabbitai ignore` で作成時から無効化する。** 作成後に `pause` をコメントする方式では、作成時の Webhook で既にレビューが走ってしまい間に合わない。本文テンプレートに埋め込んでおくことで、CodeRabbit は最初から一切レビューしない。**再度有効化する操作（本文の行を外す・`review` コメントを送るなど）はこのスキルの範囲外**で、セルフレビュー後に人が行う。
-
 **stacked モード:** Step 2-5 で絞り込んだ**1 フェーズだけ**を作成する。base は 1 つ下のフェーズ（`p1` はデフォルトブランチ）：
 ```
 git push -u origin <feature>-pN
