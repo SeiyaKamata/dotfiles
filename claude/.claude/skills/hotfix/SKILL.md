@@ -10,8 +10,10 @@ argument-hint: "<feature> [tag]"
 ## 役割
 `/bughunt` が原因を絞り込んだバグを、本番環境で動いている tag に当てる。tag から hotfix の release ブランチ・work ブランチを切り、修正を実装して**2 つの PR** を作成する。
 
-- `release/<tag>_p○` ← `work/<tag>_p○`（本番へ当てる）
-- `main` ← `work/<tag>_p○`（同じ修正を main にも取り込む）
+- `release/<base>_p<n>` ← `work/<base>_p<n>`（本番へ当てる）
+- `main` ← `work/<base>_p<n>`（同じ修正を main にも取り込む）
+
+`<base>` と `<n>` の決め方は下記「ブランチ命名規則」に従う。
 
 **原因調査は行わない** — `/bughunt` に委ねる。`bug-report.md` が無ければ調査工程へ差し戻して中断する（Step 2-1）。本番へ当てる修正で原因の記録が残らないのを防ぐため、また調査の大量のコード読みをこの工程に持ち込まないため。
 
