@@ -33,6 +33,21 @@ unzip -oq "$yazi_tmp/yazi.zip" -d "$yazi_tmp"
 install -m755 "$yazi_tmp"/yazi-x86_64-unknown-linux-gnu/yazi "$yazi_tmp"/yazi-x86_64-unknown-linux-gnu/ya "$BIN_DIR/"
 rm -rf "$yazi_tmp"
 
+# node は nvm 管理。$NVM_DIR へ git clone し最新タグへ合わせて LTS を入れる。
+# 読み込みは zsh/.zshenv の _nvm_load が担当する。
+echo "Installing nvm..."
+export NVM_DIR="${NVM_DIR:-$HOME/Develop/workspace/nvm}"
+if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+  mkdir -p "$NVM_DIR"
+  git clone --quiet https://github.com/nvm-sh/nvm.git "$NVM_DIR"
+fi
+git -C "$NVM_DIR" fetch --tags --quiet
+git -C "$NVM_DIR" checkout --quiet "$(git -C "$NVM_DIR" describe --abbrev=0 --tags "$(git -C "$NVM_DIR" rev-list --tags --max-count=1)")"
+# shellcheck disable=SC1091
+. "$NVM_DIR/nvm.sh"
+nvm install --lts
+nvm alias default 'lts/*'
+
 # apt に無い/バージョンが古すぎるツールを GitHub Releases のビルド済みバイナリで導入する。
 # ($1=リポジトリ, $2=アーカイブ名の pattern, $3以降=展開後に install するバイナリの相対パス)
 install_from_github_release() {

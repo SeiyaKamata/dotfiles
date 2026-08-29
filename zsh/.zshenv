@@ -36,11 +36,19 @@ path=("$GOPATH/bin" $path)
 
 # nvm
 export NVM_DIR="$WORKSPACE/nvm"
+[[ -d "$NVM_DIR" ]] || mkdir -p "$NVM_DIR"
 
 _nvm_load() {
   unset -f node npm npx nvm 2>/dev/null
-  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-  [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+  # Linux は $NVM_DIR へ git clone、macOS は Homebrew の nvm。node バージョンの
+  # 実体はどちらも $NVM_DIR に入るので、読み込む nvm.sh の場所だけ吸収する。
+  if [ -s "$NVM_DIR/nvm.sh" ]; then
+    . "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+  elif [ -n "${HOMEBREW_PREFIX:-}" ] && [ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ]; then
+    . "$HOMEBREW_PREFIX/opt/nvm/nvm.sh"
+    [ -s "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" ] && . "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm"
+  fi
 }
 
 # 初回実行時にだけロード

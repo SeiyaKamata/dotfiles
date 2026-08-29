@@ -7,7 +7,6 @@ fzf
 jq
 git-delta
 tree-sitter-cli
-nodejs
 golang-go
 gcc
 make

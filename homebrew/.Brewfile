@@ -44,7 +44,8 @@ brew "fswatch"
 # flock はHomebrewでの提供有無を要確認（macOS標準にはflock(1)が無い）。
 
 # 言語ランタイム
-brew "node"
+# node は nvm 管理（NVM_DIR / 読み込みは zsh/.zshenv、LTS の導入は各自 `nvm install --lts`）
+brew "nvm"
 brew "uv"
 brew "go"
 brew "gcc"
