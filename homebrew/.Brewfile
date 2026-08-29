@@ -100,5 +100,5 @@ brew "daipeihust/tap/im-select"
 
 # ─── Casks ─────────────────────────────────────────────────────────────────
 
-# Alacritty: ターミナルエミュレータ
-cask "alacritty"
+# Ghostty: ターミナルエミュレータ
+cask "ghostty"

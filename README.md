@@ -69,7 +69,7 @@ dotfiles/
 ├── git/                  # git 設定 (.gitconfig)
 ├── vim/                  # Neovim 設定
 ├── tmux/                 # tmux 設定
-├── alacritty/            # Alacritty 設定（macOS）
+├── ghostty/              # Ghostty 設定（macOS）
 ├── sheldon/              # sheldon プラグイン設定
 ├── starship/             # starship プロンプト設定
 └── claude/               # Claude Code 設定
