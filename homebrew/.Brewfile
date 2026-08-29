@@ -60,6 +60,7 @@ brew "golangci-lint"
 
 # TUI
 brew "yazi"
+brew "glow"
 
 # 検索・差分
 brew "ripgrep"

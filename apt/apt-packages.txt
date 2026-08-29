@@ -1,5 +1,5 @@
 # apt でインストールするパッケージ一覧。
-# 3rd-party リポジトリ(docker/hashicorp/github-cli)の登録は apt-install.sh が行う。
+# 3rd-party リポジトリ(docker/hashicorp/github-cli/charm)の登録は apt-install.sh が行う。
 # 一覧に無いツールは apt に存在しない/古すぎるため install-standalone-tools.sh が担当する
 # (starship / uv / golangci-lint / sheldon / yazi / bottom / procs / neovim / awscli / awslogs / coderabbit)。
 
@@ -30,6 +30,7 @@ git
 # 3rd-party リポジトリ経由
 gh
 terraform
+glow
 docker-ce
 docker-ce-cli
 containerd.io

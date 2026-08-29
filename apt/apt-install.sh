@@ -38,6 +38,15 @@ add_apt_repo_if_missing /etc/apt/sources.list.d/github-cli.list bash -c '
     | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
 '
 
+# Charm (glow など)
+add_apt_repo_if_missing /etc/apt/sources.list.d/charm.list bash -c '
+  sudo mkdir -p -m 755 /etc/apt/keyrings
+  curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+  sudo chmod a+r /etc/apt/keyrings/charm.gpg
+  echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" \
+    | sudo tee /etc/apt/sources.list.d/charm.list > /dev/null
+'
+
 sudo apt-get update
 
 # ─── apt パッケージ一覧を読み込んでインストール ────────────────────────────
