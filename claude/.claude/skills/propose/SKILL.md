@@ -16,7 +16,7 @@ allowed-tools: Bash(ls *), Bash(date *), Read, Write, Glob
 - **入力**: 引数（`target` / `claim`）、または直前の工程文脈から組み立てた気づき
 - **出力**: `<dotfiles>/.specs/proposals/<YYYYMMDD>-<target>-<claim-slug>.md` を**1 件だけ**
 
-## 判断ポリシー
+## 対話方針
 各工程から呼ばれるが、**発行そのものは常に同じ動作**（呼び出し元による差を持たない）。
 
 **無確認実行**: 発行の可否についてユーザーの事前承認を求めず、提案ファイルを書いて事後報告する。

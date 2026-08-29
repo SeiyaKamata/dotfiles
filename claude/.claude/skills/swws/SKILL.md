@@ -12,7 +12,7 @@ allowed-tools: Bash(swws *), Bash(docker ps *), Bash(git rev-parse *)
 
 compose プロジェクトは 1 リポジトリ 1 つしかなく、`swws` で up すると**他の worktree で稼働中の同プロジェクトを黙って奪ってしまう**。別セッションが別 worktree で作業中だと事故になる。
 
-使用中判定は `swws` コマンド本体のガード（別 worktree 稼働中なら exit 2）に任せ、**この skill は「exit 2 が返ったら勝手に奪わず人間に確認する」という判断ポリシーだけを担う**。
+使用中判定は `swws` コマンド本体のガード（別 worktree 稼働中なら exit 2）に任せ、**この skill は「exit 2 が返ったら勝手に奪わず人間に確認する」という対話方針だけを担う**。
 
 ## 入出力
 - **入力**: カレント worktree（`git rev-parse --show-toplevel`）と起動プロファイル
@@ -20,10 +20,8 @@ compose プロジェクトは 1 リポジトリ 1 つしかなく、`swws` で u
 
 **状態は自前で持たない。Docker の稼働中コンテナが唯一の真実。** `swws status` は稼働中コンテナの `com.docker.compose.project.working_dir` ラベルを見て、今どの worktree がマウントされているかを返す。**起動＝占有 / 停止＝解放**で、停止済みコンテナは解放とみなす。
 
-## 判断ポリシー
-**別 worktree を奪う判断は人がする**（勝手に奪うと他セッションの作業を壊す）。
-
-exit 2（別 worktree 使用中）のときだけ確認する。**破壊的操作なので確認を残す**（成果物の内容については確認しない）。
+## 対話方針
+**別 worktree を奪う判断は人がする**（勝手に奪うと他セッションの作業を壊す）。exit 2（別 worktree 使用中）のときだけ確認する。**破壊的操作なので確認を残す**（成果物の内容については確認しない）。対処の手順は「エラー処理」。
 
 ## 引数
 - `$ARGUMENTS`: 起動プロファイル（`web` / `full` / `api` / `sec-web` / `worker`）、または `stop`（解放）/ `status`（確認のみ）。省略時は `web`

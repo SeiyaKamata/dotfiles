@@ -26,8 +26,8 @@ design（アーキテクチャ判断）・tasks（大タスクへの分割）は
 ## 引数
 - `$ARGUMENTS[0]`: feature 名（必須）
 
-## 判断ポリシー
-途中でユーザーに何も聞かない。ただし**実装を続けられない事態**（`requirements.md` が無い・implementer の blockers・最終テストの失敗継続）では止まる。
+## 対話方針
+途中でユーザーに何も聞かない。実装を続けられない事態では止まる。`requirements.md` が無い場合は Step 2、それ以外は「エラー処理」を参照。
 
 ## 用語（前提）
 用語の定義は `claude/CLAUDE.md`「用語集」に従う。このスキルは**フェーズを持たない**（`impl`〜`commit` と同じく実装ブランチ 1 本の上で動く）。ブランチは常に `<feature>`（`pN` サフィックスなし）。
@@ -84,7 +84,7 @@ git checkout -b <feature> "origin/$DEFAULT"
 
 `implementer` の報告が返ったら：
 1. `変更ファイル`・`作業ごとの確認` を確認する
-2. `blockers` があれば「例外処理」に従う
+2. `blockers` があれば「エラー処理」に従う
 3. `自分で決めた判断` は控えておき、Step 5 の「要確認」に出す
 
 **4-3 最終確認**
@@ -120,7 +120,7 @@ git checkout -b <feature> "origin/$DEFAULT"
 - やったこと: 一言サマリに中断理由（`requirements.md` が無い・blockers・最終テスト失敗など）。
 - 次の一手: 復帰コマンド。`requirements.md` が無ければ `- 要件を作る: /spec <feature>`。blockers が設計判断を要するものなら `- 通常パイプラインへ合流: /design <feature>`。
 
-## 例外処理
+## エラー処理
 - `implementer` が `blockers` を報告 → メインで判断する。
   - 軽微な曖昧さなら追加指示を添えて `implementer` を再配布する
   - **設計判断が要る**内容（実装方針で悩む・想定より影響範囲が広い等）なら、`/quick` を選んだ判断そのものが誤りだったということなので、中断カードを出し `/design <feature>` から通常パイプライン（design → tasks → impl）への合流を促す。`/quick` 内でループしない
