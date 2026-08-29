@@ -1,5 +1,5 @@
 # Homebrew Brewfile
-# macOS のパッケージ管理はすべて Homebrew に一元化する（旧 Nix 分を含む）。
+# macOS のパッケージ管理はすべて Homebrew に一元化する。
 
 # ─── Taps ──────────────────────────────────────────────────────────────────
 
@@ -73,7 +73,6 @@ brew "gh"
 brew "sheldon"
 brew "starship"
 brew "zoxide"
-brew "direnv"
 
 # Editor
 brew "neovim"

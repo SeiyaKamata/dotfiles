@@ -38,14 +38,6 @@ add_apt_repo_if_missing /etc/apt/sources.list.d/github-cli.list bash -c '
     | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
 '
 
-# Yazi
-add_apt_repo_if_missing /etc/apt/sources.list.d/yazi.list bash -c '
-  sudo mkdir -p -m 755 /etc/apt/keyrings
-  curl -fsSL https://yazi-rs.github.io/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/yazi.gpg
-  echo "deb [signed-by=/etc/apt/keyrings/yazi.gpg] https://yazi-rs.github.io/apt stable main" \
-    | sudo tee /etc/apt/sources.list.d/yazi.list > /dev/null
-'
-
 sudo apt-get update
 
 # ─── apt パッケージ一覧を読み込んでインストール ────────────────────────────
