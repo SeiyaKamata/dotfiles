@@ -60,7 +60,7 @@ argument-hint: "<feature>"
 - 再現できなければ「再現できず＋必要な追加情報」を返す
 
 ### Step 5: 書き出し
-bug-investigator の所見を `.specs/<feature>/bug-report.md` にマージ保存する。`fixed` は既存ファイルの値を読まず常に `false` を書く。これは「まだ `/fix` が着手していない」というレポートの初期状態を表す。`true` に変えるのは `/fix` だけで、修正を適用したときにそのフィールドだけ書き換える（判定内容は変えない）。ただし `branch`/`head`/`count` はここでは持たない。
+bug-investigator の所見を `.specs/<feature>/bug-report.md` にマージ保存する。`fixed` は既存ファイルの値を読まず常に `false` を書く。これは「まだ `/fix` が着手していない」というレポートの初期状態を表す。`true` に変えるのは `/fix` だけで、修正を適用したときにそのフィールドだけ書き換える（判定内容は変えない）。ただし `branch`/`head`/`count` はここでは持たない。`/bughunt` は調査工程で自己修正ループの外にあり、`/fix` へ渡すのは疑わしい箇所であってコミットに紐づく判定ではないため、対象同一性の照合（`branch`/`head`）も連続失敗のカウント（`count`）も要らない。`/fix` 側も `bug-report.md` 起点ではこの照合をスキップする。
 
 ```markdown
 ---
