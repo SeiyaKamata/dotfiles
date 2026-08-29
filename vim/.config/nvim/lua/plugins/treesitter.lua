@@ -1,6 +1,6 @@
 -- nvim-treesitter main ブランチ（Neovim 0.12+ 必須）
 local parsers = {
-	"lua", "python", "nix",
+	"lua", "python",
 	"javascript", "jsx", "typescript", "tsx",
 	"ruby", "go",
 	"json", "yaml", "toml", "sql",

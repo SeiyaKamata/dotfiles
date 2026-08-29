@@ -15,10 +15,6 @@ __pycache__/
 # Mac
 .DS_Store
 
-# Nix
-result
-result-*
-
 # secret
 zsh/.zshenv.local
 

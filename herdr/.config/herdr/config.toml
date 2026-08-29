@@ -58,7 +58,7 @@ delivery = "terminal"               # 端末側の通知機能経由でデスク
 [[keys.command]]
 key = "prefix+n"
 type = "popup"
-command = '''export PATH="$HOME/.nix-profile/bin:$HOME/.local/bin:$PATH"; dir=$(zsh -c "source $HOME/.zsh/50-herdr.zsh; devpick"); [ -n "$dir" ] && herdr workspace create --cwd "$dir" --focus'''
+command = '''export PATH="$HOME/.local/bin:$PATH"; dir=$(zsh -c "source $HOME/.zsh/50-herdr.zsh; devpick"); [ -n "$dir" ] && herdr workspace create --cwd "$dir" --focus'''
 width = "70%"
 height = "60%"
 
