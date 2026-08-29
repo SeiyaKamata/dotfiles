@@ -6,8 +6,6 @@ My dotfiles managed with Homebrew (macOS) / apt (Linux) + stow.
 - **apt + 各ツール公式インストーラー** — Linux のパッケージ管理
 - **stow** — dotfiles のシンボリックリンク管理
 
-以前は Nix（flake.nix）でパッケージ管理していたが、`/nix/store` の肥大化・GC運用のコストに見合わないため撤退した。`flake.nix` / `flake.lock` はファイルとして残置しているが `make setup` からは呼ばれない。
-
 ## Prerequisites
 
 ### 1. Install Homebrew (macOS only)
@@ -61,8 +59,6 @@ make reload-sheldon
 
 ```
 dotfiles/
-├── flake.nix             # (未使用・参照用) 旧 Nix パッケージ定義
-├── flake.lock
 ├── homebrew/
 │   └── .Brewfile         # Homebrew パッケージ（macOS）
 ├── apt/

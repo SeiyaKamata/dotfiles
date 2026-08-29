@@ -4,9 +4,6 @@ UNAME    := $(shell uname -s)
 
 .PHONY: \
 	setup \
-	nix-install \
-	nix-upgrade \
-	nix-update \
 	apt-install \
 	standalone-tools-install \
 	stow-install \
@@ -40,26 +37,7 @@ endef
 
 # ===== setup =====
 # パッケージ管理は Homebrew (macOS) / apt + 各ツール公式インストーラー (Linux) で行う。
-# Nix は使わなくなったため setup からは外している（nix-* ターゲットは参照用に残す）。
 setup: $(PKG_INSTALL_TARGETS) stow-install sshd-restrict-locale-env
-	$(call log,Done)
-
-
-# ===== nix (未使用・参照用に残置) =====
-nix-install:
-	$(call log,Installing Nix packages)
-	@nix profile install .#
-	$(call log,Done)
-
-nix-upgrade:
-	$(call log,Applying local flake.nix changes)
-	@nix profile upgrade dotfiles
-	$(call log,Done)
-
-nix-update:
-	$(call log,Updating Nix packages)
-	@nix flake update
-	@nix profile upgrade '.*'
 	$(call log,Done)
 
 
