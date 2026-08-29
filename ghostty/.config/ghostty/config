@@ -1,5 +1,3 @@
-command = direct:/Users/kmt2000200/.local/bin/herdr-launch.sh
-
 window-padding-x = 12
 window-padding-y = 8
 window-decoration = false
@@ -8,11 +6,15 @@ cursor-style-blink = false
 mouse-hide-while-typing = true
 
 
-background-blur = true
+background-blur = false
 background-opacity = 1
 background-blur-radius = 0
 
-scrollback-limit = 100000000
+scrollback-limit = 5000000
+
+command = /bin/zsh -l -c herdr
+
+shell-integration-features = no-cursor,no-sudo,title,no-ssh-env,no-ssh-terminfo,path
 
 font-family = HackGen Console NF
 font-family-bold = HackGen Console NF
