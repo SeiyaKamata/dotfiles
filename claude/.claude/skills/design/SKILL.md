@@ -1,7 +1,7 @@
 ---
 name: design
 description: 要件を受け取りアーキテクチャ設計を行う。.specs/<feature>/requirements.mdが出来上がったら使う。
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, WebSearch, WebFetch
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebSearch, WebFetch
 argument-hint: "<feature>"
 ---
 
