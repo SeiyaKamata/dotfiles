@@ -12,7 +12,13 @@ echo "Installing uv..."
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 echo "Installing golangci-lint..."
-curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$BIN_DIR"
+# master の install.sh は v2 系のチェックサム行を取り違えて検証に失敗するため、
+# バージョンを固定した install.sh を使う。
+golangci_ver="$(curl -fsSL https://api.github.com/repos/golangci/golangci-lint/releases/latest | grep -m1 '"tag_name"' | cut -d'"' -f4)"
+golangci_sh="$(mktemp)"
+curl -sSfL "https://raw.githubusercontent.com/golangci/golangci-lint/${golangci_ver}/install.sh" -o "$golangci_sh"
+sh "$golangci_sh" -b "$BIN_DIR" "$golangci_ver"
+rm -f "$golangci_sh"
 
 echo "Installing sheldon..."
 curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | bash -s -- --repo rossmacarthur/sheldon --to "$BIN_DIR"
