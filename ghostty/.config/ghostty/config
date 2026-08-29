@@ -1,3 +1,5 @@
+command = direct:/opt/homebrew/bin/herdr
+
 window-padding-x = 12
 window-padding-y = 8
 window-decoration = false
@@ -11,8 +13,6 @@ background-opacity = 1
 background-blur-radius = 0
 
 scrollback-limit = 5000000
-
-command = direct:/opt/homebrew/bin/herdr
 
 shell-integration-features = no-cursor,no-sudo,title,no-ssh-env,no-ssh-terminfo,path
 
