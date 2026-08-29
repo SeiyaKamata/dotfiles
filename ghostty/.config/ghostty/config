@@ -1,0 +1,26 @@
+command = direct:/Users/kmt2000200/.local/bin/herdr-launch.sh
+
+window-padding-x = 12
+window-padding-y = 8
+window-decoration = false
+
+cursor-style-blink = false
+mouse-hide-while-typing = true
+
+
+background-blur = true
+background-opacity = 1
+background-blur-radius = 0
+
+scrollback-limit = 100000000
+
+font-family = HackGen Console NF
+font-family-bold = HackGen Console NF
+font-family-italic = HackGen Console NF
+font-family-bold-italic = HackGen Console NF
+font-size = 18
+
+keybind = clear
+keybind = super+c=copy_to_clipboard:mixed
+keybind = super+v=paste_from_clipboard
+keybind = super+,=open_config
