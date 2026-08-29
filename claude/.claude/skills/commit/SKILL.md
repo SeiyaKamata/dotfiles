@@ -28,8 +28,11 @@ argument-hint: ""
 
 ```
 CURRENT=$(git branch --show-current)
-DEFAULT=$(git remote show origin | sed -n 's/.*HEAD branch: //p')
+DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); DEFAULT=${DEFAULT##*/}
+[ -z "$DEFAULT" ] && { git remote set-head origin --auto >/dev/null; DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD); DEFAULT=${DEFAULT##*/}; }
 ```
+
+`sed` / `awk` を使わないのは、パイプの補助コマンドが権限の allowlist に無く承認待ちで止まるため。デフォルトブランチは `origin/HEAD` から引き、未設定のときだけ `set-head --auto` で 1 度張り直す。
 
 判定：
 
@@ -38,7 +41,7 @@ DEFAULT=$(git remote show origin | sed -n 's/.*HEAD branch: //p')
   ```
   git fetch origin
   [ "$CURRENT" != "$DEFAULT" ] && \
-    git branch -r --merged "origin/$DEFAULT" | sed 's/^[ *]*//' | grep -xF "origin/$CURRENT"
+    git branch -r --merged "origin/$DEFAULT" --format='%(refname:short)' | grep -qxF "origin/$CURRENT"
   ```
   **`CURRENT` が `DEFAULT` と等しいときはこの判定を走らせない。** デフォルトブランチは自分自身にマージ済みなので（`git branch -r --merged origin/main` は `origin/main` を含む）、無条件に走らせるとデフォルトブランチで必ずマッチし、下で意図的に外した判定が裏口から復活する。
 - いずれも該当しなければ Step 2 へ

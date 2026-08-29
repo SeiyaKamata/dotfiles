@@ -60,10 +60,13 @@ design（アーキテクチャ判断）・tasks（大タスクへの分割）は
 ブランチ名は `<feature>`。デフォルトブランチから作成する：
 
 ```
-DEFAULT=$(git remote show origin | sed -n 's/.*HEAD branch: //p')
+DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); DEFAULT=${DEFAULT##*/}
+[ -z "$DEFAULT" ] && { git remote set-head origin --auto >/dev/null; DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD); DEFAULT=${DEFAULT##*/}; }
 git fetch origin "$DEFAULT"
 git checkout -b <feature> "origin/$DEFAULT"
 ```
+
+`git remote show origin | sed` を使わないのは、`sed` がパイプ経由で権限の allowlist に無く承認待ちで止まるため。
 
 ### Step 4: 実装
 

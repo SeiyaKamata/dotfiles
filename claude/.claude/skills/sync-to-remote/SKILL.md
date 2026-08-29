@@ -56,9 +56,12 @@ allowed-tools: Bash(git *), Bash(gh *), Read
 ### Step 2: 対象確定と分割判定
 
 ```
-DEFAULT=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
+DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); DEFAULT=${DEFAULT##*/}
+[ -z "$DEFAULT" ] && { git remote set-head origin --auto >/dev/null; DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD); DEFAULT=${DEFAULT##*/}; }
 CURRENT=$(git branch --show-current)
 ```
+
+`awk` / `sed` をパイプで挟まないのは、権限の allowlist に無く承認待ちで止まるため。デフォルトブランチは `origin/HEAD` から引く。
 
 **2-0 feature 名が引数で渡されている場合のブランチ解決**
 

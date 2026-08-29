@@ -37,7 +37,7 @@ PR 番号が指定されていればそれを使う（単一 PR）。未指定�
 
 feature 名が求まったら、フェーズブランチの PR を番号順に列挙する：
 ```
-for b in $(git branch --list "<feature>-p*" | sed 's/^[ *]*//' | sort -t p -k2 -n); do
+for b in $(git branch --list "<feature>-p*" --sort=version:refname --format='%(refname:short)'); do
   gh pr list --head "$b" --json number,url,isDraft,headRefName,state --jq '.[]'
 done
 ```

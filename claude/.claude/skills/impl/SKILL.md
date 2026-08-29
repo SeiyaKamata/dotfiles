@@ -59,10 +59,13 @@ implementer に任せるのはコード実装だけで、git・tasks.md・ビル
 **ブランチは `<feature>` 1 本だけ**をデフォルトブランチから切る。
 
 ```
-DEFAULT=$(git remote show origin | sed -n 's/.*HEAD branch: //p')
+DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); DEFAULT=${DEFAULT##*/}
+[ -z "$DEFAULT" ] && { git remote set-head origin --auto >/dev/null; DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD); DEFAULT=${DEFAULT##*/}; }
 git fetch origin "$DEFAULT"
 git checkout -b <feature> "origin/$DEFAULT"
 ```
+
+`git remote show origin | sed` を使わないのは、`sed` がパイプ経由で権限の allowlist に無く承認待ちで止まるため。
 
 既に `<feature>` が存在する場合、前回の実装を再開するので、新規作成せずそれに checkout する。
 
