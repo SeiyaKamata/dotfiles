@@ -52,3 +52,10 @@ sudo apt-get update
 # ─── apt パッケージ一覧を読み込んでインストール ────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 grep -v '^#' "$SCRIPT_DIR/apt-packages.txt" | grep -v '^[[:space:]]*$' | xargs sudo apt-get install -y
+
+# ─── bat: Debian/Ubuntu では別パッケージとの名前衝突で batcat という名前で入る ──
+# zsh の `alias cat='bat'` が動くよう bat という名前を PATH に用意する。
+if ! command -v bat >/dev/null 2>&1 && command -v batcat >/dev/null 2>&1; then
+  mkdir -p "$HOME/.local/bin"
+  ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
+fi
