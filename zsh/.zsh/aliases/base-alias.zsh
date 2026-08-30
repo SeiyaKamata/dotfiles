@@ -3,6 +3,7 @@ alias clip="pbcopy"
 alias vi="nvim"
 alias vim="nvim"
 alias q="exit"
+alias cl="clear"
 
 # Rust command
 alias ps='procs'
