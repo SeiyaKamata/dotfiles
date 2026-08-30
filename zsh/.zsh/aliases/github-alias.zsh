@@ -8,6 +8,26 @@ alias ghr='gh pr ready'
 alias gha='gh pr edit --add-assignee @me'
 
 # レビュー
+# PR / ブランチをチェックアウトせず hunk で開く。カレントブランチも HEAD も動かさない。
+# hunk の中で commit-stepper（ctrl+n / ctrl+p）を使うとコミット単位で歩ける。
+#   ghh 123          PR 番号
+#   ghh feature/foo  ブランチ名
+ghh() {
+  local ref="$1" base tip
+  [ -n "$ref" ] || { echo "usage: ghh <pr-number|branch>" >&2; return 1; }
+
+  if [[ "$ref" == <-> ]]; then
+    git fetch --quiet origin "pull/$ref/head" || return 1
+    base="origin/$(gh pr view "$ref" --json baseRefName --jq .baseRefName 2>/dev/null || echo main)"
+  else
+    git fetch --quiet origin "$ref" || return 1
+    base=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)
+  fi
+
+  tip=$(git rev-parse FETCH_HEAD) || return 1
+  hunk diff "$base...$tip"
+}
+
 alias ghrv='gh pr review'                    # エディタでレビュー本文を書く
 alias ghrva='gh pr review --approve'
 alias ghrvc='gh pr review --comment'
