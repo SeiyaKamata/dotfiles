@@ -80,6 +80,9 @@ brew "zoxide"
 # Editor
 brew "neovim"
 
+# herdr: 複数セッションを並行運用するためのエージェントマルチプレクサ
+brew "herdr"
+
 # colima: Mac・Linux両環境でのDocker runtime安定性のため
 brew "colima"
 
