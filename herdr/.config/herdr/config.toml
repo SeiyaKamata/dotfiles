@@ -27,11 +27,11 @@ next_tab = ""
 previous_tab = ""
 
 # ペイン分割 (tmux 40-keymaps.conf)
-split_horizontal = "prefix+v"       # tmux: bind v split-window -v（上下）
-split_vertical = "prefix+h"         # tmux: bind h split-window -h（左右）
+split_horizontal = "prefix+h"       # tmux: bind v split-window -v（上下）
+split_vertical = "prefix+v"         # tmux: bind h split-window -h（左右）
 close_pane = "prefix+x"             # tmux: bind x kill-pane
 zoom = "prefix+z"                   # tmux: bind z resize-pane -Z
-cycle_pane_next = "ctrl+t"          # tmux: bind -n C-t select-pane -t :.+（prefix 不要）
+cycle_pane_next = "ctrl+l"          
 
 # 方向移動は tmux に合わせて無効化（tmux は ctrl+t 巡回のみで hjkl 移動を使っていない）
 focus_pane_left = ""                # prefix+h は split_vertical で使用中のため空けておく
