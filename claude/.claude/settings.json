@@ -84,8 +84,7 @@
     "gopls-lsp@claude-plugins-official": false,
     "skill-creator@claude-plugins-official": false,
     "github@claude-plugins-official": false,
-    "playwright@claude-plugins-official": true,
-    "slack-notify@lrm-equipment": true
+    "playwright@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -113,6 +112,7 @@
   "preferredNotifChannel": "terminal_bell",
   "autoCompactEnabled": true,
   "showTurnDuration": false,
+  "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "autoMode": {
     "allow": [
@@ -137,6 +137,5 @@
       "disabled": true
     }
   },
-  "startupTipsEnabled": false,
-  "agentPushNotifEnabled": true
+  "startupTipsEnabled": false
 }
