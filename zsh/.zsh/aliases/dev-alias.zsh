@@ -36,3 +36,17 @@ vitf() {
     nvim .specs
   fi
 }
+
+# .specs の Markdown を glow の TUI で表示する。
+# .target_feature があればそのディレクトリ、無ければ .specs 全体。引数でも上書き可。
+specs() {
+  local target
+  if [ -n "$1" ]; then
+    target=".specs/$1"
+  elif [ -f .target_feature ]; then
+    target=".specs/$(cat .target_feature)"
+  else
+    target=".specs"
+  fi
+  glow -t "$target"
+}
