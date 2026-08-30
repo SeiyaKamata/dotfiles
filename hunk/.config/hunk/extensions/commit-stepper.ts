@@ -17,24 +17,31 @@ import { execFile, execFileSync } from "node:child_process";
 //   ctrl+p  前のコミットへ。先頭でさらに戻すと overview に復帰
 //   ctrl+g  overview（レビュー対象の全体差分）へ復帰
 //
-// [extension.commit-stepper] で base とキーを上書きできる。
+// [extension.commit-stepper] で base・hunkBin・キーを上書きできる。
 
-type Ctx = { cwd: string; notify: (message: string, type?: "info" | "warning" | "error") => void };
+type Notify = (message: string, type?: "info" | "warning" | "error") => void;
+type Ctx = { cwd: string; notify: Notify };
 
 type Commit = { hash: string; subject: string };
+
+// live セッションの title から復元した「何を見ているか」。overview の diff と歩けるコミット列は
+// ここから resolve() が一意に導く。
+type SessionInput =
+  | { kind: "range"; base: string; dots: string; tipRef: string }
+  | { kind: "show"; ref: string }
+  | { kind: "working" };
 
 type Target = {
   base: string | null;
   tip: string;
   commits: Commit[];
-  overview: string[];
+  overview: string[]; // overview へ戻すときの `session reload --` argv tail
 };
-
-const OVERVIEW = -1;
 
 export default function (hunk: any) {
   const cfg = (hunk.config ?? {}) as {
     base?: string;
+    hunkBin?: string;
     maxCommits?: number;
     keys?: { next?: string; prev?: string; overview?: string };
   };
@@ -43,55 +50,58 @@ export default function (hunk: any) {
     prev: cfg.keys?.prev ?? "ctrl+p",
     overview: cfg.keys?.overview ?? "ctrl+g",
   };
-  const maxCommits = Number.isInteger(cfg.maxCommits) && cfg.maxCommits! > 0 ? cfg.maxCommits! : 40;
+  const maxCommits =
+    Number.isInteger(cfg.maxCommits) && (cfg.maxCommits as number) > 0 ? (cfg.maxCommits as number) : 40;
 
-  const hunkBin = process.execPath && /hunk$/.test(process.execPath) ? process.execPath : "hunk";
+  const hunkBin =
+    cfg.hunkBin ?? (process.execPath && /hunk$/.test(process.execPath) ? process.execPath : "hunk");
 
-  let ctx: Ctx = { cwd: process.cwd(), notify: () => {} };
+  let notify: Notify = () => {};
   let target: Target | null = null;
-  let pos = OVERVIEW;
-  let lastReloadSpec = ""; // 直近に自分が張った diff spec。live と一致する間はレビュー継続とみなす。
+  let pos: number | null = null; // null = overview、それ以外は target.commits の index
+  let lastSpec = ""; // 直近に自分が張った reload の反映後 spec。live と一致する間はレビュー継続とみなす。
 
-  const git = (cwd: string, args: string[]): string =>
-    execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
-
-  const tryGit = (cwd: string, args: string[]): string | null => {
+  const run = (bin: string, args: string[], cwd?: string): string | null => {
     try {
-      return git(cwd, args);
+      return execFileSync(bin, args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
     } catch {
       return null;
     }
   };
+  const git = (cwd: string, args: string[]) => run("git", args, cwd);
 
-  const repoRoot = (cwd: string): string | null => tryGit(cwd, ["rev-parse", "--show-toplevel"]);
+  const repoRoots = new Map<string, string | null>();
+  const repoRoot = (cwd: string): string | null => {
+    if (!repoRoots.has(cwd)) repoRoots.set(cwd, git(cwd, ["rev-parse", "--show-toplevel"]));
+    return repoRoots.get(cwd)!;
+  };
 
   const resolveCommit = (cwd: string, ref: string): string | null =>
-    tryGit(cwd, ["rev-parse", "--verify", "--quiet", `${ref}^{commit}`]);
+    git(cwd, ["rev-parse", "--verify", "--quiet", `${ref}^{commit}`]);
 
   // base 候補。設定 > upstream > origin/HEAD の順で、tip の祖先かつ tip 自身でない最初のもの。
-  const resolveBase = (cwd: string, tip: string): string | null => {
-    const candidates: string[] = [];
-    if (cfg.base) candidates.push(cfg.base);
-    const upstream = tryGit(cwd, ["rev-parse", "--abbrev-ref", "--symbolic-full-name", `${tip}@{upstream}`]);
-    if (upstream) candidates.push(upstream);
-    const originHead = tryGit(cwd, ["symbolic-ref", "--short", "refs/remotes/origin/HEAD"]);
-    if (originHead) candidates.push(originHead);
-
-    const tipSha = resolveCommit(cwd, tip);
-    for (const ref of candidates) {
+  // 候補は前段が外れたときだけ引くので、cfg.base が効けば git は 1 回も走らない。
+  const resolveBase = (cwd: string, tip: string, tipSha: string | null): string | null => {
+    const probes: Array<() => string | null | undefined> = [
+      () => cfg.base,
+      () => git(cwd, ["rev-parse", "--abbrev-ref", "--symbolic-full-name", `${tip}@{upstream}`]),
+      () => git(cwd, ["symbolic-ref", "--short", "refs/remotes/origin/HEAD"]),
+    ];
+    for (const probe of probes) {
+      const ref = probe();
+      if (!ref) continue;
       const sha = resolveCommit(cwd, ref);
       if (!sha || sha === tipSha) continue;
-      if (tryGit(cwd, ["merge-base", "--is-ancestor", ref, tip]) !== null) return ref;
+      if (git(cwd, ["merge-base", "--is-ancestor", ref, tip]) !== null) return ref;
     }
     return null;
   };
 
   const listCommits = (cwd: string, base: string | null, tip: string): Commit[] => {
-    const range = base ? `${base}..${tip}` : tip;
     const args = ["log", "--reverse", "--no-merges", "--format=%H%x1f%s"];
-    if (base) args.push(range);
+    if (base) args.push(`${base}..${tip}`);
     else args.push(`-n${maxCommits}`, tip);
-    const out = tryGit(cwd, args);
+    const out = git(cwd, args);
     if (!out) return [];
     return out.split("\n").map((line) => {
       const [hash, subject] = line.split("\x1f");
@@ -99,8 +109,9 @@ export default function (hunk: any) {
     });
   };
 
-  const liveSpec = (cwd: string, root: string): { spec: string; kind: string } | null => {
-    const json = execFileSyncSafe(hunkBin, ["session", "get", "--repo", root, "--json"]);
+  // hunk セッションの title から repo ラベルを剥がした spec と inputKind を返す。
+  const liveSpec = (root: string): { spec: string; kind: string } | null => {
+    const json = run(hunkBin, ["session", "get", "--repo", root, "--json"]);
     if (!json) return null;
     try {
       const parsed = JSON.parse(json);
@@ -114,93 +125,89 @@ export default function (hunk: any) {
     }
   };
 
-  function execFileSyncSafe(bin: string, args: string[]): string | null {
-    try {
-      return execFileSync(bin, args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
-    } catch {
-      return null;
-    }
-  }
-
-  const detectTarget = (cwd: string, root: string): Target => {
-    const live = liveSpec(cwd, root);
-    const spec = live?.spec ?? "";
-
-    // "<base><..|...><tip>"
-    const range = spec.match(/^(\S.*?)(\.\.\.?)(\S.*)$/);
-    if (range) {
-      const [, base, dots, tipRef] = range;
-      const tip = resolveCommit(cwd, tipRef) ?? "HEAD";
-      return { base, tip, commits: listCommits(cwd, base, tip), overview: ["diff", `${base}${dots}${tipRef}`] };
-    }
-
-    if (live?.kind === "show" && spec.startsWith("show ")) {
-      const ref = spec.slice(5).trim();
-      const tip = resolveCommit(cwd, ref) ?? "HEAD";
-      const base = resolveBase(cwd, tip);
-      return {
-        base,
-        tip,
-        commits: listCommits(cwd, base, tip),
-        overview: base ? ["diff", `${base}...${tip}`] : ["show", ref],
-      };
-    }
-
-    // working tree / 不明 → base..HEAD、overview は作業ツリー
-    const base = resolveBase(cwd, "HEAD");
-    return { base, tip: "HEAD", commits: listCommits(cwd, base, "HEAD"), overview: ["diff"] };
+  // reload argv を、その反映後に liveSpec().spec が返すはずの文字列へ落とす。
+  // これが ensureTarget の突合キー。argv 形式と title 形式を突き合わせないための正規化。
+  const expectedSpec = (argv: string[]): string => {
+    if (argv[0] === "diff") return argv[1] ?? "working tree";
+    if (argv[0] === "show") return `show ${argv[1]}`;
+    return argv.join(" ");
   };
 
-  const reload = (root: string, tail: string[], label: string) => {
-    lastReloadSpec = tail.join(" ");
-    execFile(hunkBin, ["session", "reload", "--repo", root, "--", ...tail], (err) => {
-      if (err) ctx.notify(`commit-stepper: reload 失敗 — ${firstLine(err.message)}`, "warning");
-      else ctx.notify(`commit-stepper: ${label}`);
-    });
+  const parseInput = (live: { spec: string; kind: string } | null): SessionInput => {
+    const spec = live?.spec ?? "";
+    const range = spec.match(/^(\S.*?)(\.\.\.?)(\S.*)$/);
+    if (range) return { kind: "range", base: range[1], dots: range[2], tipRef: range[3] };
+    if (live?.kind === "show" && spec.startsWith("show ")) return { kind: "show", ref: spec.slice(5).trim() };
+    return { kind: "working" };
+  };
+
+  const resolveTarget = (cwd: string, input: SessionInput): Target => {
+    if (input.kind === "range") {
+      const tip = resolveCommit(cwd, input.tipRef) ?? "HEAD";
+      return {
+        base: input.base,
+        tip,
+        commits: listCommits(cwd, input.base, tip),
+        overview: ["diff", `${input.base}${input.dots}${input.tipRef}`],
+      };
+    }
+    const tip = input.kind === "show" ? resolveCommit(cwd, input.ref) ?? "HEAD" : "HEAD";
+    const base = resolveBase(cwd, tip, resolveCommit(cwd, tip));
+    const overview =
+      input.kind === "show" ? (base ? ["diff", `${base}...${tip}`] : ["show", input.ref]) : ["diff"];
+    return { base, tip, commits: listCommits(cwd, base, tip), overview };
   };
 
   const firstLine = (s: string) => s.split("\n").map((l) => l.trim()).find(Boolean) ?? s;
 
+  const reload = (root: string, argv: string[], label: string) => {
+    lastSpec = expectedSpec(argv);
+    execFile(hunkBin, ["session", "reload", "--repo", root, "--", ...argv], (err) => {
+      if (err) notify(`commit-stepper: reload 失敗 — ${firstLine(err.message)}`, "warning");
+      else notify(`commit-stepper: ${label}`);
+    });
+  };
+
   const ensureTarget = (cwd: string, root: string) => {
-    const live = liveSpec(cwd, root);
-    const stillOurs = target && live && live.spec === lastReloadSpec;
-    if (!stillOurs) {
-      target = detectTarget(cwd, root);
-      pos = OVERVIEW;
+    const live = liveSpec(root);
+    if (!(target && live && live.spec === lastSpec)) {
+      target = resolveTarget(cwd, parseInput(live));
+      pos = null;
     }
   };
 
-  const step = (direction: "next" | "prev" | "overview") => (handlerCtx: Ctx) => {
-    ctx = handlerCtx;
-    const cwd = handlerCtx.cwd;
+  const step = (direction: "next" | "prev" | "overview") => (ctx: Ctx) => {
+    notify = ctx.notify;
+    const cwd = ctx.cwd;
     const root = repoRoot(cwd);
     if (!root) {
-      handlerCtx.notify("commit-stepper: git リポジトリではありません", "warning");
+      ctx.notify("commit-stepper: git リポジトリではありません", "warning");
       return;
     }
 
     ensureTarget(cwd, root);
     const t = target!;
+    const goOverview = () => {
+      pos = null;
+      reload(root, t.overview, `overview (${t.overview.slice(1).join(" ") || "working tree"})`);
+    };
 
     if (direction === "overview") {
-      pos = OVERVIEW;
-      reload(root, t.overview, `overview (${t.overview.slice(1).join(" ") || "working tree"})`);
+      goOverview();
       return;
     }
 
     if (t.commits.length === 0) {
-      handlerCtx.notify("commit-stepper: 対象コミットがありません", "warning");
+      ctx.notify("commit-stepper: 対象コミットがありません", "warning");
       return;
     }
 
     if (direction === "next") {
-      pos = pos === OVERVIEW ? 0 : Math.min(pos + 1, t.commits.length - 1);
+      pos = pos === null ? 0 : Math.min(pos + 1, t.commits.length - 1);
+    } else if (pos === null || pos === 0) {
+      goOverview();
+      return;
     } else {
-      if (pos <= 0) {
-        pos = OVERVIEW;
-        reload(root, t.overview, `overview (${t.overview.slice(1).join(" ") || "working tree"})`);
-        return;
-      }
       pos -= 1;
     }
 
