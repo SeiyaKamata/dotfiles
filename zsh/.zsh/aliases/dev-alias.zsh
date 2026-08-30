@@ -26,20 +26,8 @@ tfc() {
   rm -f .target_feature
 }
 
-# .target_feature が設定されていればそのディレクトリ、無ければ .specs を開く
-vitf() {
-  local feature
-  if [ -f .target_feature ]; then
-    feature=$(cat .target_feature)
-    nvim ".specs/$feature"
-  else
-    nvim .specs
-  fi
-}
-
-# .specs の Markdown を glow の TUI で表示する。
 # .target_feature があればそのディレクトリ、無ければ .specs 全体。引数でも上書き可。
-specs() {
+tfs() {
   local target
   if [ -n "$1" ]; then
     target=".specs/$1"
