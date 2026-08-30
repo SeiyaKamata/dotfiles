@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -e
+
+# One-time setup on a new machine (requires Node.js 22+):
+#   npm install -g obsidian-headless
+#   ob login
+#   ob sync-setup --vault "obsidian-vault" --path "$HOME/Documents/obsidian-vault"
+#   ob sync-config --path "$HOME/Documents/obsidian-vault" --excluded-folders "_base,_excalidraw,_templates,news,notes"
+
+NOTE_VAULT="${NOTE_VAULT:-$HOME/Documents/obsidian-vault}"
+today=$(date +%Y-%m-%d)
+file="$NOTE_VAULT/logs/$today.md"
+
+run_sync() {
+  if ! sync_error=$(ob sync --path "$NOTE_VAULT" 2>&1 1>/dev/null); then
+    echo "[ERROR] ob sync failed: $sync_error" >&2
+  fi
+}
+
+# pull first so we edit on top of the latest version from other devices
+run_sync
+
+mkdir -p "$(dirname "$file")"
+
+if [ ! -f "$file" ]; then
+  sed "s/{{date}}/$today/g" "$NOTE_VAULT/_templates/Daily.md" > "$file"
+fi
+
+if [ $# -eq 0 ]; then
+  ${EDITOR:-vim} "$file"
+else
+  entry="- $(date +%H:%M) $*"
+  awk -v entry="$entry" '
+    !inserted && /^---$/ { print entry; inserted = 1 }
+    { print }
+  ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+fi
+
+# push our changes
+run_sync
