@@ -6,9 +6,6 @@
 # Infisical公式tap（homebrew-coreに存在しないため）
 tap "infisical/get-cli"
 
-# im-select公式tap（homebrew-coreに存在しないため）
-tap "daipeihust/tap"
-
 # HashiCorp公式tap（terraformはライセンス変更でhomebrew-coreから削除されたため）
 tap "hashicorp/tap"
 
@@ -97,9 +94,6 @@ brew "aws-sam-cli"
 
 # infisical: 公式tapから取得
 brew "infisical/get-cli/infisical"
-
-# im-select: macOS専用のIME切り替えツール（Neovim連携用）
-brew "daipeihust/tap/im-select"
 
 # ─── Casks ─────────────────────────────────────────────────────────────────
 
