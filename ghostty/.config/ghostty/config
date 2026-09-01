@@ -1,4 +1,4 @@
-command = direct:/opt/homebrew/bin/herdr
+command = /bin/zsh -l -c herdr
 
 window-padding-x = 12
 window-padding-y = 8
