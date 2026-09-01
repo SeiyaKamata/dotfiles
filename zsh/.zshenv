@@ -57,6 +57,15 @@ node() { _nvm_load; node "$@"; }
 npm()  { _nvm_load; npm  "$@"; }
 npx()  { _nvm_load; npx  "$@"; }
 
+# default node の bin は node/npm を経由せず常時 PATH に通す。obsidian-headless の `ob` のような
+# グローバル npm パッケージが生やす bin コマンドは上の遅延ロード対象外で、node/npm を一度も
+# 呼んでいないセッションだと見つからないため。
+if [[ -s "$NVM_DIR/alias/default" ]]; then
+  _nvm_default_bin="$NVM_DIR/versions/node/v$(<"$NVM_DIR/alias/default")/bin"
+  [[ -d "$_nvm_default_bin" ]] && path=("$_nvm_default_bin" $path)
+  unset _nvm_default_bin
+fi
+
 # npm private registry token（未定義だと .npmrc の ${NPM_TOKEN} で npm が落ちるため空デフォルト。実体は .zshenv.local で上書き）
 export NPM_TOKEN=""
 
