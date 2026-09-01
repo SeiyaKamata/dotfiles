@@ -136,7 +136,7 @@
   },
   "mcpServers": {
     "shogun": {
-      "disabled": true
+      "disabled": false
     }
   },
   "startupTipsEnabled": false
