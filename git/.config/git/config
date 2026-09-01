@@ -4,7 +4,6 @@
 [core]
     editor = nvim
     pager = delta
-    fsmonitor = true
     untrackedCache = true
 [init]
     defaultBranch = main
