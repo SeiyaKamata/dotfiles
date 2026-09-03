@@ -27,7 +27,7 @@ project_name=$(basename "$project_root" | tr '[:upper:]' '[:lower:]' | sed 's/[^
 COMPOSE="docker compose -p $project_name -f $APP_DIR/compose.yaml"
 overlay="$project_root/compose.kmt.yaml"
 [ -f "$overlay" ] && COMPOSE="$COMPOSE -f $overlay"
-LOCKFILE="/tmp/swws-${project_name}.lock"
+LOCKDIR="/tmp/swws-${project_name}.lockdir"
 
 # このプロジェクトで稼働中のコンテナがマウントしている worktree 一覧（distinct）。
 # 何も無ければ空文字＝空き。停止済みは解放とみなす（稼働中のみ対象）。
@@ -51,19 +51,22 @@ other_worktrees() {
   running_worktrees | grep -vxF "$APP_DIR" || true
 }
 
-# 「使用中チェック → up」を flock 下でアトミックに 1 回試行する。
+# 「使用中チェック → up」をロック下でアトミックに 1 回試行する。
 # チェックと up の間に別プロセスが割り込めないので、複数セッションが同時に
 # 叩いても status が警告する「混在」状態にならない。
+# ロックは mkdir のアトミック性（既存なら失敗）を使う。flock は macOS 標準に
+# 無いため使わない。取得できたサブシェルの EXIT で必ず rmdir して解放する。
 # 戻り値: 0=起動した / 2=別 worktree が使用中 / それ以外=起動コマンドの失敗。
 # SWWS_FORCE=1 のときはチェックを飛ばして必ず起動する。
 attempt_up() {
   (
-    flock -x 9 || { echo "ロック取得に失敗しました: $LOCKFILE" >&2; exit 3; }
+    mkdir "$LOCKDIR" 2>/dev/null || { echo "ロック取得に失敗しました: $LOCKDIR" >&2; exit 3; }
+    trap 'rmdir "$LOCKDIR"' EXIT
     if [ "${SWWS_FORCE:-0}" != "1" ]; then
       [ -z "$(other_worktrees)" ] || exit 2
     fi
     run_up
-  ) 9>"$LOCKFILE"
+  )
 }
 
 # up 系の起動ドライバ。別 worktree が使用中なら、-loop 指定時のみ
