@@ -139,5 +139,19 @@
       "disabled": false
     }
   },
-  "startupTipsEnabled": false
+  "startupTipsEnabled": false,
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/nikki-review.sh",
+            "async": true,
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
 }
