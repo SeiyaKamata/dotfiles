@@ -48,7 +48,7 @@ edit_scrollback = ""                # 下の [[keys.command]] prefix+e (nvim pop
 new_worktree = ""                   # herdr 内蔵の worktree 作成は使わない（swws/devpick で自前管理しているため無効化）
 
 [ui]
-agent_panel_sort = "spaces"
+agent_panel_sort = "priority"
 hide_tab_bar_when_single_tab = true # tab を使わない運用のため 1 tab 時は上部タブバーを隠す
 show_agent_labels_on_pane_borders = true # タブバーを隠す運用のため、ペイン境界に agent 名を出して見分ける
 
@@ -58,7 +58,7 @@ delivery = "terminal"               # 端末側の通知機能経由でデスク
 [[keys.command]]
 key = "prefix+n"
 type = "popup"
-command = '''export PATH="$HOME/.local/bin:$PATH"; dir=$(zsh -c "source $HOME/.zsh/50-herdr.zsh; devpick"); [ -n "$dir" ] && herdr workspace create --cwd "$dir" --focus'''
+command = '''export PATH="$HOME/.local/bin:$PATH"; dir=$(zsh -c "source $HOME/.zsh/50-herdr.zsh; devpick"); [ -n "$dir" ] && herdr workspace create --cwd "$dir" --focus && herdr pane split --current --direction right --cwd "$dir" --focus && herdr pane zoom --current --on'''
 width = "70%"
 height = "60%"
 
