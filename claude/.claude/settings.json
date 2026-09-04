@@ -41,28 +41,13 @@
       "Bash(go vet *)",
       "Bash(go fmt *)",
       "Bash(go tool *)",
-      "Bash(docker build *)",
-      "Bash(docker run *)",
-      "Bash(docker ps *)",
-      "Bash(docker images *)",
-      "Bash(docker logs *)",
-      "Bash(docker exec *)",
-      "Bash(docker stop *)",
-      "Bash(docker rm *)",
-      "Bash(docker rmi *)",
-      "Bash(docker pull *)",
-      "Bash(docker push *)",
-      "Bash(docker compose up *)",
-      "Bash(docker compose down *)",
-      "Bash(docker compose build *)",
-      "Bash(docker compose logs *)",
-      "Bash(docker compose ps *)",
-      "Bash(docker compose exec *)",
       "Read(~/Develop/*)",
       "Edit(~/Develop/**/.specs/**)"
     ],
     "deny": [
-      "AskUserQuestion"
+      "AskUserQuestion",
+      "Bash(docker *)",
+      "Bash(docker-compose *)"
     ],
     "ask": [
       "Bash(git push --force*)",
