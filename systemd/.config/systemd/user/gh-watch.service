@@ -1,0 +1,6 @@
+[Unit]
+Description=Notify herdr about GitHub PRs awaiting my review
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/review-watch
