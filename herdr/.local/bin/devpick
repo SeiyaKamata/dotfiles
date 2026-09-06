@@ -1,0 +1,14 @@
+#!/bin/bash
+
+sel=$(command find "$HOME"/Develop/*/repos "$HOME"/Develop/*/worktrees -mindepth 1 -maxdepth 1 -type d 2>/dev/null \
+  | sort \
+  | while IFS= read -r path; do
+      branch=$(git -C "$path" branch --show-current 2>/dev/null)
+      printf '%s\t%s\t%s\n' "${path##*/}" "${branch:--}" "$path"
+    done \
+  | awk -F'\t' '{ name[NR]=$1; branch[NR]=$2; path[NR]=$3; if (length($1) > w) w = length($1) }
+                END { for (i = 1; i <= NR; i++) printf "%-" w "s\t%s\t%s\n", name[i], branch[i], path[i] }' \
+  | fzf --prompt="space> " --delimiter='\t' --with-nth=1,2 --nth=1)
+# 末尾フィールド(絶対パス)だけを取り出す。branch 名にタブは含まれないので
+# 最後のタブより後ろを取れば安全に path が取れる。
+[ -n "$sel" ] && printf '%s\n' "${sel##*$'\t'}"
