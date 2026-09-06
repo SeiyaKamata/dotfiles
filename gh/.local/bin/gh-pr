@@ -3,8 +3,8 @@
 #
 #   gh-pr review   自分がレビュアーに指定された open PR を一覧し、
 #                  レビューに入る `gh pr checkout <url>` を出力する。
-#   gh-pr mine     自分が作った open PR のレビュー状況を一覧し、
-#                  approve 済みなら merge コマンドを出力する。
+#   gh-pr mine     自分が作った open PR のレビュー状況と、PR への未読の
+#                  返信・メンションを一覧し、approve 済みなら merge コマンドを出力する。
 #
 # 共通オプション:
 #   -w            watch モード（一定間隔で繰り返し実行）
@@ -36,7 +36,7 @@ Usage: ${0##*/} <review|mine> [-w] [-i SECONDS] [-o ORG]
 
 Commands:
   review   自分がレビュアーに指定された open PR を一覧 + \`gh pr checkout\` を出力
-  mine     自分の open PR のレビュー状況を一覧、approve 済みは merge コマンドを出力
+  mine     自分の open PR のレビュー状況と未読の返信・メンションを一覧、approve 済みは merge コマンドを出力
 
 Options:
   -w            watch モード（一定間隔で繰り返し実行）
@@ -55,7 +55,7 @@ notify() {
   # exit code ではなく shown:true を確認してから成功扱いにする。
   if command -v herdr >/dev/null 2>&1; then
     local res
-    res=$(herdr notification show "$title" --body "$msg" --sound request 2>/dev/null) || res=""
+    res=$(herdr notification show "$title" --body "$msg" 2>/dev/null) || res=""
     case "$res" in
       *'"shown":true'*) return ;;
     esac
@@ -169,14 +169,39 @@ cmd_mine() {
     echo
   done <<< "$urls"
 
-  if [ "$reviewed_count" -eq 0 ]; then
-    echo "レビューが着いた PR はまだありません（org: $ORG）"
-    return 0
+  [ "$reviewed_count" -eq 0 ] && echo "レビューが着いた PR はまだありません（org: $ORG）"
+
+  # 未読通知のうち、自分が立てた PR への新着 (reason=author) と被メンション。
+  # notifications API は unread のみ返す。subject.url (API 形式) から html_url を組む。
+  local replies
+  replies=$(gh api notifications --paginate 2>/dev/null \
+    | jq -r --arg org "$ORG" '
+        .[]
+        | select(.subject.type == "PullRequest")
+        | select(.reason == "author" or .reason == "mention")
+        | select(.repository.full_name | startswith($org + "/"))
+        | (.subject.url | capture("repos/(?<r>[^/]+/[^/]+)/pulls/(?<n>[0-9]+)")) as $m
+        | [$m.r, $m.n, .reason, .subject.title] | @tsv' 2>/dev/null) || replies=""
+
+  local reply_count=0
+  if [ -n "$replies" ]; then
+    echo
+    echo "=== 自分の PR への返信・メンション (未読, org: $ORG) ==="
+    echo
+    while IFS=$'\t' read -r repo number reason title; do
+      [ -z "$repo" ] && continue
+      reply_count=$((reply_count + 1))
+      printf '● %s  #%s  [%s]\n' "$repo" "$number" "$reason"
+      printf '  %s\n' "$title"
+      printf '  https://github.com/%s/pull/%s\n\n' "$repo" "$number"
+    done <<< "$replies"
   fi
 
-  local msg="レビューが着いた PR: ${reviewed_count} 件"
-  [ "$approved_count" -gt 0 ] && msg="${msg} / approve 済み: ${approved_count} 件（マージ可）"
-  notify "自分の PR にレビュー (${ORG})" "$msg"
+  local msg=""
+  [ "$reviewed_count" -gt 0 ] && msg="レビューが着いた PR: ${reviewed_count} 件"
+  [ "$approved_count" -gt 0 ] && msg="${msg:+$msg / }approve 済み: ${approved_count} 件（マージ可）"
+  [ "$reply_count" -gt 0 ] && msg="${msg:+$msg / }返信・メンション: ${reply_count} 件"
+  [ -n "$msg" ] && notify "自分の PR (${ORG})" "$msg"
 }
 
 main() {
