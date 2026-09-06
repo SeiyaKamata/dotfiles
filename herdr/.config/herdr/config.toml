@@ -53,7 +53,10 @@ hide_tab_bar_when_single_tab = true # tab を使わない運用のため 1 tab �
 show_agent_labels_on_pane_borders = true # タブバーを隠す運用のため、ペイン境界に agent 名を出して見分ける
 
 [ui.toast]
-delivery = "terminal"               # 端末側の通知機能経由でデスクトップ通知（SSH越しでも動く。system直叩きより確実）
+delivery = "herdr"                  # herdr 画面内トーストで表示（外側端末の通知対応に依存しない）
+
+[ui.toast.herdr]
+position = "top-right"
 
 [[keys.command]]
 key = "prefix+n"
