@@ -58,6 +58,20 @@
     "defaultMode": "auto"
   },
   "model": "sonnet",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/nikki-review.sh",
+            "timeout": 120,
+            "async": true
+          }
+        ]
+      }
+    ]
+  },
   "enableWorkflows": false,
   "workflowKeywordTriggerEnabled": false,
   "statusLine": {
@@ -70,8 +84,7 @@
     "gopls-lsp@claude-plugins-official": false,
     "skill-creator@claude-plugins-official": false,
     "github@claude-plugins-official": false,
-    "playwright@claude-plugins-official": true,
-    "slack-notify@lrm-equipment": true
+    "playwright@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -124,19 +137,5 @@
       "disabled": false
     }
   },
-  "startupTipsEnabled": false,
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/nikki-review.sh",
-            "async": true,
-            "timeout": 120
-          }
-        ]
-      }
-    ]
-  }
+  "startupTipsEnabled": false
 }
