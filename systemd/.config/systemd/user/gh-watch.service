@@ -1,6 +1,6 @@
 [Unit]
-Description=Notify herdr about GitHub PRs awaiting my review
+Description=Notify herdr about review requests and replies on my PRs
 
 [Service]
 Type=oneshot
-ExecStart=%h/.local/bin/review-watch
+ExecStart=%h/.local/bin/gh-watch

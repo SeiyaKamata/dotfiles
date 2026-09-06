@@ -1,5 +1,5 @@
 [Unit]
-Description=Run review-watch periodically
+Description=Run gh-watch periodically
 
 [Timer]
 OnStartupSec=1min
