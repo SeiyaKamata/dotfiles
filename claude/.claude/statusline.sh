@@ -1,55 +1,73 @@
 #!/usr/bin/env python3
-import json, subprocess, sys, time
+import json, os, subprocess, sys, time
+
+CYAN = "\033[36m"
+MAGENTA = "\033[35m"
+
+R = "\033[0m"
+DIM = "\033[2m"
+BOLD = "\033[1m"
 
 
 def parse_pct(val):
     try:
-        return int(float(val))
+        return float(val)
     except (TypeError, ValueError):
-        return 0
+        return None
 
-def make_bar(pct, length=10):
-    filled = max(0, min(round(pct / 100 * length), length))
-    return "▓" * filled + "░" * (length - filled)
 
-GREEN  = "\033[32m"
-YELLOW = "\033[33m"
-RED    = "\033[31m"
-CYAN   = "\033[36m"
-GRAY   = "\033[90m"
-RESET  = "\033[0m"
+def gradient(pct):
+    if pct < 50:
+        r = int(pct * 5.1)
+        return f"\033[38;2;{r};200;80m"
+    g = int(200 - (pct - 50) * 4)
+    return f"\033[38;2;255;{max(g, 0)};60m"
+
+
+def reset_str(resets_at):
+    if not resets_at:
+        return ""
+    minutes = max(0, int(resets_at) - int(time.time())) // 60
+    d, rem = divmod(minutes, 1440)
+    h, m = divmod(rem, 60)
+    units = [(d, "d"), (h, "h"), (m, "m")]
+    shown = [f"{n}{u}" for n, u in units if n] or [f"{m}m"]
+    return f" {DIM}{''.join(shown[:2])}{R}"
+
+
+def fmt(label, pct, resets_at=None):
+    return f"{DIM}{label}{R} {gradient(pct)}●{R} {round(pct)}%{reset_str(resets_at)}"
+
 
 try:
     data = json.load(sys.stdin)
-except: data = {}
+except Exception:
+    data = {}
 
 model = data.get("model", {}).get("display_name", "Claude")
 effort = (data.get("effort") or {}).get("level")
+rate = data.get("rate_limits") or {}
 
-# context_window の直下に used_percentage がある
-ctx = data.get("context_window") or {}
-pct = parse_pct(ctx.get("used_percentage"))
+cwd = (data.get("workspace") or {}).get("current_dir") or data.get("cwd") or os.getcwd()
+branch = subprocess.run(
+    ["git", "-C", cwd, "branch", "--show-current"],
+    capture_output=True, text=True,
+).stdout.strip()
 
-# rate_limits
-rate = (data.get("rate_limits") or {}).get("five_hour") or {}
-rate_pct = parse_pct(rate.get("used_percentage"))
-resets_at = rate.get("resets_at")
+parts = [f"{CYAN}{os.path.basename(cwd)}{R}"]
+if branch:
+    parts.append(f"{MAGENTA}{branch}{R}")
+parts.append(f"{BOLD}{model}{R}")
+if effort:
+    parts.append(f"{DIM}{effort}{R}")
 
-bar_color = GREEN if pct < 70 else (YELLOW if pct < 90 else RED)
-bar = make_bar(pct)
+for label, src in [
+    ("ctx", data.get("context_window") or {}),
+    ("5h", rate.get("five_hour") or {}),
+    ("7d", rate.get("seven_day") or {}),
+]:
+    pct = parse_pct(src.get("used_percentage"))
+    if pct is not None:
+        parts.append(fmt(label, pct, src.get("resets_at")))
 
-# レートリセット残り時間
-if resets_at:
-    remaining = max(0, int(resets_at) - int(time.time()))
-    h, m = divmod(remaining // 60, 60)
-    reset_str = f" ({h}h{m:02d}m)" if h else f" ({remaining // 60}m)"
-else:
-    reset_str = ""
-
-# 5時間レート表示
-rate_color = GREEN if rate_pct < 50 else (YELLOW if rate_pct < 80 else RED)
-rate_msg = f"{rate_color}rate {rate_pct}%{reset_str}{RESET}"
-
-effort_part = f"{GRAY}{effort}{RESET} | " if effort else ""
-
-print(f"{model} | {effort_part}{bar_color}{bar}{RESET} {pct}% | {rate_msg}")
+print(f" {DIM}|{R} ".join(parts))
