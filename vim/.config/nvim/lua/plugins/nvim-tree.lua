@@ -31,11 +31,8 @@ return {
 				icons = { show = { git = true, folder = true, file = true } },
 			},
 			filters = {
-				dotfiles = false,
+				dotfiles = true,
 				git_clean = false,
-				exclude = {
-					"specs",
-				},
 			},
 			git = { enable = true },
 			update_focused_file = { enable = true },
