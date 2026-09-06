@@ -61,7 +61,7 @@ position = "top-right"
 [[keys.command]]
 key = "prefix+n"
 type = "popup"
-command = '''export PATH="$HOME/.local/bin:$PATH"; dir=$(zsh -c "source $HOME/.zsh/50-herdr.zsh; devpick"); [ -n "$dir" ] && herdr workspace create --cwd "$dir" --focus && herdr pane split --current --direction right --cwd "$dir" --focus && herdr pane zoom --current --on'''
+command = '''dir=$(devpick); [ -n "$dir" ] && herdr workspace create --cwd "$dir" --focus && herdr pane split --current --direction right --cwd "$dir" --focus && herdr pane zoom --current --on'''
 width = "70%"
 height = "60%"
 
