@@ -22,7 +22,6 @@
       "Bash(git tag *)",
       "Bash(git merge *)",
       "Bash(git rebase *)",
-      "Bash(git worktree *)",
       "Bash(gh *)",
       "Bash(cat *)",
       "Bash(ls *)",
@@ -47,7 +46,8 @@
     "deny": [
       "AskUserQuestion",
       "Bash(docker *)",
-      "Bash(docker-compose *)"
+      "Bash(docker-compose *)",
+      "Bash(git worktree *)"
     ],
     "ask": [
       "Bash(git push --force*)",
