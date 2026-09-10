@@ -1,0 +1,18 @@
+#!/bin/bash
+# git worktree add はcheckoutを伴うため、新規worktree作成時にもこのフックが発火する。
+# worktreeごとに独立している、git管理外の共有ファイル/ディレクトリ (.specs, CLAUDE.local.md) を
+# 本体クローンへのシンボリックリンクとして自動的に共有するためのフック。core.hooksPath でglobalに有効化されている。
+set -e
+
+worktree_root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+common_dir=$(git rev-parse --git-common-dir 2>/dev/null) || exit 0
+main_repo=$(cd "$(dirname "$common_dir")" && pwd)
+
+[ "$worktree_root" = "$main_repo" ] && exit 0
+
+for name in .specs CLAUDE.local.md; do
+  [ -e "$worktree_root/$name" ] && continue
+  [ -e "$main_repo/$name" ] || continue
+  target=$(python3 -c "import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))" "$main_repo/$name" "$worktree_root")
+  ln -s "$target" "$worktree_root/$name"
+done
