@@ -11,14 +11,14 @@ argument-hint: "<feature>"
 `.specs/<feature>/tasks.md` の `_Repo:_` を見て、現在の作業リポジトリと異なるリポジトリの大タスクを
 それぞれ実装させるため、リポジトリごとに herdr space を開き、claude code セッションへ `/impl <feature>`
 の実行を並列に依頼する。
-**何を実装するかの判断はしない**。
+何を実装するかの判断はしない。
 tasks.md にすでに確定している。
-symlink 作成・herdr 起動・`SendMessage` 依頼という機械的な配置操作だけを行い、**各セッションの実装完了は待たない**。
+symlink 作成・herdr 起動・`SendMessage` 依頼という機械的な配置操作だけを行い、各セッションの実装完了は待たない。
 完了通知は `notify_when_idle` によって `dispatch` を呼んだセッションへ直接届く。
 
 ## 入出力
-- **入力**: `.specs/<feature>/tasks.md` の `## タスク一覧`。特に `_Repo:_`
-- **出力**: 対象リポジトリへの実装依頼
+- 入力: `.specs/<feature>/tasks.md` の `## タスク一覧`。特に `_Repo:_`
+- 出力: 対象リポジトリへの実装依頼
 
 ## 呼び出し元
 `/impl` が Step 4 で自分の担当外の `_Repo:_` を検出したときに `Skill` ツールで 1 回だけ呼ぶ。
@@ -35,7 +35,7 @@ symlink 作成・herdr 起動・`SendMessage` 依頼という機械的な配置�
 
 ### Step 2: 対象リポジトリの洗い出し
 `.specs/<feature>/tasks.md` の `## タスク一覧` を読み、`_Repo:_` が現在の作業ディレクトリのリポジトリ名と
-**異なる**大タスクをリポジトリ別にグルーピングする。
+異なる大タスクをリポジトリ別にグルーピングする。
 対象が無ければ Step 4 へ進み「対象なし」で終了する。
 
 現在の作業ディレクトリの絶対パス、`pwd` で取れる値がメインリポジトリの絶対パスになる。
@@ -45,22 +45,22 @@ symlink 作成・herdr 起動・`SendMessage` 依頼という機械的な配置�
 対象リポジトリごとに次を行う。
 1つのリポジトリで詰まっても他のリポジトリの配置は続ける。
 
-1. **対象リポジトリの絶対パスの特定**: herdr の workspace 一覧、`herdr workspace list` などその場の
+1. 対象リポジトリの絶対パスの特定: herdr の workspace 一覧、`herdr workspace list` などその場の
    `herdr --help` から見つかるコマンドでリポジトリ名から作業ディレクトリの絶対パスを解決する。
    見つからなければそのリポジトリだけ中断し、Step 4 の「要確認」に回す。
-2. **既存セッションの確認**: `ListAgents` でそのリポジトリを担当する稼働中セッションが無いか確認する。
+2. 既存セッションの確認: `ListAgents` でそのリポジトリを担当する稼働中セッションが無いか確認する。
    無ければ herdr でそのリポジトリのワークスペースにセッションを開き claude code を起動する。
    herdr の具体的なサブコマンドはその場の `herdr --help` / `herdr workspace --help` を参照して判断する。
-3. **symlink 作成**: 対象リポジトリに `.specs/<feature>` が無ければ、Step 2 で得たメインリポジトリの
+3. symlink 作成: 対象リポジトリに `.specs/<feature>` が無ければ、Step 2 で得たメインリポジトリの
    絶対パスへの symlink を作成する。
    ```
    ln -s <メインリポジトリの絶対パス>/.specs/<feature> <対象リポジトリの絶対パス>/.specs/<feature>
    ```
    これにより `tasks.md` の実体は 1 箇所、メインリポジトリ側にだけ保たれ、どのセッションからチェックを
    更新しても同期問題が起きない。
-4. **`.gitignore` 追記**: 対象リポジトリの `.gitignore` に `.specs/<feature>` が無ければ追記する。
+4. `.gitignore` 追記: 対象リポジトリの `.gitignore` に `.specs/<feature>` が無ければ追記する。
    絶対パスへの symlink は他マシンでは解決できないため、コミット対象にしない。
-5. **実装依頼**: `SendMessage` を `notify_when_idle: true` で呼び、そのセッションへ `/impl <feature>`
+5. 実装依頼: `SendMessage` を `notify_when_idle: true` で呼び、そのセッションへ `/impl <feature>`
    の実行を依頼する。
    依頼文には feature 名だけを渡し、実装内容の指示は書かない。
    `tasks.md` の `_Repo:_` フィルタで `/impl` 側が自分の担当分だけを判別する。

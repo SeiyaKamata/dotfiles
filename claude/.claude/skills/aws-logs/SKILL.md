@@ -10,36 +10,36 @@ argument-hint: "<feature> [調べたいこと]"
 ## 役割
 awscli で **CloudWatch Logs** を調べ、所見を `.specs/<feature>/log-report.md` に記録する。
 
-対象は CloudWatch Logs だけ（`filter-log-events` と Logs Insights）。
-ALB/S3 アクセスログ・CloudTrail・ECS のタスク状態は**この skill の範囲外**で、必要になったら人が別途調べる。
+対象は CloudWatch Logs の `filter-log-events` と Logs Insights だけ。
+ALB/S3 アクセスログ・CloudTrail・ECS のタスク状態はこの skill の範囲外で、必要になったら人が別途調べる。
 
 **コードは直さない** — 修正は `/fix`、症状からの原因特定は `/bughunt` に委ねる。
 ここは「ログに何が出ているか」を確定させる工程。
 
 ## 入出力
 - **入力**:
-  - 調べたいこと（症状・エラー文言・時間帯・リクエスト ID など。
-    `$ARGUMENTS` または対話で受ける）
-  - `.specs/<feature>/bug-report.md`（存在すれば。
-    症状と時間帯の起点として読む）
-  - `.specs/<feature>/log-report.md`（存在すれば。
-    前回までの調査結果。
-    追記ベースにする）
+  - 調べたいこと。
+    症状・エラー文言・時間帯・リクエスト ID など。
+    `$ARGUMENTS` または対話で受ける
+  - `.specs/<feature>/bug-report.md`。
+    存在すれば症状と時間帯の起点として読む
+  - `.specs/<feature>/log-report.md`。
+    存在すれば前回までの調査結果として読み、追記ベースにする
 - **出力**: `.specs/<feature>/log-report.md`
 - **生ログ**: セッションのスクラッチパッドに落とす。
-  `.specs/` にも会話にも**貼らない**（量でコンテキストを潰すため）
+  量でコンテキストを潰すため、`.specs/` にも会話にも貼らない
 
-## 前提（守る境界）
+## 前提: 守る境界
 
 **プロファイルは人が指定する。
 skill は選ばない・切り替えない。**
 
 | 事項 | 扱い |
 |---|---|
-| プロファイル | `$ARGUMENTS` の `--profile <名前>`、または環境変数 `AWS_PROFILE`。**どちらも無ければ止まって聞く**（勝手に `default` を使わない） |
+| プロファイル | `$ARGUMENTS` の `--profile <名前>`、または環境変数 `AWS_PROFILE`。**どちらも無ければ止まって聞く**。勝手に `default` を使わない |
 | 本番（Prd） | **使わない**。プロファイル名に `prd` / `prod` を含む、または `sts get-caller-identity` の Account が本番アカウントなら**中断**して人に判断を返す |
-| SSO 認証 | **人がやる**。skill は `aws sso login` を実行しない（ブラウザ対話が要るため）。失効を検知したらコマンドを提示して中断する |
-| リージョン | プロファイルの設定に従う。skill から `--region` を足さない（必要なら人が引数で渡す） |
+| SSO 認証 | **人がやる**。skill は `aws sso login` を実行しない。ブラウザ対話が要るため。失効を検知したらコマンドを提示して中断する |
+| リージョン | プロファイルの設定に従う。skill から `--region` を足さない。必要なら人が引数で渡す |
 | コマンド | `aws logs` の読み取り系のみ。`put-*` / `delete-*` / `create-*` は使わない |
 
 ## 進め方
@@ -67,7 +67,8 @@ skill は選ばない・切り替えない。**
 ```
 
 以降のすべての `aws` 実行に `--profile <確定した名前>` を付ける。
-**途中で別プロファイルに変えない**（変える必要が出たら止めて人に返す）。
+**途中で別プロファイルに変えない。**
+変える必要が出たら止めて人に返す。
 
 ### Step 3: 認証確認（失効なら中断）
 
@@ -76,7 +77,8 @@ aws sts get-caller-identity --profile <p> --no-cli-pager
 ```
 
 - **成功** → 返ってきた `Account` を控える。
-  本番アカウントだった場合は Step 2 の Prd 判定と同じく中断する（名前が実体とずれている可能性があるため、ここでも見る）
+  本番アカウントだった場合は Step 2 の Prd 判定と同じく中断する。
+  名前が実体とずれている可能性があるため、ここでも見る
 - **失効・未ログイン**（`SSO session ... expired` / `Token has expired` / `Unable to locate credentials`）→ **自分でログインしない**。
   次を提示して中断する：
 
@@ -92,7 +94,8 @@ aws sts get-caller-identity --profile <p> --no-cli-pager
 
 **4-1 ロググループ**
 
-指定が無ければ候補を絞って提示する（全件列挙はしない）：
+指定が無ければ候補を絞って提示する。
+全件列挙はしない：
 
 ```
 aws logs describe-log-groups --log-group-name-prefix <あたり> \
@@ -104,18 +107,20 @@ aws logs describe-log-groups --log-group-name-prefix <あたり> \
 
 **4-2 時間窓**
 
-窓を決めずに検索しない（全期間スキャンは遅く高くつく）。
+窓を決めずに検索しない。
+全期間スキャンは遅く高くつく。
 指定が無ければ**直近 1 時間**を既定にし、外れていたら広げる。
 
 **ログは UTC、人が話す時刻は JST。**
-epoch へ変換して渡す（macOS の BSD date）：
+epoch へ変換して渡す。
+macOS の BSD date を使う：
 
 ```
 date -v-1H +%s                                    # 1 時間前（秒）
 date -j -f '%Y-%m-%d %H:%M:%S' '2026-07-30 10:00:00' +%s   # JST 指定 → 秒
 ```
 
-**単位に注意（取り違えると空振りする）**：
+**単位に注意する。取り違えると空振りする**：
 
 | コマンド | `--start-time` / `--end-time` の単位 |
 |---|---|
@@ -134,7 +139,8 @@ date -j -f '%Y-%m-%d %H:%M:%S' '2026-07-30 10:00:00' +%s   # JST 指定 → 秒
 aws logs tail <group> --since 1h --format short --profile <p> | tail -100
 ```
 
-`--follow` は**使わない**（ブロックする）。
+`--follow` は**使わない**。
+ブロックする。
 追尾が要るときだけ `run_in_background` で実行する。
 
 **5-2 パターンで拾う（filter-log-events）**
@@ -150,10 +156,11 @@ aws logs filter-log-events --log-group-name <group> \
 filter-pattern の要点：
 
 - スペース区切り = **AND**、`?foo ?bar` = **OR**、`-foo` = 除外
-- 大小を区別する（`ERROR` と `error` は別物。
-  両方拾うなら `?ERROR ?error`）
+- 大小を区別する。
+  `ERROR` と `error` は別物で、両方拾うなら `?ERROR ?error`
 - JSON ログなら `'{ $.level = "error" }'`、`'{ $.request_id = "abc123" }'` のようにフィールド指定できる
-- 部分一致は `%正規表現%`（例: `'{ $.message = %timeout% }'`）
+- 部分一致は `%正規表現%` で書く。
+  例: `'{ $.message = %timeout% }'`
 
 **5-3 集計・横断（Logs Insights）**
 
@@ -200,7 +207,8 @@ aws logs get-log-events --log-group-name <group> --log-stream-name <stream> \
 
 ### Step 6: 記録
 
-`.specs/<feature>/log-report.md` に書き出す（既にあればマージ・追記）。
+`.specs/<feature>/log-report.md` に書き出す。
+既にあればマージ・追記する。
 
 ````markdown
 # ログ調査: [対象]
@@ -227,7 +235,8 @@ aws logs get-log-events --log-group-name <group> --log-stream-name <stream> \
 ````
 
 **事実と推測を混ぜない。**
-ログに出ていない因果を所見に書かない（それは `/bughunt` の仕事）。
+ログに出ていない因果を所見に書かない。
+それは `/bughunt` の仕事。
 
 **何も見つからなかった場合**も、条件（窓・パターン・グループ）と「出なかった」ことを記録する。
 次の調査で同じ空振りを繰り返さないため。
@@ -257,7 +266,8 @@ aws logs get-log-events --log-group-name <group> --log-stream-name <stream> \
 
 - やったこと: 一言サマリは 1 行。
   主要な結果は `- ` の箇条書きで**最大 3 行**。
-  **生ログは転記しない**（レポートに書く）
+  生ログは転記しない。
+  レポートに書く
 - 要確認: ログに出ておらず確定できなかった点、空振りした条件。
   無ければブロックごと省略する
 - 次の一手: 調査で終わりなら `/bughunt` 行は省いてよい
@@ -272,11 +282,14 @@ aws logs get-log-events --log-group-name <group> --log-stream-name <stream> \
 - **`ResourceNotFoundException`** → ロググループ名の綴り違い。
   `describe-log-groups --log-group-name-prefix` で存在確認してから再試行する
 - **結果が空** → 窓・パターン・大小文字・ロググループの順に疑う。
-  3 回変えても空なら「出なかった」を所見として記録して終える（無限に試さない）
+  3 回変えても空なら「出なかった」を所見として記録して終える。
+  無限に試さない
 - **`ThrottlingException` / クエリが遅い** → 期間を短く割って回す。
   並列に投げない
-- **ページャで止まる** → すべての `aws` に `--no-cli-pager` を付ける（付け忘れが原因）
+- **ページャで止まる** → すべての `aws` に `--no-cli-pager` を付ける。
+  付け忘れが原因
 
 ## 完了条件
-指定された条件で CloudWatch Logs を検索し、**所見（見つかった／見つからなかった）を `.specs/<feature>/log-report.md` に記録したら完了**。
-原因の確定は完了条件に含めない（それは `/bughunt`・`/fix`）。
+指定された条件で CloudWatch Logs を検索し、所見が見つかった・見つからなかったを `.specs/<feature>/log-report.md` に記録したら完了。
+原因の確定は完了条件に含めない。
+それは `/bughunt`・`/fix`。
