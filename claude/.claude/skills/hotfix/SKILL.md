@@ -142,7 +142,16 @@ git checkout -b <work_branch>
 git push -u origin <work_branch>
 ```
 
-**5-2 本文の組み立て**
+**5-2 タイトルの組み立て**
+
+件名の作り方は `/sync-to-remote`「呼ばれ方」2-1 と同じ方式。hotfix は `seed.md` を持たないので、常に**コミットメッセージから主題を作る**（work ブランチのコミット列が揃っている）。固定 prefix `【鎌田QA】` を付けるところまでは共通で、hotfix はさらに先頭へ当て先を示す `[release]` / `[main]` を付ける：
+
+- release 宛: `[release]【鎌田QA】<subject>`
+- main 宛: `[main]【鎌田QA】<subject>`
+
+`<subject>` は release 宛・main 宛で同じ修正なので共通のものを使う。
+
+**5-3 本文の組み立て**
 
 `bug-report.md` の内容を材料にする（背景 ← 症状と疑わしい箇所、動作確認 ← 回帰テストの観点）：
 
@@ -163,21 +172,21 @@ git push -u origin <work_branch>
 - [ ] ...
 ```
 
-**5-3 2 本作成**
+**5-4 2 本作成**
 
 `gh label list` で利用可能なラベルを確認し、`hotfix` などの該当ラベルがあれば付与する。**どちらも draft で作る**（ready 化は人が判断する）。
 
 release 宛：
 ```
 gh pr create --base <release_branch> --head <work_branch> \
-  --title "hotfix: <subject>" --body "<本文>" \
+  --title "[release]【鎌田QA】<subject>" --body "<本文>" \
   --assignee @me --label "<該当ラベル>" --draft
 ```
 
 main 宛（同じ work ブランチを head にして base だけ変える）：
 ```
 gh pr create --base main --head <work_branch> \
-  --title "hotfix: <subject> (to main)" --body "<本文>" \
+  --title "[main]【鎌田QA】<subject>" --body "<本文>" \
   --assignee @me --label "<該当ラベル>" --draft
 ```
 
