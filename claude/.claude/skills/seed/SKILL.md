@@ -11,8 +11,6 @@ allowed-tools: Read, Write, Glob, Bash(ls *)
 チャットで固まった要望を受け取り、feature 名を決めて `.specs/<feature>/seed.md` を書き出す。
 まだ `.specs/` に何も無い最初の一歩を受け止め、`/spec` に引き継ぐ。
 
-EARS 形式の `requirements.md` は生成しない（詳細化は `/spec` の責務）。
-
 ## 入出力
 - **入力**: `$ARGUMENTS[0]`（任意、希望 feature 名）/ 直前までの会話で固まった要望
 - **出力**: `.specs/<feature>/seed.md`
