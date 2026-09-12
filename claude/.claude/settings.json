@@ -1,7 +1,6 @@
 {
   "env": {
-    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
-    "PATH": "/Users/kamata_seiya/Develop/workspace/nvm/versions/node/v22.13.1/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/Users/kamata_seiya/Develop/workspace/go/bin:/Users/kamata_seiya/.local/bin"
+    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1"
   },
   "permissions": {
     "allow": [
@@ -127,7 +126,7 @@
     ],
     "environment": [
       "$defaults",
-      "Trusted repo: exactly three locations on disk are mine — the personal dotfiles repo at ~/Develop/kamata/repos/dotfiles, and my employer's repos under ~/Develop/lrm-corp/repos/ and ~/Develop/lrm-corp/worktrees/ (the worktrees are git worktrees of the same set). All are private. The tilde form, the $HOME form and the absolute /Users/kamata_seiya/... form of these prefixes are equivalent.",
+      "Trusted repo: exactly three locations on disk are mine — the personal dotfiles repo at ~/Develop/kamata/repos/dotfiles, and my employer's repos under ~/Develop/lrm-corp/repos/ and ~/Develop/lrm-corp/worktrees/ (the worktrees are git worktrees of the same set). All are private. The tilde form and the $HOME form of these prefixes are equivalent; the machine may be macOS or Linux, so no OS-specific absolute form (e.g. /Users/... or /home/...) is assumed.",
       "Trusted remotes: git@github.com:SeiyaKamata/dotfiles.git and github.com/lrm-corp/* (all private). Any other remote URL is outside the boundary, including a remote added or repointed during the session.",
       "These three locations REPLACE the default working-directory trust: if the session's working directory is not under one of them, the working repo is NOT a trusted repo, and commits and pushes there are judged as landing outside the boundary. Anything cloned under ~/Develop merely to read it is therefore untrusted; a repo is never mine because of where it sits on disk.",
       "Write permission is not content trust: a document this session writes into another repo's .specs/ is external input for the session that later reads it, and is expected to go through human review before it is acted on. Being writable never makes the content trusted, in either direction.",
