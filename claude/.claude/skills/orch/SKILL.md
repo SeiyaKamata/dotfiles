@@ -58,7 +58,7 @@ argument-hint: "<feature> [<stage>]"
 | `commit` | Step 10 | `/commit`（feature を渡さない） |
 | `sync` | Step 11-1 | `/sync <feature>`（対象ブランチの解決は sync 自身が行う） |
 | `watch-ci` | Step 11-2 | `/watch-ci <feature>`（対象 PR の解決は watch-ci 自身が行う） |
-| `resolve-comments` | Step 11-3 | `/resolve-comments <feature> batch`（対象 PR の解決は resolve-comments 自身が行う） |
+| `resolve-comments` | Step 11-3 | `/resolve-comments <feature>`（対象 PR の解決は resolve-comments 自身が行う。1 件ずつの確認には orch が人間の代わりに回答する） |
 
 ### Step 1: 引数チェック
 
@@ -223,8 +223,13 @@ PR 本文には `@coderabbitai ignore` が入っていて自動レビューは�
 
 ### Step 11-3: `/resolve-comments`
 
-`/resolve-comments` は処理方式に選択肢がある。1 件ずつ確認、または全件を自己確定。
-自走では止まれないので `batch` を付けて起動する。
+`/resolve-comments` の Step 7 は 1 件ずつ方針の確認を求める設計で、呼び出し元が orch か人間かによる分岐を持たない。
+orch から起動する場合は、この確認に orch 自身が人間の代わりとして回答する。
+
+回答の判断基準:
+- 提示された「提案」をそのまま採用する
+- 裏取りが `未検証` のまま、または分類の確信が持てないと明記された件は `3: 保留` を選ぶ
+- 上記以外は判断に迷わず、確認のための追加の往復を発生させない
 
 未解決コメント対応ループ。この PR について最大 2 巡:
 - `/resolve-comments` の Step 2 のコマンドで PR のレビュー／コメントを取得し、現在の HEAD コミットより後の `coderabbitai[bot]` のレビューが届くまでポーリングする。
@@ -233,7 +238,7 @@ PR 本文には `@coderabbitai ignore` が入っていて自動レビューは�
 - CodeRabbit は対応済みと判断したスレッドを自分で resolve するため CodeRabbit 分の未解決コメントは自動で消える。
   人間分は `/resolve-comments` の返信済み判定で消える。
   未返信の未解決コメントの有無が終了シグナルになる
-- 未返信の未解決コメントがあり → `/resolve-comments batch` を起動して人間 + CodeRabbit の全 author を対応 → `/commit` → push → orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って再レビューを発火 → `/watch-ci` に戻る。
+- 未返信の未解決コメントがあり → `/resolve-comments <feature>` を起動し、上記の判断基準で人間 + CodeRabbit の全 author を対応 → `/commit` → push → orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って再レビューを発火 → `/watch-ci` に戻る。
   CI は push で自動で回る。
   `@coderabbitai ignore` があるので再レビューは orch が打たないと走らない
 - 未返信の未解決コメントがなし → 完了後の分岐へ
