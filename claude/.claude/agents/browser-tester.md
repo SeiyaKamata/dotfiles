@@ -1,5 +1,5 @@
 ---
-name: qa-browser
+name: browser-tester
 description: qa.md のシナリオを Playwright でブラウザ操作し合否を返す。/qa 専用。
 tools: Read, Grep, Glob, Bash, mcp__playwright__*
 mcpServers:
