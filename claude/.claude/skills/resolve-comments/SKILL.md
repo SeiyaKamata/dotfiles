@@ -354,11 +354,7 @@ gh pr comment <PR番号> --body "<返信内容>
   コメントごとの指摘・返信内容はカードに列挙せず、PR のスレッドに寄せる。
   生成物の行は非対応・保留のいずれかを issues.md に追記した場合だけ出す。
 - 要確認: `/spinoff` `/spec` は**提示のみで自動起動しない**。
-- 次の一手: 対応した指摘があるなら `- コミットして push する: /commit`、追加の修正が無いなら `- マージ / Ready for review を判断。ここで停止`。
-  **push とレビュー再発火はこのスキルの範囲外。**
-  `/commit` 後、push した上で `gh pr comment <PR番号> --body "@coderabbitai review"` を打たないと CodeRabbit の再レビューは走らない。
-  `@coderabbitai ignore` が PR 本文に入っているため。
-  `/orch` 経由なら orch がこれを担う。単体運用なら人が行う。
+- 次の一手: 修正を push したなら `- CI を再監視する: /watch-ci`、追加の修正が無いなら `- マージ / Ready for review を判断。ここで停止`。
 
 **中断時**: 同じブロック構成でヘッダを `### コメント対応中断` に差し替える。
 
