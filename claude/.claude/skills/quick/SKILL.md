@@ -38,9 +38,11 @@ argument-hint: "<feature>"
 **完了ゲート:** feature 名を確定したか。
 
 ### Step 2: 入力確認とコンテキスト収集
-ブランチを切る前に行う。ここで止まる場合、空のブランチを残さない。
+ブランチを切る前に行う。
+ここで止まる場合、空のブランチを残さない。
 
-- `.specs/<feature>/requirements.md` の存在確認だけを行う。中身は読まない。
+- `.specs/<feature>/requirements.md` の存在確認だけを行う。
+  中身は読まない。
   無ければ中断し「先に /spec <feature> を実行してください」を示す
 - テスト・ビルドコマンドを `package.json`、`Makefile`、`go.mod`、`pyproject.toml` などから確認する
 - `git status --porcelain` でベースライン
@@ -108,7 +110,8 @@ implementer への配布: 1 つの `implementer` エージェントに配布す�
 混ぜない。
 
 - やったこと: 一言サマリは 1 行。
-  主要な結果は `- ` の箇条書きで最大 3 行。無ければ行ごと省略する。
+  主要な結果は `- ` の箇条書きで最大 3 行。
+  無ければ行ごと省略する。
   変更ファイルの一覧や implementer の報告詳細は列挙せず、git 差分に寄せる。
 - 要確認: `implementer` の報告の `自分で決めた判断` をそのまま出す。
   無ければブロックごと省略する。
@@ -117,7 +120,8 @@ implementer への配布: 1 つの `implementer` エージェントに配布す�
 
 **中断時**: 同じブロック構成でヘッダを `### クイック実装中断` に差し替える。
 
-- やったこと: 一言サマリに中断理由。`requirements.md` が無い・blockers・最終テスト失敗など。
+- やったこと: 一言サマリに中断理由を書く。
+  `requirements.md` が無い・blockers・最終テスト失敗などが該当する。
 - 次の一手: 復帰コマンド。
   `requirements.md` が無ければ `- 要件を作る: /spec <feature>`。
   blockers が設計判断を要するものなら `- /design <feature> へ合流`。
