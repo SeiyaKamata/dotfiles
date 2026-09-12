@@ -38,6 +38,8 @@ argument-hint: "<feature> [<stage>]"
 
 指定可能な開始工程は次の 11 個。
 `/fix` は自己修正ループの内部工程のため対象外。
+`/quick` も対象外。
+Step 3 完了後の分岐で内部的に呼ばれることがあるが、`/bughunt`・`/hotfix` と同じ独立した軽量ルートで、開始工程には指定できない。
 
 前提成果物は事前チェックしない。
 開始工程をそのまま起動し、不足していれば起動した skill 自身が検知して案内する。
@@ -143,7 +145,13 @@ Step 3〜5 はいずれも「共通: 妥当性検証ループ」に従い、OK �
 ### Step 3: `/spec`
 
 要件を確定できない場合も停止する。
-確定したら `/design` へ。
+
+確定したら、`requirements.md` の frontmatter `quick_eligible` を見て次工程を分岐する。
+判定自体は `/spec` が Step 6 で行うので、orch はここで判定し直さない。
+- `true` → `/quick <feature>` へ。design/tasks を飛ばし実装まで quick が担う。
+  完了後の遷移は quick の完了カード「次の一手」に従う。`/test` または `/review` へ進む
+- `false` → `/design` へ
+- `/quick` が中断カードで `/design` への合流を提示した場合 → カードの指示どおり `/design` へ合流する
 
 ### Step 4: `/design`
 

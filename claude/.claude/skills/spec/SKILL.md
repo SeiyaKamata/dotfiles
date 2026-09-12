@@ -115,7 +115,7 @@ Requirement の説明文と受け入れ条件を重複させない。
   frontmatter の `notion_url`・`ticket_key`・`pr_title`・`branch_name` は確定稿にもそのまま引き継ぐ
 - **有る + `status: confirmed` + 変更要望あり**: 「再実行時の扱い」に従い該当箇所だけ直す。
   境界に関わる要望なら Step 3 から、そうでなければ Step 4 から
-- **有る + `status: confirmed` + 変更要望なし**: Step 3〜6 を飛ばし、Step 7 で「変更なし」と報告して終了
+- **有る + `status: confirmed` + 変更要望なし**: Step 3〜7 を飛ばし、Step 8 で「変更なし」と報告して終了
 
 ### Step 3: スコープ境界
 
@@ -151,20 +151,36 @@ Requirement が出揃ったら、次の 3 条件をすべて満たす部分集�
 
 切り出し後に再実行されたときは、該当 Requirement を `## スコープ` の「含まない」へ理由付きで移す。
 
-### Step 6: 書き出し
-Step 3〜5 の内容を次のフォーマットで `.specs/<feature>/requirements.md` に書く。
-書き出したら Step 7 へ。
+### Step 6: quick判定
+
+`quick/SKILL.md`「いつ使うか」の 3 条件に、確定した要件を照らして判定する。
+- 変更が単一の関心事に閉じている。複数の大タスクに分ける意味がない
+- 新規の外部インターフェース（API・DB スキーマ・画面構成）を伴わない
+- 実装方針で悩む余地がない。設計判断そのものが不要
+
+3 条件をすべて満たす → `quick_eligible: true`。
+1 つでも外れる、または判定に迷う → `quick_eligible: false`。
+quick 側と同じく、迷ったときは通常パイプラインに倒す。
+
+判定根拠を要件サマリ直後に `【要確認】quick判定: <true/false>。理由: <理由>` として 1 行残す。
+
+**完了ゲート:** `quick_eligible` を true/false のいずれかに確定したか。
+
+### Step 7: 書き出し
+Step 3〜6 の内容を次のフォーマットで `.specs/<feature>/requirements.md` に書く。
+書き出したら Step 8 へ。
 
 読み手が最初に必要とするのは全体像なので、要件サマリを冒頭に置く。
 検討経緯・却下した代替案は書かず、決まったことだけを書く。
 
-frontmatter は `status: confirmed` を必ず付ける。
+frontmatter は `status: confirmed` と Step 6 で確定した `quick_eligible` を必ず付ける。
 Step 2 で読んだ下書きに `notion_url`・`ticket_key`・`pr_title`・`branch_name` があれば、
 値をそのまま引き継いで書く。無い項目は書かない。
 
 ```markdown
 ---
 status: confirmed
+quick_eligible: [true または false]
 [引き継ぐ項目があれば notion_url / ticket_key / pr_title / branch_name をここに]
 ---
 
@@ -207,10 +223,10 @@ status: confirmed
 [対象ファイルの洗い出しなど 10 行を超える表・一覧はスコープ節に置かずここへ送り、スコープ節からは「詳細は付録」と 1 行で参照する。無ければ節ごと省略]
 ```
 
-**完了ゲート:** 「受け入れ条件の書き方」「役割」「Step 3」「Step 5」「Step 6 のフォーマット」の規定を
-満たして `requirements.md` を書き出したか。frontmatter に `status: confirmed` があるか。
+**完了ゲート:** 「受け入れ条件の書き方」「役割」「Step 3」「Step 5」「Step 7 のフォーマット」の規定を
+満たして `requirements.md` を書き出したか。frontmatter に `status: confirmed` と `quick_eligible` があるか。
 
-### Step 7: 出力
+### Step 8: 出力
 
 次の完了カードを、コードフェンス自体は出さずに中身だけそのまま出力して終了する。
 カードの前後に作業サマリ・所感・補足を足さない。
@@ -226,8 +242,7 @@ status: confirmed
 <件数>件（本文の `【要確認】` を参照）
 
 ### 次の一手
-- 設計に進む: `/design <feature>`
-- 直接実装する: `/quick <feature>`
+- <quick_eligible に応じて 1 行目を差し替える>
 - 要件を直す: `/spec <feature>`
 ```
 
@@ -235,7 +250,10 @@ status: confirmed
 - 要確認: 件数と「本文を見よ」の一言だけ。
   内容の列挙はしない。
   無ければブロックごと省略する。
-- 次の一手: 分割候補があるときだけ `- 分割する: /spinoff <feature>` を足し、切り出す Requirement を指示して起動する旨を添える。
+- 次の一手: 1 行目は `quick_eligible` で分岐する。
+  `true` → `- 直接実装する: /quick <feature>`。
+  `false` → `- 設計に進む: /design <feature>`。
+  分割候補があるときだけ `- 分割する: /spinoff <feature>` を足し、切り出す Requirement を指示して起動する旨を添える。
 
 **中断時**: 同じブロック構成で見出しを `### 要件定義中断` に差し替える。
 
