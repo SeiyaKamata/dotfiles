@@ -20,7 +20,7 @@ allowed-tools: Bash(git *), Bash(gh *), Read
 冪等に作られている。既に PR があるブランチ・既にマージ済みのブランチはスキップするので、取りこぼしを拾うために何度呼んでも同じ結果になる。
 
 ## 入出力
-- 入力: カレントブランチ、または引数の feature 名から解決したブランチとコミット済みの差分・コミット列。加えて `.specs/<feature>/seed.md` の frontmatter の `pr_title`。無ければコミットメッセージから作る
+- 入力: カレントブランチ、または引数の feature 名から解決したブランチとコミット済みの差分・コミット列。加えて `.specs/<feature>/requirements.md` の frontmatter の `pr_title`。無ければコミットメッセージから作る
 - 出力: draft PR、PR 運用あり、またはデフォルトブランチへの push、PR 運用なし。分割した場合はフェーズブランチ `<feature>-pN`
 
 ## PR 運用の有無
@@ -99,8 +99,8 @@ feature 名は `-p<数字>` を除いて求める。
 **PR タイトルの素材はここで自分で用意する。**
 `tasks.md` は持たない：
 
-- `.specs/<feature>/seed.md` の frontmatter の `pr_title`。例 `[SEC-16005] ATM Auth0移行`
-- `seed.md` が無い、または `pr_title` が空なら、コミットメッセージから主題を作る。
+- `.specs/<feature>/requirements.md` の frontmatter の `pr_title`。例 `[SEC-16005] ATM Auth0移行`
+- `requirements.md` が無い、または `pr_title` が空なら、コミットメッセージから主題を作る。
   実装後なのでコミット列が揃っている
 - 固定 prefix `【鎌田QA】` を頭に付ける。詳細は `claude/CLAUDE.md`「PR / ブランチ命名」
 

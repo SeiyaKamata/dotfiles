@@ -34,7 +34,7 @@ maxTurns: 20
 
 | 工程 | 上流成果物 | レビュー対象 |
 |---|---|---|
-| `/spec` | 起動時の要望テキスト + `seed.md`（あれば） | `requirements.md` |
+| `/spec` | 起動時の要望テキスト + 既存の `requirements.md`（あれば。`status: draft` の下書きを含む） | `requirements.md` |
 | `/design` | `requirements.md` | `design.md` |
 | `/tasks` | `design.md` | `tasks.md` + `qa.md` |
 

@@ -107,7 +107,7 @@ orch は各工程のカードを受け取ったら、遷移先を 1 行で記録
 
 | 工程 | 上流成果物 | レビュー対象 | 参照ドキュメント |
 |---|---|---|---|
-| `/spec` | 起動時の要望テキスト + `seed.md`（あれば） | `requirements.md` | なし |
+| `/spec` | 起動時の要望テキスト + 既存の `requirements.md`（あれば。`status: draft` の下書きを含む） | `requirements.md` | なし |
 | `/design` | `requirements.md` | `design.md` | なし |
 | `/tasks` | `design.md` | `tasks.md` + `qa.md` | `tasks/SKILL.md`「大タスク = 関心のグルーピング」 |
 

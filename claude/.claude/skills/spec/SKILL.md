@@ -1,8 +1,8 @@
 ---
 name: spec
-description: ユーザーから機能要望を受け取り、要件を詳細化してEARS形式で出力する。新機能追加や新規開発の話が出たら使う。
+description: ユーザーから機能要望を受け取り、feature名を決めて要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または既存requirements.mdの詳細化・修正で使う。
 allowed-tools: Read, Write, Edit, Glob, Grep
-argument-hint: "<feature>"
+argument-hint: "[feature]"
 ---
 
 # 要件策定スキル
@@ -12,23 +12,29 @@ argument-hint: "<feature>"
 「何を作るか」だけを扱い、「どう作るか」は `/design` に委ねる。
 DB やフレームワークの選定といった技術的な実装方法は要件に含めない。
 
+要望を受け取ってから確定稿ができるまでの唯一の入口でもある。
+feature 名の決定・衝突チェックも `/spec` 自身が行うため、要望を思いついたらまずここから始める。
+`/spinoff`・`/notion-import` が `status: draft` の `requirements.md` を先に置いていく場合もあり、
+そのときは下書きの詳細化として扱う。「進め方」参照。
+
 ## 入出力
-- **入力**: 
+- **入力**:
   - 会話で渡された要望
-  - `.specs/<feature>/seed.md`(あれば)
-  - `.specs/<feature>/requirements.md`(あれば)
-- **出力**: 
-  - `.specs/<feature>/requirements.md`
+  - `.specs/<feature>/requirements.md`(あれば。`status: draft` の下書き、または `status: confirmed` の確定稿)
+- **出力**:
+  - `.specs/<feature>/requirements.md`(frontmatter に `status: confirmed` を持つ)
 
 ## 再実行時の扱い
 `requirements.md` を直したいときは `/spec <feature>` を再実行する。
 既存をベースに、渡された変更要望に該当する箇所だけを直す。
 白紙に戻さず、変更要望に無い不備は気づいても直さない。
 変更要望が無ければ書き換えず「変更なし」と報告する。
+`status: draft` の下書きを詳細化するときも同じ扱いで、書き出し時に `status: confirmed` へ更新する。
 
 ## 対話方針
 途中でユーザーに何も聞かない。
 質問もスコープ承認もしない。
+feature 名の決定・衝突チェック・別名採番も判断が割れる点として扱い、最も素直な解釈を採って自分で確定する。
 判断が割れる点は止まらずに最も素直な解釈を採り、**採った解釈は該当箇所に `【要確認: 理由】` を付記する**。
 
 ## 受け入れ条件の書き方
@@ -43,7 +49,7 @@ DB やフレームワークの選定といった技術的な実装方法は要�
 - **非機能要件**: 性能・セキュリティ・可用性の期待値。
   影響する変更のときだけ埋め、無ければ Requirement を起こさない
 
-ユーザー行動・エラーケースの情報が seed.md にも要望にも無ければ「対話方針」節に従う。
+ユーザー行動・エラーケースの情報が下書きにも要望にも無ければ「対話方針」節に従う。
 
 ### 型
 
@@ -84,20 +90,32 @@ Requirement の説明文と受け入れ条件を重複させない。
 
 ## 進め方
 
-### Step 1: 引数チェック
-- `$ARGUMENTS[0]`(feature) が未指定なら「使い方: /spec <feature>」を表示して終了
+### Step 1: 引数チェック・feature 名決定
+
+- `$ARGUMENTS[0]` があれば kebab-case・3〜5 語程度に正規化し、feature 名の候補にする
+- 無ければ会話文脈の要望から同じ制約で候補を生成する
+- 引数も要望も無ければ「使い方: /spec [feature]」を表示して終了
+
+候補について `.specs/<候補>/requirements.md` の有無を確認する:
+- **既に存在する**: 再実行なので、その feature 名をそのまま使う
+- **存在しない**: 新規。`Glob(".specs/*")` で既存 feature と衝突するか確認し、
+  衝突するときは区別できる別名を自動採番する。末尾に連番や区別可能な語を足す。
+  ユーザーに確認しない
+
+**完了ゲート:** 既存の再実行か、衝突しない新規 feature 名かのいずれかを確定したか。
 
 ### Step 2: コンテキスト収集
 読み込む:
-- `.specs/<feature>/seed.md`(あれば) 
-  -  frontmatterは命名メタなので要件化に使わない
 - `.specs/<feature>/requirements.md`(あれば)
 
-`requirements.md` の有無と変更要望で分岐する:
+`requirements.md` の有無と frontmatter の `status`、変更要望で分岐する:
 - **無い**: Step 3 から書き起こす
-- **有る + 変更要望あり**: 「再実行時の扱い」に従い該当箇所だけ直す。
+- **有る + `status: draft`**: `/spinoff`・`/notion-import` が置いた下書き。
+  本文を要望の材料として使い、Step 3 から詳細化する。
+  frontmatter の `notion_url`・`ticket_key`・`pr_title`・`branch_name` は確定稿にもそのまま引き継ぐ
+- **有る + `status: confirmed` + 変更要望あり**: 「再実行時の扱い」に従い該当箇所だけ直す。
   境界に関わる要望なら Step 3 から、そうでなければ Step 4 から
-- **有る + 変更要望なし**: Step 3〜6 を飛ばし、Step 7 で「変更なし」と報告して終了
+- **有る + `status: confirmed` + 変更要望なし**: Step 3〜6 を飛ばし、Step 7 で「変更なし」と報告して終了
 
 ### Step 3: スコープ境界
 
@@ -140,7 +158,16 @@ Step 3〜5 の内容を次のフォーマットで `.specs/<feature>/requirement
 読み手が最初に必要とするのは全体像なので、要件サマリを冒頭に置く。
 検討経緯・却下した代替案は書かず、決まったことだけを書く。
 
+frontmatter は `status: confirmed` を必ず付ける。
+Step 2 で読んだ下書きに `notion_url`・`ticket_key`・`pr_title`・`branch_name` があれば、
+値をそのまま引き継いで書く。無い項目は書かない。
+
 ```markdown
+---
+status: confirmed
+[引き継ぐ項目があれば notion_url / ticket_key / pr_title / branch_name をここに]
+---
+
 # 要件定義: [機能名]
 
 ## 概要
@@ -181,7 +208,7 @@ Step 3〜5 の内容を次のフォーマットで `.specs/<feature>/requirement
 ```
 
 **完了ゲート:** 「受け入れ条件の書き方」「役割」「Step 3」「Step 5」「Step 6 のフォーマット」の規定を
-満たして `requirements.md` を書き出したか。
+満たして `requirements.md` を書き出したか。frontmatter に `status: confirmed` があるか。
 
 ### Step 7: 出力
 

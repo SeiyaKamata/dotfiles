@@ -25,7 +25,7 @@ Notion へ書くのはここ 1 回で、入力は `.specs/<feature>/` の成果�
 
   | 材料 | ソース |
   |---|---|
-  | 書き戻し先 URL | `.specs/<feature>/seed.md` の frontmatter `notion_url`。必須 |
+  | 書き戻し先 URL | `.specs/<feature>/requirements.md` の frontmatter `notion_url`。必須 |
   | 実装方針 | `.specs/<feature>/requirements.md`・`design.md` |
   | PR 構成・ブランチ | `gh pr list` で実際に作られた PR |
   | PR URL | `gh pr list` で tasks.md のブランチごと |
@@ -76,8 +76,8 @@ Step 4-1 参照。
 **完了ゲート:** feature と `.specs/<feature>/` が確定したか。
 
 ### Step 2: 書き戻し先 URL の解決
-`.specs/<feature>/seed.md` の frontmatter `notion_url` を読む。
-`/notion-import` 以外が作った seed.md には frontmatter が無い。
+`.specs/<feature>/requirements.md` の frontmatter `notion_url` を読む。
+`/notion-import` 経由でないものにはこの項目が無い。
 無い、または空の場合はユーザーに Notion ページ URL を聞く。
 勝手に別ページを探して書き込まない。
 `notion-search` での推測書き込みは禁止する。
@@ -213,7 +213,7 @@ PR は 4-1 の判定でプロパティがあれば省略する。
 
 ## エラー処理
 - feature 未指定 / `.specs/<feature>` が無い → 使い方を表示して終了
-- seed.md が無い / `notion_url` が無い → ユーザーに聞く。
+- `requirements.md` が無い / `notion_url` が無い → ユーザーに聞く。
   得られなければ中断する。
   推測で書き込まない。
 - Notion を読めない / 書けない。
