@@ -233,6 +233,12 @@ gh pr create --draft --base <ベースブランチ> --title "<タイトル>" --b
 ```
 未 push なら先に `git push -u origin HEAD`。
 
+PR 本文に `@coderabbitai ignore` を入れているため自動レビューは走らない。
+作成直後にこのスキル自身が最初のレビューを発火させる：
+```
+gh pr comment <PR番号> --body "@coderabbitai review"
+```
+
 **stacked モード:** Step 8 で絞り込んだ 1 フェーズだけを作成する。base は 1 つ下のフェーズで、`p1` はデフォルトブランチ：
 ```
 git push -u origin <feature>-pN

@@ -210,8 +210,8 @@ rebase 伝播は自走で安全に行えないため、PR 数に比例して停�
 対象ブランチの解決も次の PR `p(N+1)` の作成も `/sync` 自身が行うため、orch は先回りして作らない。
 
 実行: `sync/SKILL.md` に従う。
-PR 本文には `@coderabbitai ignore` が入っていて自動レビューは走らないので、PR ができたら orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って最初のレビューを発火させる。
-以降 CodeRabbit のレビューは orch が打った時だけ走る。
+PR 本文には `@coderabbitai ignore` が入っていて自動レビューは走らないので、`sync` 自身が PR 作成直後に最初のレビューを発火させる。
+以降 CodeRabbit のレビューは `@coderabbitai review` が打たれた時だけ走る。
 そのうえでカードの次の一手、`/watch-ci` へ進む。
 
 ### Step 11-2: `/watch-ci`
