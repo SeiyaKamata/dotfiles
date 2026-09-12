@@ -2,7 +2,7 @@
 name: watch-ci
 description: PRのCIを監視し、完了後に結果に応じて分岐対応する。push後やPR作成後に使う。
 argument-hint: "[PR番号 | <feature>]"
-allowed-tools: Bash(gh *), Bash(git *)
+allowed-tools: Bash(gh *), Bash(git *), Agent
 ---
 
 # CI監視スキル
@@ -107,14 +107,24 @@ gh pr view <PR番号> --json reviewThreads --jq '.reviewThreads[] | select(.isRe
 
 #### 3-2 赤のとき
 
-失敗ジョブを特定し、ログを取得して要点に畳む。
-ログ本体はカードに載せない：
+失敗ジョブを特定する：
 
 ```
 gh pr checks <PR番号> --json name,state,conclusion,link | jq '[.[] | select(.conclusion == "FAILURE" or .conclusion == "CANCELLED" or .conclusion == "TIMED_OUT")]'
 gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusion,workflowName
-gh run view <run-id> --log-failed
 ```
+
+**ログ本体はメインで読まない。**
+`gh run view <run-id> --log-failed` は失敗時にログ全文を吐き、メインでそのまま実行すると
+その全文がコンテキストに載ってトークンを浪費する。
+ログの取得と要約は `general-purpose` サブエージェントに委譲する。
+
+サブエージェントに渡すもの:
+- 対象の `run-id`・失敗ジョブ名
+- 「`gh run view <run-id> --log-failed` を実行し、失敗ジョブ名・失敗ステップ・主要なエラーメッセージを
+  最大 10〜15 行程度に絞って報告すること。ログ全文は転記しないこと」という指示
+
+受け取るのはこの要約だけで、ログ全文はメインのコンテキストに読み込まない。
 
 **修正方針は聞かない。**
 どのジョブ・どのステップ・主要なエラーメッセージを押さえ、カードに畳んで人に渡す。
