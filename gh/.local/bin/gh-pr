@@ -19,7 +19,7 @@
 #
 # 前提: gh にログイン済み（gh auth status で確認）。
 # 通知は herdr があれば herdr notification（リモート越しでも手元に届く）、
-# 無ければ macOS の osascript にフォールバックする。
+# 無ければ macOS の osascript、Linux の notify-send の順にフォールバックする。
 set -euo pipefail
 
 # --- 設定 ---
@@ -48,7 +48,8 @@ EOF
 
 # 通知。herdr があれば herdr notification（herdr サーバー経由でアタッチ中の
 # クライアントに出るため、リモートで watch させても手元に届く）。無ければ
-# macOS の osascript にフォールバック。いずれも通知不可でも本体は継続。
+# macOS の osascript、Linux の notify-send の順にフォールバック。
+# いずれも通知不可でも本体は継続。
 notify() {
   local title="$1" msg="$2"
   # herdr は通知が無効 (delivery=off) でも exit 0 で {"shown":false} を返すため、
@@ -60,10 +61,13 @@ notify() {
       *'"shown":true'*) return ;;
     esac
   fi
-  # フォールバック: osascript。特殊文字はエスケープ。
-  title=${title//\\/\\\\}; title=${title//\"/\\\"}
-  msg=${msg//\\/\\\\}; msg=${msg//\"/\\\"}
-  osascript -e "display notification \"$msg\" with title \"$title\"" >/dev/null 2>&1 || true
+  if command -v osascript >/dev/null 2>&1; then
+    title=${title//\\/\\\\}; title=${title//\"/\\\"}
+    msg=${msg//\\/\\\\}; msg=${msg//\"/\\\"}
+    osascript -e "display notification \"$msg\" with title \"$title\"" >/dev/null 2>&1 || true
+  elif command -v notify-send >/dev/null 2>&1; then
+    notify-send "$title" "$msg" >/dev/null 2>&1 || true
+  fi
 }
 
 # --- review: 自分がレビュアーに指定された open PR ---
