@@ -87,9 +87,7 @@ gh pr checks <PR番号> --json name,state,conclusion,link
 どの PR / ブランチが失敗したかを明記する。
 stacked では下位フェーズの base 側の修正が上位 PR にも影響するため、失敗フェーズを直したら stack を rebase 伝播して再 push し、再度全 PR を監視する。
 
-### Step 3: 判定後の処理
-
-#### 3-1 green のとき
+### Step 3: greenのとき
 
 未解決のレビューコメントを確認する：
 
@@ -105,7 +103,7 @@ gh pr view <PR番号> --json reviewThreads --jq '.reviewThreads[] | select(.isRe
   ```
   既に Open ならその旨をカードに 1 行だけ書き、案内は出さない
 
-#### 3-2 赤のとき
+### Step 4: 赤のとき
 
 失敗ジョブを特定する：
 
@@ -137,7 +135,7 @@ gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusi
 
 - **切り出さないもの**: その PR 限りの一回限りのバグ・タイポ修正、git log や diff を見れば分かること
 
-### Step 4: 出力
+### Step 5: 出力
 
 次の完了カードを、コードフェンス自体は出さずに中身だけそのまま出力して終了する。
 カードの前後に作業サマリ・所感・補足を足さない。
