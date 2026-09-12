@@ -4,6 +4,7 @@ return {
 	require("plugins.autopairs"),
 	require("plugins.cmp"),
 	require("plugins.comment"),
+	require("plugins.diffview"),
 	require("plugins.gitsigns"),
 	require("plugins.indent-blankline"),
 	require("plugins.lualine"),
