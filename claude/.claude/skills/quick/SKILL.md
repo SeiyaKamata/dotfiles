@@ -1,32 +1,22 @@
 ---
 name: quick
 description: requirements.mdを受け取り、design/tasksを介さず直接実装する軽量スキル。.specs/<feature>/requirements.mdが出来上がり、設計判断も大タスクへの分割も不要なほど小さい変更のときに使う。
-allowed-tools: Read, Bash, Glob, Grep, Agent
+allowed-tools: Read, Bash, Glob, Agent
 argument-hint: "<feature>"
 ---
 
 # クイック実装スキル（コーディネーター）
 
 ## 役割
-`.specs/<feature>/requirements.md` を、`design.md`・`tasks.md` を作らずに直接実装する。
+`.specs/<feature>/requirements.md` だけを仕様として直接実装する。
 
-design はアーキテクチャ判断、tasks は大タスクへの分割で、どちらも判断や分割そのものに価値がある規模の変更でコストを払う工程。
-その価値が出ない変更では、この 2 工程を丸ごと飛ばす。
-基準は下記「いつ使うか」を参照。
-
-実装そのものは `/impl` と同じく `implementer` サブエージェントに委譲し、このスキル自身はコーディネーターに徹する。
-`implementer` は元々 `tasks.md` を必須にしていない。
-`tasks.md` は「あれば参考に読んでよい」文脈情報という位置づけで、担当範囲の正本はプロンプト側にあるため、既存エージェントの変更は不要。
-
-- メインが握るもの: `requirements.md` の存在確認、git 操作、ブランチ作成、リポジトリ全体の最終テスト、詰まったときの判断
-- implementer に任せるもの: 実装そのもの。git には触らせない。`implementer` 側の制約に定義済み
-- メインでコードを直接書かない
-- メインは `requirements.md` の中身を読まない。読むのは `implementer` 自身。
-  これにより「requirements.md だけで実装が通るか＝仕様の自己完結性」も `/impl` と同様に検証できる
+実装そのものは `implementer` サブエージェントに委譲し、このスキル自身はコーディネーターに徹してコードを直接書かない。
+メインは `requirements.md` の中身を読まず、実際に読むのは `implementer` 自身。
+これにより「requirements.md だけで実装が通るか＝仕様の自己完結性」を検証できる。
 
 ## 入出力
-- 入力: `.specs/<feature>/requirements.md`。`design.md` / `tasks.md` は存在しない前提
-- 出力: 実装コード。`tasks.md` を持たないためチェックボックス更新は無い
+- 入力: `.specs/<feature>/requirements.md`
+- 出力: 実装コード
 
 ## 引数
 - `$ARGUMENTS[0]`: feature 名（必須）
@@ -34,32 +24,20 @@ design はアーキテクチャ判断、tasks は大タスクへの分割で、�
 ## 対話方針
 途中でユーザーに何も聞かない。
 実装を続けられない事態では止まる。
-`requirements.md` が無い場合は Step 2、それ以外は「エラー処理」を参照。
 
 ## 用語（前提）
 用語の定義は `claude/CLAUDE.md`「用語集」に従う。
-このスキルはフェーズを持たない。
-`impl`〜`commit` と同じく実装ブランチ 1 本の上で動く。
-ブランチは常に `<feature>`。`pN` サフィックスは付かない。
-
-このスキルは orch の 11 工程レジストリには含まれない。`/bughunt`・`/hotfix` と同じく独立した軽量ルート。
-design/tasks を経由する通常パイプラインとは別の入口として、人または呼び出し元が明示的に選ぶ。
-
-## いつ使うか
-次をすべて満たすときだけ使う。
-1 つでも外れるなら通常パイプライン、`/design` → `/tasks` → `/impl`、に乗せる：
-- 変更が単一の関心事に閉じている。複数の大タスクに分ける意味がない
-- 新規の外部インターフェース（API・DB スキーマ・画面構成）を伴わない
-- 実装方針で悩む余地がない。設計判断そのものが不要
-
-判断に迷う場合は通常パイプラインを選ぶ。design/tasks を飛ばして後戻りするコストの方が高い。
 
 ## 進め方
+各 Step は順番に実行する。
+**完了ゲート**を通過するまで次へ進まない。
 
 ### Step 1: 引数チェック
 - `$ARGUMENTS[0]`（feature）が未指定なら「使い方: /quick <feature>」を表示して終了
 
-### Step 2: 入力確認とコンテキスト収集。メインが軽量に実施
+**完了ゲート:** feature 名を確定したか。
+
+### Step 2: 入力確認とコンテキスト収集
 ブランチを切る前に行う。ここで止まる場合、空のブランチを残さない。
 
 - `.specs/<feature>/requirements.md` の存在確認だけを行う。中身は読まない。
@@ -67,7 +45,9 @@ design/tasks を経由する通常パイプラインとは別の入口として�
 - テスト・ビルドコマンドを `package.json`、`Makefile`、`go.mod`、`pyproject.toml` などから確認する
 - `git status --porcelain` でベースライン
 
-### Step 3: ブランチ準備。メインが実施
+**完了ゲート:** `requirements.md` の存在を確認し、テスト・ビルドコマンドと `git status` のベースラインを押さえたか。
+
+### Step 3: ブランチ準備
 PR 運用の有無に関わらず、常にブランチを切る。
 実装を隔離しておけば、途中で捨てる・作り直すのが安全になる。
 
@@ -81,32 +61,31 @@ git fetch origin "$DEFAULT"
 git checkout -b <feature> "origin/$DEFAULT"
 ```
 
-`git remote show origin | sed` を使わないのは、`sed` がパイプ経由で権限の allowlist に無く承認待ちで止まるため。
+`sed` をパイプで挟まないのは、権限の allowlist に無く承認待ちで止まるため。
+
+**完了ゲート:** 実装ブランチ `<feature>` を作成したか。
 
 ### Step 4: 実装
 
-**4-1 implementer に配布**
-
-1 つの `implementer` エージェントに丸ごと配布する。
+implementer への配布: 1 つの `implementer` エージェントに配布する。
 プロンプトに渡すもの：
 - feature 名。specs のパスを含む
-- 「`design.md` / `tasks.md` は存在しない。`.specs/<feature>/requirements.md` だけを仕様として、全要件を実装すること」という明示
+- 「`.specs/<feature>/requirements.md` だけを仕様として、全要件を実装すること」
 - リポジトリのテスト／ビルドコマンド
-- 「git には触れず、報告フォーマットで返す」旨。`implementer` 側にも定義済みだが明示する
+- 「git には触れず、報告フォーマットで返す」旨
 
-品質水準は指定しない。`implementer` の既定である本番品質・タスク単位の確認ありをそのまま使う。
+品質水準は指定せず、`implementer` の既定である本番品質・タスク単位の確認ありをそのまま使う。
 
-**4-2 報告の取り込み**
-
-`implementer` の報告が返ったら：
+報告の取り込み: `implementer` の報告が返ったら：
 1. `変更ファイル`・`作業ごとの確認` を確認する
 2. `blockers` があれば「エラー処理」に従う
 3. `自分で決めた判断` は控えておき、Step 5 の「要確認」に出す
 
-**4-3 最終確認**
-
+最終確認:
 - リポジトリ全体のテスト・ビルドを実行する。最終確認はメインが 1 回まとめて行う
 - `requirements.md` の各要件が満たされているか確認する
+
+**完了ゲート:** blockers が無く、最終確認まで完了したか。
 
 ### Step 5: 出力
 
@@ -141,13 +120,16 @@ git checkout -b <feature> "origin/$DEFAULT"
 - やったこと: 一言サマリに中断理由。`requirements.md` が無い・blockers・最終テスト失敗など。
 - 次の一手: 復帰コマンド。
   `requirements.md` が無ければ `- 要件を作る: /spec <feature>`。
-  blockers が設計判断を要するものなら `- 通常パイプラインへ合流: /design <feature>`。
+  blockers が設計判断を要するものなら `- /design <feature> へ合流`。
+
+**完了ゲート:** カードを出力したか。
 
 ## エラー処理
 - `implementer` が `blockers` を報告 → メインで判断する。
   - 軽微な曖昧さなら追加指示を添えて `implementer` を再配布する
-  - 設計判断が要る内容なら中断カードを出し `/design <feature>` から通常パイプライン、design → tasks → impl、への合流を促す。
-    実装方針で悩む・想定より影響範囲が広いなどがこれに当たり、`/quick` を選んだ判断そのものが誤りだったということなので `/quick` 内でループしない
+  - 設計判断が要る内容なら中断カードを出し `/design <feature>` への合流を促す。
+    実装方針で悩む・想定より影響範囲が広いなどがこれに当たる。
+    この場合 `/quick` を選んだ判断そのものが誤りだったので、`/quick` 内でループしない
 - 最終テストが失敗し続ける場合 → 根本原因を調査し、`implementer` に再配布して最小限の修正を試みる。
   それでも通らなければ中断する
 
