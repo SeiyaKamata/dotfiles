@@ -15,7 +15,8 @@ DB やフレームワークの選定といった技術的な実装方法は要�
 要望を受け取ってから確定稿ができるまでの唯一の入口でもある。
 feature 名の決定・衝突チェックも `/spec` 自身が行うため、要望を思いついたらまずここから始める。
 `/spinoff`・`/notion-import` が `status: draft` の `requirements.md` を先に置いていく場合もあり、
-そのときは下書きの詳細化として扱う。「進め方」参照。
+そのときは下書きの詳細化として扱う。
+詳細は「進め方」を参照。
 
 ## 入出力
 - **入力**:
@@ -99,7 +100,8 @@ Requirement の説明文と受け入れ条件を重複させない。
 候補について `.specs/<候補>/requirements.md` の有無を確認する:
 - **既に存在する**: 再実行なので、その feature 名をそのまま使う
 - **存在しない**: 新規。`Glob(".specs/*")` で既存 feature と衝突するか確認し、
-  衝突するときは区別できる別名を自動採番する。末尾に連番や区別可能な語を足す。
+  衝突するときは区別できる別名を自動採番する。
+  末尾に連番や区別可能な語を足す。
   ユーザーに確認しない
 
 **完了ゲート:** 既存の再実行か、衝突しない新規 feature 名かのいずれかを確定したか。
@@ -177,7 +179,8 @@ Step 3〜6 の内容を次のフォーマットで `.specs/<feature>/requirement
 
 frontmatter は `status: confirmed` と Step 6 で確定した `quick_eligible` を必ず付ける。
 Step 2 で読んだ下書きに `notion_url`・`ticket_key`・`pr_title`・`branch_name` があれば、
-値をそのまま引き継いで書く。無い項目は書かない。
+値をそのまま引き継いで書く。
+無い項目は書かない。
 
 ```markdown
 ---
@@ -225,8 +228,8 @@ quick_eligible: [true または false]
 [対象ファイルの洗い出しなど 10 行を超える表・一覧はスコープ節に置かずここへ送り、スコープ節からは「詳細は付録」と 1 行で参照する。無ければ節ごと省略]
 ```
 
-**完了ゲート:** 「受け入れ条件の書き方」「役割」「Step 3」「Step 5」「Step 7 のフォーマット」の規定を
-満たして `requirements.md` を書き出したか。frontmatter に `status: confirmed` と `quick_eligible` があるか。
+**完了ゲート:** 「受け入れ条件の書き方」「役割」「Step 3」「Step 5」「Step 7 のフォーマット」の規定を満たして `requirements.md` を書き出したか。
+frontmatter に `status: confirmed` と `quick_eligible` があるか。
 
 ### Step 8: 出力
 
