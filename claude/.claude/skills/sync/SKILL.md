@@ -1,5 +1,5 @@
 ---
-name: sync-to-remote
+name: sync
 description: コミット済みの変更をリモートへ反映する。PR運用ありならdraft PRを作成し、なければデフォルトブランチへ取り込んでpushする。commit完了後に使う。
 argument-hint: "[<feature>]"
 allowed-tools: Bash(git *), Bash(gh *), Read
@@ -250,7 +250,7 @@ gh pr create --draft --base <base> --head <feature>-pN \
 - 各 PR の本文はそのフェーズの差分だけをもとに書く。前フェーズの変更を含めない
 - Summary 冒頭に stacked の位置を明記する。例: `stacked PR 2/3 — base: <feature>-p1`
 - **残りのフェーズはここでは作らない。**
-  この PR が CI green + 未返信の未解決コメントなしになってから、`<feature>-pN` に checkout して `/sync-to-remote` を再度呼ぶ
+  この PR が CI green + 未返信の未解決コメントなしになってから、`<feature>-pN` に checkout して `/sync` を再度呼ぶ
 
 **PR 本文テンプレート:**
 ```
@@ -315,7 +315,7 @@ Step 2-3〜2-4 を実施せず、実装ブランチ `<feature>` をそのまま�
 
 ### 要確認
 - <PR 運用の判定が `不明` で `あり` に倒した、など>
-- <stacked のとき>未作成の後続フェーズ: <残り本数> — この PR が green + 全件返信済みになったら `<feature>-pN` に switch して `/sync-to-remote` を再実行
+- <stacked のとき>未作成の後続フェーズ: <残り本数> — この PR が green + 全件返信済みになったら `<feature>-pN` に switch して `/sync` を再実行
 
 ### 次の一手
 - CI を監視する: `/watch-ci`

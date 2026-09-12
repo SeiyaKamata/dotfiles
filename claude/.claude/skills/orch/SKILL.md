@@ -19,8 +19,8 @@ argument-hint: "<feature> [<stage>]"
 特に「工程 stage」と「フェーズ phase」を混同しないこと。
 - impl / test / review / qa / commit は feature 単位で動く。
   実装ブランチ 1 本の上で 1 回ずつ回す。
-- sync-to-remote / watch-ci / resolve-comments が PR 単位で回る。
-  sync-to-remote の初回だけ feature 単位の実装ブランチから呼ばれ、以降は PR の本数ぶん回る。
+- sync / watch-ci / resolve-comments が PR 単位で回る。
+  sync の初回だけ feature 単位の実装ブランチから呼ばれ、以降は PR の本数ぶん回る。
 
 ## 進め方
 
@@ -56,7 +56,7 @@ argument-hint: "<feature> [<stage>]"
 | `review` | Step 8 | `/review <feature>` |
 | `qa` | Step 9 | `/qa <feature>` |
 | `commit` | Step 10 | `/commit`（feature を渡さない） |
-| `sync-to-remote` | Step 11-1 | `/sync-to-remote <feature>`（対象ブランチの解決は sync-to-remote 自身が行う） |
+| `sync` | Step 11-1 | `/sync <feature>`（対象ブランチの解決は sync 自身が行う） |
 | `watch-ci` | Step 11-2 | `/watch-ci <feature>`（対象 PR の解決は watch-ci 自身が行う） |
 | `resolve-comments` | Step 11-3 | `/resolve-comments <feature> batch`（対象 PR の解決は resolve-comments 自身が行う） |
 
@@ -191,25 +191,25 @@ orch 固有の追加判断: `qa-report.md` の `count` が 2 以上、非 PASS 2
 
 実装ブランチにコミットする。
 分割はまだ行わない。
-カードの次の一手 `/sync-to-remote` で PR ループへ進む。
+カードの次の一手 `/sync` で PR ループへ進む。
 
 ### Step 11: PR ループ
 
 11-1〜11-4 を PR 1 本ずつ回す。
 1 周 = 1 PR を CI green + 未返信の未解決コメントなしまで閉じきる。
-sync-to-remote がまだ次の PR を作っていなければ 11-1 に戻り、作り終えていれば Step 12 へ進む。
+sync がまだ次の PR を作っていなければ 11-1 に戻り、作り終えていれば Step 12 へ進む。
 
-### Step 11-1: `/sync-to-remote`
+### Step 11-1: `/sync`
 
 なぜ PR を 1 本ずつ出すのか、設計意図はこうだ。
 一斉作成すると、CI と CodeRabbit の指摘が `p1` に返ってくるのが `pN` まで作り終えた後になり、`p1` の修正が全スタックへの rebase 伝播を要求する。
 rebase 伝播は自走で安全に行えないため、PR 数に比例して停止リスクが上がる。
-だから `/sync-to-remote` は 1 本作ったら止まる。
+だから `/sync` は 1 本作ったら止まる。
 修正は常に先端で完結し、待ち時間はこの停止リスクより安い。
 
-対象ブランチの解決も次の PR `p(N+1)` の作成も `/sync-to-remote` 自身が行うため、orch は先回りして作らない。
+対象ブランチの解決も次の PR `p(N+1)` の作成も `/sync` 自身が行うため、orch は先回りして作らない。
 
-実行: `sync-to-remote/SKILL.md` に従う。
+実行: `sync/SKILL.md` に従う。
 PR 本文には `@coderabbitai ignore` が入っていて自動レビューは走らないので、PR ができたら orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って最初のレビューを発火させる。
 以降 CodeRabbit のレビューは orch が打った時だけ走る。
 そのうえでカードの次の一手、`/watch-ci` へ進む。
@@ -240,9 +240,9 @@ PR 本文には `@coderabbitai ignore` が入っていて自動レビューは�
 - 2 巡しても未返信の未解決コメントが残る → 報告して停止
 
 完了後:
-- 未返信の未解決コメントなし かつ sync-to-remote が次の PR を作った → `/sync-to-remote <feature>` に戻る。
+- 未返信の未解決コメントなし かつ sync が次の PR を作った → `/sync <feature>` に戻る。
   対象ブランチの解決は Step 11-1 を参照
-- 未返信の未解決コメントなし かつ sync-to-remote がこれ以上 PR を作らないと判定した → Step 11-4 へ
+- 未返信の未解決コメントなし かつ sync がこれ以上 PR を作らないと判定した → Step 11-4 へ
 
 ### Step 11-4: 人間レビューの依頼。保留中の差し込み位置
 
@@ -287,7 +287,7 @@ PR ごとに人間レビューを回す運用にする場合、この位置で `
 - 引数が不正。引数なし・第 2 引数が工程レジストリの工程名と一致しない → Step 1 のエラーメッセージを表示して終了
 - 前提成果物が不足しており、案内された工程を実行してもなお起動した skill が中断する → 中断理由と復帰コマンドを示して終了。「工程レジストリ」節の前提不足のリカバリを参照
 - `/test` `/review` `/qa` `/fix` が対象確定の前提破れ、実装ブランチへ切り替えられない・入力欠損・レポートの stale で中断した → orch はこれを停止条件として扱い、工程が出した中断理由をそのまま人に報告して停止する。orch 側で回避や再試行は行わない
-- `/sync-to-remote` `/watch-ci` `/resolve-comments` が対象ブランチ・PR の解決に失敗して中断した。存在しない・複数あって曖昧など → 同様に停止する。対象解決は各 skill 自身の責任であり、orch は代わりに調べ直さない
+- `/sync` `/watch-ci` `/resolve-comments` が対象ブランチ・PR の解決に失敗して中断した。存在しない・複数あって曖昧など → 同様に停止する。対象解決は各 skill 自身の責任であり、orch は代わりに調べ直さない
 
 ## 完了条件
 draft PR、分割したなら stacked PR 群、が作られ、CI が green、未返信の未解決コメントが無い状態を、PR の URL とともに人に報告したら完了。
@@ -302,7 +302,7 @@ Ready for review への切替・merge は人が判断する。
   主要な結果は `- ` の箇条書きで最大 3 行、PR の本数と分割理由・CI / CodeRabbit の状態など。
   工程ごとの経過は各工程の成果物に寄せ、カードには列挙しない。
   開始工程を指定して起動した場合は、主要な結果に開始工程、例えば `開始工程: /design` を含める。
-  分割した場合は、既定の単一 PR から外れた判断なので `/sync-to-remote` が報告した分割理由を 1 行含める。
+  分割した場合は、既定の単一 PR から外れた判断なので `/sync` が報告した分割理由を 1 行含める。
 - 生成物の行は全 PR を 1 本 1 行で本数ぶん出す。
   行数上限は主要な結果にだけ課すので、PR が n 本なら生成物も n 行になる。
 - 各工程の `⏳` は各スキルが自分で出すので、orch が工程開始の実況を代わりに出さない。

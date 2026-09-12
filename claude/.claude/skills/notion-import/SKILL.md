@@ -115,7 +115,7 @@ Notion に書かれていた対象範囲や既知の手がかり（参考情報�
 | `feature` | `atm-auth0` | `.specs/` ディレクトリ名 |
 | `notion_url` | `https://app.notion.com/...` | `/notion-export` の書き戻し先 |
 | `ticket_key` | `SEC-16005` | Notion から抽出 |
-| `pr_title` | `[SEC-16005] ATM Auth0移行` | `/sync-to-remote` が PR タイトルを組む素材 |
+| `pr_title` | `[SEC-16005] ATM Auth0移行` | `/sync` が PR タイトルを組む素材 |
 | `branch_name` | `feature/SEC-16005/atm-auth0-migration` | 記録のみ・ブランチ作成には使わない |
 
 **完了ゲート:** 次を満たして seed.md を Write したか。
@@ -151,7 +151,7 @@ Notion に書かれていた対象範囲や既知の手がかり（参考情報�
   主要な結果は `- ` の箇条書きで最大 3 行。無ければ行ごと省略する。
   要望の本文や frontmatter の全項目は転記せず、要点だけ載せる。
 - 要確認: Notion の長文を要約しているので、落とした情報・空にした項目をここに出す。
-  `pr_title` が空なら `/sync-to-remote` が自動生成にフォールバックする旨も添える。
+  `pr_title` が空なら `/sync` が自動生成にフォールバックする旨も添える。
   無ければブロックごと省略する。
 - 次の一手: 1 行に留める。
 
@@ -165,9 +165,9 @@ Notion を読めない・URL 未指定などを書く。
 - Notion を読めない / 権限が無い → ユーザーに本文と命名情報を貼ってもらう。
   それも得られなければ中断する
 - Auto-generated Naming が無い → `pr_title` / `branch_name` は空のまま保存し、その旨を要確認に載せる。
-  `/sync-to-remote` が自動生成にフォールバックする。
+  `/sync` が自動生成にフォールバックする。
 
 ## 完了条件
 `.specs/<feature>/seed.md` を保存したら完了。
-frontmatter の `pr_title` は `/sync-to-remote` が PR タイトル組み立てに使い、`notion_url` は `/notion-export` が書き戻し先として使う。
+frontmatter の `pr_title` は `/sync` が PR タイトル組み立てに使い、`notion_url` は `/notion-export` が書き戻し先として使う。
 次工程の起動は完了条件に含めない。
