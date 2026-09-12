@@ -101,17 +101,3 @@ cr_sh="$(mktemp)"
 curl -fsSL https://cli.coderabbit.ai/install.sh -o "$cr_sh"
 CODERABBIT_INSTALL_DIR="$BIN_DIR" sh "$cr_sh"
 rm -f "$cr_sh"
-
-# hunk は bun でコンパイル済みの単体バイナリ（node 非依存）。tarball に skills/ と
-# metadata.json も同梱されるため $HOME/.local へ丸ごと展開しバイナリを symlink する。
-echo "Installing hunk..."
-hunk_ver="$(curl -fsSL https://api.github.com/repos/modem-dev/hunk/releases/latest | grep -m1 '"tag_name"' | cut -d'"' -f4)"
-hunk_tmp="$(mktemp -d)"
-curl -fLsS -o "$hunk_tmp/hunk.tar.gz" "https://github.com/modem-dev/hunk/releases/download/${hunk_ver}/hunkdiff-linux-x64.tar.gz"
-rm -rf "$HOME/.local/hunk"
-mkdir -p "$HOME/.local/hunk"
-tar -xzf "$hunk_tmp/hunk.tar.gz" -C "$HOME/.local/hunk" --strip-components=1
-chmod +x "$HOME/.local/hunk/hunk"
-ln -sf "$HOME/.local/hunk/hunk" "$BIN_DIR/hunk"
-ln -sf "$HOME/.local/hunk/hunk" "$BIN_DIR/hunkdiff"
-rm -rf "$hunk_tmp"

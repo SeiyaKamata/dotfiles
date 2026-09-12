@@ -22,7 +22,6 @@ git
 # 3rd-party リポジトリ経由
 gh
 terraform
-glow
 docker-ce
 docker-ce-cli
 containerd.io
