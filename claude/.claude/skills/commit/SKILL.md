@@ -77,7 +77,7 @@ DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); DEFAUL
 1. デフォルトブランチへのコミットは**ローカルで可逆**で、完了カードの `git reset --soft HEAD~<N>` で戻せる。
    危険が現実化するのは push の瞬間だが `/commit` は push しない
 2. デフォルトブランチへ直接コミットしてよいかは **repo の運用方針**であって、`/commit` はその方針を知る層にない。
-   判定の正本は `claude/CLAUDE.md` の「PR 運用の有無」で、読むのは `/sync` だけ
+   判定の正本は `/sync`「PR 運用の有無」で、読むのは `/sync` だけ
 
 push 側の押さえも `/sync` が持つ。
 上の 2 つの判定は、**運用方針に依らず機械的に危険なケースだけ**を残している。
