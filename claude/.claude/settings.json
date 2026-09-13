@@ -84,7 +84,7 @@
     "skill-creator@claude-plugins-official": false,
     "github@claude-plugins-official": false,
     "playwright@claude-plugins-official": false,
-    "aws-gate@lrm-equipment": true
+    "aws-gate@lrm-equipment": false
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
