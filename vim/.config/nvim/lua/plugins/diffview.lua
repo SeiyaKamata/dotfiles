@@ -50,6 +50,15 @@ return {
       end
     end
 
+    -- actions.closeはパネルにフォーカスしているとパネルだけ閉じるため、
+    -- パネルにいてもタブごと閉じるようにview:close()を直接呼ぶ
+    local function close_view()
+      local view = require("diffview.lib").get_current_view()
+      if view then
+        view:close()
+      end
+    end
+
     require("diffview").setup({
       file_panel = {
         win_config = {
@@ -80,16 +89,22 @@ return {
         end,
       },
       keymaps = {
-        -- パネルの開閉キーを <leader>b から <leader>e に変更
+        -- パネルの開閉キーを <leader>b から <leader>e に変更。qでdiffview全体を閉じる
         view = {
           { "n", "<leader>b", false },
           { "n", "<leader>e", actions.toggle_files, { desc = "Toggle the file panel." } },
+          { "n", "q", close_view, { desc = "diffviewを閉じる" } },
+          { "n", "<leader>q", close_view, { desc = "diffviewを閉じる" } },
         },
         -- ファイルを選択したら、その場でパネルを閉じてdiffペインを広く使う
         file_panel = {
           { "n", "<cr>", select_file_and_close, { desc = "選択したファイルのdiffを開き、パネルを閉じる" } },
           { "n", "o",    select_file_and_close, { desc = "選択したファイルのdiffを開き、パネルを閉じる" } },
           { "n", "l",    select_file_and_close, { desc = "選択したファイルのdiffを開き、パネルを閉じる" } },
+          { "n", "<leader>b", false },
+          { "n", "<leader>e", actions.toggle_files, { desc = "Toggle the file panel" } },
+          { "n", "q", close_view, { desc = "diffviewを閉じる" } },
+          { "n", "<leader>q", close_view, { desc = "diffviewを閉じる" } },
         },
         -- コミットを選択したら、その場でパネルを閉じてdiffペインを広く使う
         file_history_panel = {
@@ -98,6 +113,8 @@ return {
           { "n", "l",    select_and_close, { desc = "選択したコミットのdiffを開き、パネルを閉じる" } },
           { "n", "<leader>b", false },
           { "n", "<leader>e", actions.toggle_files, { desc = "Toggle the file panel" } },
+          { "n", "q", close_view, { desc = "diffviewを閉じる" } },
+          { "n", "<leader>q", close_view, { desc = "diffviewを閉じる" } },
         },
       },
     })
