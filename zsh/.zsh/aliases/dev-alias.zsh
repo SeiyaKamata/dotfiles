@@ -27,5 +27,12 @@ tf() {
   echo "target: $feature"
 }
 
+vis() {
+  local cur; cur=$(_tf_current)
+  local target=".specs"
+  [ -n "$cur" ] && target=".specs/$cur"
+  vim -c "NvimTreeOpen $target"
+}
+
 # 対象 feature の選択を解除する
 tfc() { rm -f .target_feature; }

@@ -4,6 +4,7 @@ return {
 	keys = {
 		{ "<leader>e", desc = "Toggle file tree" },
 	},
+	cmd = { "NvimTreeOpen", "NvimTreeToggle", "NvimTreeFocus", "NvimTreeClose" },
 	config = function()
 		require("nvim-tree").setup({
 			view = {
