@@ -83,20 +83,13 @@
     "gopls-lsp@claude-plugins-official": false,
     "skill-creator@claude-plugins-official": false,
     "github@claude-plugins-official": false,
-    "playwright@claude-plugins-official": false,
-    "aws-gate@lrm-equipment": false
+    "playwright@claude-plugins-official": false
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
       "source": {
         "source": "github",
         "repo": "anthropics/skills"
-      }
-    },
-    "lrm-equipment": {
-      "source": {
-        "source": "github",
-        "repo": "lrm-corp/agent-equipment"
       }
     }
   },
