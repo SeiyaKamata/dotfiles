@@ -156,5 +156,5 @@ status: draft
 生成できた下書きがあれば生成物の行は残す。
 
 ## 完了条件
-切り出し対象ごとに `.specs/<採用名>/requirements.md` を `status: draft` で Write し、元 feature 側に追跡記録を残していなければ完了。
-次工程の起動は完了条件に含めない。
+- 切り出し対象ごとに `.specs/<採用名>/requirements.md` を `status: draft` で Write した
+- 元 feature 側に追跡記録を残していない

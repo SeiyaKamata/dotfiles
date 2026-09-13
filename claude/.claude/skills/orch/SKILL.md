@@ -310,8 +310,12 @@ test FAIL 3 連続・review NG 3 連続・qa↔fix 2 周・CI 失敗 2 回・未
   対象解決は各 skill 自身の責任であり、orch は代わりに調べ直さない
 
 ## 完了条件
-draft PR、分割したなら stacked PR 群、が作られ、CI が green、未返信の未解決コメントが無い状態を、PR の URL とともに人に報告したら完了。
 Ready for review への切替・merge は人が判断する。
+
+- draft PR、分割したなら stacked PR 群、が作られた
+- CI が green
+- 未返信の未解決コメントが無い
+- 上記の状態を PR の URL とともに人に報告した
 
 ## 完了カード
 停止点に到達したら、Step 17 の報告を次の完了カードに畳む。

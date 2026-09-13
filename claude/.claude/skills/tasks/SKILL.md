@@ -297,4 +297,5 @@ Step 3〜5 の内容を次のフォーマットで `.specs/<feature>/tasks.md` �
   未完成のタスクのまま `/impl` へ進む道は出さない。
 
 ## 完了条件
-全要件をカバーするタスクが `.specs/<feature>/tasks.md` に、QA シナリオが `.specs/<feature>/qa.md` に書き出せたら完了。
+- 全要件をカバーするタスクが `.specs/<feature>/tasks.md` に書き出せた
+- QA シナリオが `.specs/<feature>/qa.md` に書き出せた

@@ -166,4 +166,3 @@ Notion を読めない・URL 未指定などを書く。
 ## 完了条件
 `.specs/<feature>/requirements.md` を `status: draft` で保存したら完了。
 frontmatter の `pr_title` は `/sync` が PR タイトル組み立てに使い、`notion_url` は `/notion-export` が書き戻し先として使う。
-次工程の起動は完了条件に含めない。

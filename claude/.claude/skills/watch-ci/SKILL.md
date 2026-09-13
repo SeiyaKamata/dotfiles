@@ -179,7 +179,6 @@ gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusi
 - `gh pr ready` が権限エラー → Web UI での操作を案内する
 
 ## 完了条件
-対象 PR の CI 完了を待って green / 赤を判定し、報告したら完了。
-**判定がどちらでも完了で、赤は中断ではない。**
-単体で green + 未解決コメントなしのときは Ready for review の切り替え可否まで済ませる。
-次工程の起動は完了条件に含めない。
+- 対象 PR の CI 完了を待って green / 赤を判定した
+- 判定結果を報告した
+- 単体で green かつ未解決コメントなしのときは、Ready for review の切り替え可否まで済ませた

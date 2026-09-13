@@ -275,5 +275,7 @@ main 宛の本文には冒頭に次を加える：
   - release を main にマージする運用に切り替える
 
 ## 完了条件
-release 宛・main 宛の 2 つの draft PR を作成し、両方の URL を報告したら完了。
 ready 化とマージは人が判断する。
+
+- release 宛・main 宛の 2 つの draft PR を作成した
+- 両方の URL を報告した
