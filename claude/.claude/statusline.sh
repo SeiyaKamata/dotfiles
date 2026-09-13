@@ -69,5 +69,7 @@ for label, src in [
     pct = parse_pct(src.get("used_percentage"))
     if pct is not None:
         parts.append(fmt(label, pct, src.get("resets_at")))
+    else:
+        parts.append(f"{DIM}{label} -{R}")
 
 print(f" {DIM}|{R} ".join(parts))
