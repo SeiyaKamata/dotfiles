@@ -22,3 +22,9 @@ zsh/.zshenv.local
 herdr/.config/herdr/*.log
 herdr/.config/herdr/session.json
 herdr/.config/herdr/release-notes.json
+
+# Docker
+compose.local.yaml
+compose.local.yml
+compose.kmt.yaml
+compose.kmt.yml
