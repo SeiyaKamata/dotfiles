@@ -2,7 +2,7 @@
 name: qa
 description: コードレビュー後にブラウザで動作確認する最終受け入れゲート。/review の後に使う。
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
-disallowed-tools: mcp__plugin_playwright_playwright__*
+disallowed-tools: mcp__playwright__*
 argument-hint: "<feature>"
 ---
 
@@ -13,6 +13,8 @@ argument-hint: "<feature>"
 
 ブラウザ操作は一切行わず、`browser-tester` サブエージェントに委譲する。
 Playwright はメインで触らない。
+`disallowed-tools` の名前空間は `browser-tester` の `tools` が指す実際の Playwright MCP の名前空間と対にする。
+起動方式が変わって名前空間が変わったときは両方を揃えて直す。
 このスキルは検証環境の起動と停止・シナリオの受け渡し・結果の集約を担う。
 
 ## 入出力
