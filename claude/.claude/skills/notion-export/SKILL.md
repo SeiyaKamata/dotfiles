@@ -10,8 +10,6 @@ argument-hint: "<feature>"
 ## 役割
 feature の実装結果を `.specs/<feature>/` の成果物と `gh` から集めて、元の Notion タスクページの先頭に項目ごとの独立セクションとして追記する。
 
-Notion に触れるのは `/notion-import` が入力、`/notion-export` が出力の 2 スキルだけ。
-`CLAUDE.md`「Notion 連携」に定める。
 Notion へ書くのはここ 1 回で、入力は `.specs/<feature>/` の成果物から取る。
 
 追記は報告であって仕様の正本ではない。
@@ -55,7 +53,6 @@ Notion へ書くのはここ 1 回で、入力は `.specs/<feature>/` の成果�
 
 ## 対話方針
 人が明示的に起動する。
-`CLAUDE.md`「Notion 連携」参照。
 
 追記内容を提示して `y/n` の承認を取ってから書き込む。
 

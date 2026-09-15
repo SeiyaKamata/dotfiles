@@ -114,7 +114,7 @@ Requirement の説明文と受け入れ条件を重複させない。
 - **無い**: Step 3 から書き起こす
 - **有る + `status: draft`**: `/spinoff`・`/notion-import` が置いた下書き。
   本文を要望の材料として使い、Step 3 から詳細化する。
-  frontmatter の `notion_url`・`ticket_key`・`pr_title`・`branch_name` は確定稿にもそのまま引き継ぐ
+  frontmatter の `notion_url`・`pr_title`・`branch_name` は確定稿にもそのまま引き継ぐ
 - **有る + `status: confirmed` + 変更要望あり**: 「再実行時の扱い」に従い該当箇所だけ直す。
   境界に関わる要望なら Step 3 から、そうでなければ Step 4 から
 - **有る + `status: confirmed` + 変更要望なし**: Step 3〜7 を飛ばし、Step 8 で「変更なし」と報告して終了
@@ -177,16 +177,16 @@ Step 3〜6 の内容を次のフォーマットで `.specs/<feature>/requirement
 読み手が最初に必要とするのは全体像なので、要件サマリを冒頭に置く。
 検討経緯・却下した代替案は書かず、決まったことだけを書く。
 
-frontmatter は `status: confirmed` と Step 6 で確定した `quick_eligible` を必ず付ける。
-Step 2 で読んだ下書きに `notion_url`・`ticket_key`・`pr_title`・`branch_name` があれば、
-値をそのまま引き継いで書く。
-無い項目は書かない。
+frontmatter は `status: confirmed`・Step 6 で確定した `quick_eligible`・`notion_url`・`pr_title`・`branch_name` を必ず付ける。
+`notion_url`・`pr_title`・`branch_name` は Step 2 で読んだ下書きにあれば値をそのまま引き継ぎ、無ければ空文字で書く。
 
 ```markdown
 ---
 status: confirmed
 quick_eligible: [true または false]
-[引き継ぐ項目があれば notion_url / ticket_key / pr_title / branch_name をここに]
+notion_url: [下書きにあれば引き継ぐ。無ければ空文字]
+pr_title: [下書きにあれば引き継ぐ。無ければ空文字]
+branch_name: [下書きにあれば引き継ぐ。無ければ空文字]
 ---
 
 # 要件定義: [機能名]
