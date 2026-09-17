@@ -105,8 +105,7 @@ skill やパイプライン自体の不備ではなく、そのリポジトリ�
 ### コミット
 
 コミットする際は必ず `/commit` スキルを使う。
-直接 `git commit` を実行しない。
-実行するのは `/commit` が起動する `committer` エージェントのみです。
+`/commit` の外で直接 `git commit` を実行しない。
 
 ### force push
 
