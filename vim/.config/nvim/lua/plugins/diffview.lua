@@ -50,6 +50,22 @@ return {
       end
     end
 
+    -- nvim-treeの<cr>と同じく、diffは開かずカーソル位置のパスだけコピーしてパネルを閉じる。
+    -- file_panelの項目はFileEntry/DirDataのどちらも.pathを相対パスで持つ。
+    -- file_history_panelのLogEntry（コミット単位、複数ファイルをまとめる項目）には
+    -- .pathが無いため、その項目上では何もコピーせずパネルだけ閉じる。
+    local function copy_path_and_close()
+      local ok, view = pcall(function() return require("diffview.lib").get_current_view() end)
+      if ok and view and view.panel and view.panel.get_item_at_cursor then
+        local ok2, item = pcall(function() return view.panel:get_item_at_cursor() end)
+        if ok2 and item and item.path then
+          vim.fn.setreg('"', item.path)
+          vim.fn.setreg("+", item.path)
+        end
+      end
+      actions.toggle_files()
+    end
+
     -- actions.closeはパネルにフォーカスしているとパネルだけ閉じるため、
     -- パネルにいてもタブごと閉じるようにview:close()を直接呼ぶ
     local function close_view()
@@ -96,9 +112,9 @@ return {
           { "n", "q", close_view, { desc = "diffviewを閉じる" } },
           { "n", "<leader>q", close_view, { desc = "diffviewを閉じる" } },
         },
-        -- ファイルを選択したら、その場でパネルを閉じてdiffペインを広く使う
+        -- <cr>はnvim-treeと同じくパス取得専用、diffを見るのはo/l
         file_panel = {
-          { "n", "<cr>", select_file_and_close, { desc = "選択したファイルのdiffを開き、パネルを閉じる" } },
+          { "n", "<cr>", copy_path_and_close, { desc = "選択したファイルのパスをコピーし、パネルを閉じる" } },
           { "n", "o",    select_file_and_close, { desc = "選択したファイルのdiffを開き、パネルを閉じる" } },
           { "n", "l",    select_file_and_close, { desc = "選択したファイルのdiffを開き、パネルを閉じる" } },
           { "n", "<leader>b", false },
