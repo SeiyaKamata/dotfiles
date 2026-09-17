@@ -103,6 +103,16 @@ return {
           vim.opt_local.foldenable = false
           vim.opt_local.wrap = true
         end,
+        -- GitHubのdiffと同じく「変更」を中間色にせず、左=削除で赤、右=追加で緑に統一する。
+        -- symbolは"a"が左/旧、"b"が右/新。winhighlightでDiffChange/DiffTextを
+        -- DiffDelete/DiffAddへ付け替えることで、この窓の見た目だけを変える。
+        diff_buf_win_enter = function(_, winid, ctx)
+          if ctx.symbol == "a" then
+            vim.wo[winid].winhighlight = "DiffChange:DiffDelete,DiffText:DiffDelete"
+          elseif ctx.symbol == "b" then
+            vim.wo[winid].winhighlight = "DiffChange:DiffAdd,DiffText:DiffAdd"
+          end
+        end,
       },
       keymaps = {
         -- パネルの開閉キーを <leader>b から <leader>e に変更。qでdiffview全体を閉じる
