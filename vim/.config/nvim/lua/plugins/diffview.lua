@@ -122,9 +122,9 @@ return {
           { "n", "q", close_view, { desc = "diffviewを閉じる" } },
           { "n", "<leader>q", close_view, { desc = "diffviewを閉じる" } },
         },
-        -- コミットを選択したら、その場でパネルを閉じてdiffペインを広く使う
+        -- <cr>はnvim-treeと同じくパス取得専用、diffを見るのはo/l
         file_history_panel = {
-          { "n", "<cr>", select_and_close, { desc = "選択したコミットのdiffを開き、パネルを閉じる" } },
+          { "n", "<cr>", copy_path_and_close, { desc = "選択した項目のパスをコピーし、パネルを閉じる" } },
           { "n", "o",    select_and_close, { desc = "選択したコミットのdiffを開き、パネルを閉じる" } },
           { "n", "l",    select_and_close, { desc = "選択したコミットのdiffを開き、パネルを閉じる" } },
           { "n", "<leader>b", false },
