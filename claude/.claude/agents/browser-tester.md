@@ -5,8 +5,8 @@ tools: Read, Grep, Glob, Bash, mcp__playwright__*
 mcpServers:
   - playwright:
       type: stdio
-      command: zsh
-      args: ["-c", "npx -y @playwright/mcp@latest"]
+      command: npx
+      args: ["@playwright/mcp@latest"]
 model: sonnet
 effort: low
 ---
