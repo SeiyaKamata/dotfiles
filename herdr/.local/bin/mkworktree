@@ -30,12 +30,11 @@ fi
 dest="$worktrees_root/$name"
 [ -e "$dest" ] && { echo "既に存在します: $dest" >&2; exit 1; }
 
-git -C "$repo" fetch --all --prune >&2
-
-default_branch=$(git -C "$repo" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')
+# bare repoはリモートのブランチがそのまま refs/heads/* に入り、refs/remotes/origin/* は持たない。
+default_branch=$(git -C "$repo" symbolic-ref --short HEAD 2>/dev/null)
 if [ -z "$default_branch" ]; then
   for cand in main master; do
-    if git -C "$repo" show-ref --verify --quiet "refs/remotes/origin/$cand"; then
+    if git -C "$repo" show-ref --verify --quiet "refs/heads/$cand"; then
       default_branch="$cand"
       break
     fi
@@ -43,6 +42,9 @@ if [ -z "$default_branch" ]; then
 fi
 [ -n "$default_branch" ] || { echo "デフォルトブランチを判定できません: $repo" >&2; exit 1; }
 
-git -C "$repo" worktree add "$dest" -b "$name" "origin/$default_branch" >&2
+# 対象ブランチだけを更新する。全ブランチを対象にすると、他のworktreeでcheckout中のブランチがある場合に失敗するため。
+git -C "$repo" fetch origin "+refs/heads/$default_branch:refs/heads/$default_branch" >&2
+
+git -C "$repo" worktree add "$dest" -b "$name" "$default_branch" >&2
 
 printf '%s\n' "$dest"
