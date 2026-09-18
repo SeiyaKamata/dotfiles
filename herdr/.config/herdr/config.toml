@@ -58,6 +58,9 @@ delivery = "herdr"                  # herdr 画面内トーストで表示（外
 [ui.toast.herdr]
 position = "top-right"
 
+[ui.toast.clipboard]
+enabled = false              # クリップボードコピー時の "copied to clipboard" トーストを消す
+
 [[keys.command]]
 key = "prefix+n"
 type = "popup"
