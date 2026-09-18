@@ -136,7 +136,7 @@
   "pluginConfigs": {
     "slack-notify@lrm-equipment": {
       "options": {
-        "report_gate": "silent"
+        "report_gate": "enforce"
       }
     }
   }
