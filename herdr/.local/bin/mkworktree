@@ -1,0 +1,48 @@
+#!/bin/bash
+# bare化した repos/<name> から新規 worktree を作成する。
+# repos/<name> と同じ階層の worktrees/ 配下に worktree を作る前提
+# （Develop/<org>/repos, Develop/<org>/worktrees の対応）。
+# 対話プロンプトは持たない。devpick からも Claude からも同じ引数で呼べるようにするため。
+# 常に origin の最新デフォルトブランチを起点に新規branchを作る。
+# name省略時は <repo名>-<YYYYMMDD> を機械的に生成する。衝突したら連番を足す。
+set -euo pipefail
+
+repo="${1:?usage: mkworktree <bare-repo-path> [name]}"
+name="${2:-}"
+
+[ -d "$repo" ] || { echo "見つかりません: $repo" >&2; exit 1; }
+git -C "$repo" rev-parse --is-bare-repository 2>/dev/null | grep -qx true \
+  || { echo "bare repoではありません: $repo" >&2; exit 1; }
+
+worktrees_root="$(dirname "$(dirname "$repo")")/worktrees"
+mkdir -p "$worktrees_root"
+
+if [ -z "$name" ]; then
+  base="$(basename "$repo")-$(date +%Y%m%d)"
+  name="$base"
+  suffix=2
+  while [ -e "$worktrees_root/$name" ]; do
+    name="${base}-${suffix}"
+    suffix=$((suffix + 1))
+  done
+fi
+
+dest="$worktrees_root/$name"
+[ -e "$dest" ] && { echo "既に存在します: $dest" >&2; exit 1; }
+
+git -C "$repo" fetch --all --prune >&2
+
+default_branch=$(git -C "$repo" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')
+if [ -z "$default_branch" ]; then
+  for cand in main master; do
+    if git -C "$repo" show-ref --verify --quiet "refs/remotes/origin/$cand"; then
+      default_branch="$cand"
+      break
+    fi
+  done
+fi
+[ -n "$default_branch" ] || { echo "デフォルトブランチを判定できません: $repo" >&2; exit 1; }
+
+git -C "$repo" worktree add "$dest" -b "$name" "origin/$default_branch" >&2
+
+printf '%s\n' "$dest"
