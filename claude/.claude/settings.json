@@ -84,7 +84,8 @@
     "gopls-lsp@claude-plugins-official": false,
     "skill-creator@claude-plugins-official": false,
     "github@claude-plugins-official": false,
-    "playwright@claude-plugins-official": false
+    "playwright@claude-plugins-official": false,
+    "slack-notify@lrm-equipment": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -131,5 +132,12 @@
       "disabled": false
     }
   },
-  "startupTipsEnabled": false
+  "startupTipsEnabled": false,
+  "pluginConfigs": {
+    "slack-notify@lrm-equipment": {
+      "options": {
+        "report_gate": "silent"
+      }
+    }
+  }
 }
