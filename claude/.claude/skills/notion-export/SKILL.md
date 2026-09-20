@@ -1,6 +1,7 @@
 ---
 name: notion-export
 description: 実装結果、実装方針・PR URL・QA結果、を Notion の元タスクページに追記する。PRが揃って結果をNotionに報告するとき使う。
+disable-model-invocation: true
 allowed-tools: Read, Glob, Bash(git *), Bash(gh *), Bash(test *), Bash(date *), mcp__claude_ai_Notion__*
 argument-hint: "<feature>"
 ---

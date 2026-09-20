@@ -1,6 +1,7 @@
 ---
 name: notion-import
 description: Notion のタスクページから下書きrequirements.mdを作る。Notion のチケット URL を渡されたら spec の前に使う。
+disable-model-invocation: true
 allowed-tools: Write, Glob, mcp__claude_ai_Notion__*
 argument-hint: "<notion-url>"
 ---
