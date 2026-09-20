@@ -1,7 +1,7 @@
 ---
 name: aws-logs
 description: awscli で CloudWatch Logs を調査し、結果を .specs/<feature>/log-report.md に記録する。AWS 上のエラー原因の追跡・ログ横断・件数集計を頼まれたら使う。
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(aws logs *), Bash(aws sts get-caller-identity *), Bash(aws configure list-profiles), Bash(date *), Bash(grep *), Bash(rg *), Bash(jq *), Bash(wc *), Bash(head *), Bash(tail *), Bash(sort *), Bash(uniq *), Bash(mkdir *)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(aws logs describe-log-groups *), Bash(aws logs describe-log-streams *), Bash(aws logs tail *), Bash(aws logs filter-log-events *), Bash(aws logs get-log-events *), Bash(aws logs start-query *), Bash(aws logs get-query-results *), Bash(aws sts get-caller-identity *), Bash(aws configure list-profiles), Bash(date *), Bash(grep *), Bash(rg *), Bash(jq *), Bash(wc *), Bash(head *), Bash(tail *), Bash(sort *), Bash(uniq *), Bash(mkdir *)
 argument-hint: "<feature> [調べたいこと]"
 ---
 
