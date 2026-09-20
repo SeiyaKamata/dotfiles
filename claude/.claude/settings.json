@@ -84,8 +84,7 @@
     "gopls-lsp@claude-plugins-official": false,
     "skill-creator@claude-plugins-official": false,
     "github@claude-plugins-official": false,
-    "playwright@claude-plugins-official": false,
-    "slack-notify@lrm-equipment": true
+    "playwright@claude-plugins-official": false
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -99,6 +98,7 @@
   "spinnerTipsEnabled": false,
   "effortLevel": "medium",
   "awaySummaryEnabled": false,
+  "pluginConfigs": {},
   "tui": "fullscreen",
   "autoMemoryEnabled": false,
   "autoDreamEnabled": false,
@@ -132,12 +132,5 @@
       "disabled": false
     }
   },
-  "startupTipsEnabled": false,
-  "pluginConfigs": {
-    "slack-notify@lrm-equipment": {
-      "options": {
-        "report_gate": "enforce"
-      }
-    }
-  }
+  "startupTipsEnabled": false
 }
