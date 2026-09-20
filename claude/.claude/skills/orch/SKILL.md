@@ -187,7 +187,7 @@ orch 固有の追加判断: `qa-report.md` の `count` が 2 以上、非 PASS 2
 
 ### `/fix` — 自己修正ループの内部工程。開始工程には指定できない
 
-- 起動されるタイミング: `/test` FAIL・`/qa` fail・設計起因以外の `/review` NG・`/bughunt` 完了のとき、呼び出し元から `/fix <feature>` で起動される
+- 起動されるタイミング: `/test` FAIL・`/qa` fail・`/watch-ci` 赤・設計起因以外の `/review` NG・`/bughunt` 完了のとき、呼び出し元から `/fix <feature>` で起動される
 
 対象確認: `fix/SKILL.md` の Step 2〜4 に従う。
 
@@ -226,8 +226,11 @@ PR 本文には `@coderabbitai ignore` が入っていて自動レビューは�
 
 `watch-ci/SKILL.md` に従い、この周で作った PR の CI green を待つ。
 - green → `/resolve-comments` へ
-- 赤 → ログを取得して自己修正 → push → 再監視。
-  2 回直しても green にならなければ報告して停止
+- 赤 → `/fix <feature>` → `/commit` → push → `/watch-ci` に戻る。
+  `/fix` は `ci-report.md` の `branch` に立った状態で起動する。
+  Step 16 から戻ったときなど別のブランチにいれば、先にそのブランチへ switch する
+
+orch 固有の追加判断: `ci-report.md` の `count` が 3 以上、赤 3 回連続 → 報告して停止
 
 ### Step 14: `/resolve-comments`
 
@@ -294,7 +297,7 @@ PR ごとに人間レビューを回す運用にする場合、この位置で `
 ## エラー処理（人を呼ぶ＝停止する条件）
 回復可能なものは自己修正ループで潰し、以下のときだけ停止して人に報告する。
 各工程固有の停止条件は「## 進め方」の該当工程「完了後」に書いてある。
-test FAIL 3 連続・review NG 3 連続・qa↔fix 2 周・CI 失敗 2 回・未解決コメント 2 巡などが該当する。
+test FAIL 3 連続・review NG 3 連続・qa↔fix 2 周・CI 赤 3 連続・未解決コメント 2 巡などが該当する。
 ここでは工程をまたぐ／ディスパッチ由来の条件だけを挙げる。
 
 - CodeRabbit のレビューが一定時間来ない → 報告して停止

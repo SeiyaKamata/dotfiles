@@ -1,6 +1,6 @@
 ---
 name: fix
-description: テスト失敗・レビュー指摘の原因を特定し最小限の修正を行う。test FAIL・review NG の後に使う。
+description: テスト失敗・CI失敗・レビュー指摘の原因を特定し最小限の修正を行う。test FAIL・review NG・CI 赤の後に使う。
 allowed-tools: Read, Write, Edit, MultiEdit, Bash, Glob, Grep
 argument-hint: "<feature>"
 ---
@@ -8,7 +8,7 @@ argument-hint: "<feature>"
 # 修正スキル
 
 ## 役割
-テスト失敗、およびコード品質・実装ミスに起因するレビュー NG の根本原因を診断し、最小限の修正を行う。
+テスト失敗・CI 失敗、およびコード品質・実装ミスに起因するレビュー NG の根本原因を診断し、最小限の修正を行う。
 実装バグ・テストの期待値ずれは直す。
 
 新機能の追加や設計変更は行わない。
@@ -19,6 +19,7 @@ argument-hint: "<feature>"
   会話に依存しない。
   - `.specs/<feature>/test-report.md` — `/test` が書いた失敗レポート
   - `.specs/<feature>/qa-report.md` — `/qa` 起点で呼ばれたとき
+  - `.specs/<feature>/ci-report.md` — `/watch-ci` 起点で呼ばれたとき
   - `.specs/<feature>/bug-report.md` — `/bughunt` 起点で呼ばれたとき
   - `.specs/<feature>/review.md` — `/review` NG 起点で呼ばれたとき
   - `.specs/<feature>/{requirements,design,tasks}.md` — 実装バグか設計の穴かを判断する文脈
@@ -36,17 +37,18 @@ argument-hint: "<feature>"
 
 レポートが存在しなければ中断する。
 復帰コマンドはそのレポートを生成するスキル。
-4種類のレポート共通のルール。
+5種類のレポート共通のルール。
 
 - `test-report.md` → `/test <feature>`
 - `bug-report.md` → `/bughunt <feature>`
 - `qa-report.md` → `/qa <feature>`
+- `ci-report.md` → `/watch-ci <feature>`
 - `review.md` → `/review <feature>`
 
 ### Step 3: 着手判定
 
 `fixed` を見る。
-4種類のレポート共通。
+5種類のレポート共通。
 
 - `fixed: true` → 既に `/fix` が着手済みで、まだ下流の再検証を経ていない状態。
   下流の再検証とは `/test` / `/qa` / `/review` を指す。
@@ -57,7 +59,7 @@ argument-hint: "<feature>"
 
 ### Step 4: 対象確認
 
-`test-report.md` / `qa-report.md` / `review.md` は `branch` / `head` をカレントブランチ・`git rev-parse HEAD` と照合する。
+`test-report.md` / `qa-report.md` / `ci-report.md` / `review.md` は `branch` / `head` をカレントブランチ・`git rev-parse HEAD` と照合する。
 `bug-report.md` は `branch`/`head` を持たないためこの照合は無い。
 
 不一致は `/fix` が見ているコードとレポートが指す対象がズレていることを意味するので中断する。
@@ -117,6 +119,7 @@ argument-hint: "<feature>"
 - 要確認: 期待値ずれをどちらに寄せたか、仕様に書かれていない挙動を決め打ちした箇所などを挙げる。
   無ければブロックごと省略する。
 - 次の一手: 診断結果は確定しているので該当する 1 行だけを出す。
+  `ci-report.md` 起点なら `- CI を再監視する: /watch-ci <feature>` に差し替える。
   設計が原因でコードを触らなかった場合は `- 設計を直す: /design <feature>` に差し替える。
 
 中断時: 同じブロック構成でヘッダを `### fix 中断` に差し替える。
@@ -128,6 +131,7 @@ argument-hint: "<feature>"
   レポート起点に応じて次から選ぶ。
   - `- テストを回し直す: /test <feature>`
   - `- QA を回し直す: /qa <feature>`
+  - `- CI を再監視する: /watch-ci <feature>`
   - `- レビューを回し直す: /review <feature>`
   - `- 調査し直す: /bughunt <feature>`
 

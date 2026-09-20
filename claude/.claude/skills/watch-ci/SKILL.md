@@ -2,7 +2,7 @@
 name: watch-ci
 description: PRのCIを監視し、完了後に結果に応じて分岐対応する。push後やPR作成後に使う。
 argument-hint: "[PR番号 | <feature>]"
-allowed-tools: Bash(gh *), Bash(git *), Agent
+allowed-tools: Read, Write, Bash(gh *), Bash(git *), Bash(date *), Agent
 ---
 
 # CI監視スキル
@@ -20,8 +20,9 @@ Ready for review はレビュアーに通知が飛ぶ外向きの操作で、し
 ## 入出力
 - **入力**: 対象 PR。
   引数の PR 番号、引数の feature 名、またはカレントブランチから導出する
-- **出力**: ファイル成果物は持たない。
-  判定と PR の URL を報告する
+- **出力**: `.specs/<feature>/ci-report.md`。
+  `/fix` が読む失敗の内訳で、毎回上書きする。
+  判定と PR の URL も報告する
 
 ## 用語
 フェーズは `/sync` が実装後に確定する PR 単位で、ブランチ `<feature>-pN` が対応する。
@@ -108,7 +109,7 @@ gh pr view <PR番号> --json reviewThreads --jq '.reviewThreads[] | select(.isRe
 失敗ジョブを特定する：
 
 ```
-gh pr checks <PR番号> --json name,state,conclusion,link | jq '[.[] | select(.conclusion == "FAILURE" or .conclusion == "CANCELLED" or .conclusion == "TIMED_OUT")]'
+gh pr checks <PR番号> --json name,state,conclusion,link --jq '[.[] | select(.conclusion == "FAILURE" or .conclusion == "CANCELLED" or .conclusion == "TIMED_OUT")]'
 gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusion,workflowName
 ```
 
@@ -124,9 +125,9 @@ gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusi
 
 受け取るのはこの要約だけで、ログ全文はメインのコンテキストに読み込まない。
 
-**修正方針は聞かない。**
-どのジョブ・どのステップ・主要なエラーメッセージを押さえ、カードに畳んで人に渡す。
-修正に入るかは人が次の一手から選ぶ。
+修正はここでは行わない。
+どのジョブ・どのステップ・主要なエラーメッセージを押さえ、Step 5 でレポートに書く。
+直すのは `/fix` で、次の一手から起動する。
 
 **再発しそうな失敗は改善提案に切り出す。**
 原因がその PJ で繰り返しハマる構造的なものだと判断したら、記録ではなく改善提案として切り出す。
@@ -135,7 +136,44 @@ gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusi
 
 - **切り出さないもの**: その PR 限りの一回限りのバグ・タイポ修正、git log や diff を見れば分かること
 
-### Step 5: 出力
+### Step 5: レポートの書き出し
+
+feature 名が求まっているときだけ、`.specs/<feature>/ci-report.md` に最新結果を毎回上書きして書く。
+求まっていなければ書かず、完了カードの「要確認」に出す。
+stacked では、赤の PR が複数あっても番号順で最初の赤の 1 本だけを書く。
+全 PR が green なら、最後に監視した 1 本を書く。
+
+frontmatter は `test-report` / `review` / `qa-report` と共通の形式:
+```yaml
+---
+feature: <feature>
+branch: <対象 PR の head ブランチ>
+head: <対象 PR の head コミット。40 文字、短縮しない>
+ran_at: <date +"%Y-%m-%dT%H:%M:%S%z" で取得した時刻>
+fixed: false
+count: 1
+---
+```
+
+- `head` は `gh pr view <PR番号> --json headRefOid --jq .headRefOid` で取る。
+- `fixed` は既存ファイルの値を読まず常に `false` を書く。`true` に変えるのは `/fix` だけ。
+- `count` は書き出す前に既存の `ci-report.md` の `branch`・判定・`count` を読んで決める。
+  今回が赤で、既存の `branch` が同じで判定も赤なら `count` を +1 する。
+  それ以外は `count: 1` にする。
+
+本文は次のとおり。
+```markdown
+# CI結果: <feature>
+
+## サマリ
+- PR: #<番号> <URL>
+- 判定: green / 赤
+
+## 失敗ジョブ、赤のとき
+- <ジョブ名>: <失敗ステップ>。<主要なエラーメッセージ 1〜2 行> — <ジョブの link>
+```
+
+### Step 6: 出力
 
 次の完了カードを、コードフェンス自体は出さずに中身だけそのまま出力して終了する。
 カードの前後に作業サマリ・所感・補足を足さない。
@@ -145,10 +183,13 @@ gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusi
 <対象 PR 数と CI 判定を 1 行>
 - <主要な結果 最大 3 行>
 
-生成物: `<対象 PR の URL>`
+生成物:
+- `<対象 PR の URL>`
+- `.specs/<feature>/ci-report.md`
 
 ### 要確認
 - <判定に影響しうる点> — 例: SKIPPED 扱いにしたジョブ、再実行で結果が変わったジョブ
+- feature 名が求まらずレポートを書けなかった
 
 ### 次の一手
 - コメントに対応する: `/resolve-comments`
@@ -162,7 +203,7 @@ gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusi
 - 次の一手: **判定は確定しているので該当する道だけ**を出す。
   - green + 未解決コメントあり → `- コメントに対応する: /resolve-comments`
   - green + 未解決コメントなし → `- マージ / Ready for review を判断（停止点）`
-  - 赤 → `- 失敗を直す: <失敗ジョブ名> のログを確認して修正`
+  - 赤 → `- 失敗を直す: /fix <feature>`
 
 **中断時**: 同じブロック構成でヘッダを `### CI 監視中断` に差し替える。
 
@@ -180,4 +221,5 @@ gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusi
 ## 完了条件
 - 対象 PR の CI 完了を待って green / 赤を判定した
 - 判定結果を報告した
+- `ci-report.md` を書いた。feature 名が求まらなければ書かず、その旨を報告した
 - 単体で green かつ未解決コメントなしのときは、Ready for review の切り替え可否まで済ませた
