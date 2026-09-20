@@ -45,12 +45,17 @@ symlink 作成・herdr 起動・`SendMessage` 依頼という機械的な配置�
 対象リポジトリごとに次を行う。
 1つのリポジトリで詰まっても他のリポジトリの配置は続ける。
 
-1. 対象リポジトリの絶対パスの特定: herdr の workspace 一覧、`herdr workspace list` などその場の
-   `herdr --help` から見つかるコマンドでリポジトリ名から作業ディレクトリの絶対パスを解決する。
-   見つからなければそのリポジトリだけ中断し、Step 4 の「要確認」に回す。
+1. 対象リポジトリの絶対パスの特定: メインリポジトリと同じ親ディレクトリにある `<リポジトリ名>` を採る。
+   `test -d <親ディレクトリ>/<リポジトリ名>/.git` が通らなければそのリポジトリだけ中断し、Step 4 の「要確認」に回す。
 2. 既存セッションの確認: `ListAgents` でそのリポジトリを担当する稼働中セッションが無いか確認する。
-   無ければ herdr でそのリポジトリのワークスペースにセッションを開き claude code を起動する。
-   herdr の具体的なサブコマンドはその場の `herdr --help` / `herdr workspace --help` を参照して判断する。
+   `herdr agent list` の出力にある `.result.agents[].cwd` が対象の絶対パスと一致するものも、稼働中セッションとみなす。
+   無ければリポジトリ専用の space を作り、その中で claude code を起動する。
+   ```
+   herdr workspace create --cwd <対象リポジトリの絶対パス> --label <リポジトリ名> --no-focus
+   herdr pane run <出力の .result.root_pane.pane_id> claude
+   ```
+   space は `herdr workspace list` の `label` がリポジトリ名と一致するものが既にあれば作らず、その `workspace_id` の pane を使う。
+   宛先は `ListAgents` に新しく現れたセッション名を使う。
 3. symlink 作成: 対象リポジトリに `.specs/<feature>` が無ければ、Step 2 で得たメインリポジトリの
    絶対パスへの symlink を作成する。
    ```
