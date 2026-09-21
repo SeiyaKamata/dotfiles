@@ -2,7 +2,7 @@
 name: hotfix
 description: 調査済みのバグ報告を受け、本番tagからreleaseブランチとworkブランチを切って修正し、release宛・main宛の2つのPRを作成する。
 disable-model-invocation: true
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git *), Bash(gh *), Skill
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git *), Bash(gh *), Bash(mkworktree *), Skill
 argument-hint: "<feature> [tag]"
 ---
 
@@ -83,17 +83,20 @@ Step 13 の中断カードで `/bughunt` を案内する。
 
 **完了ゲート:** 再現済みの `bug-report.md` を読み込んだか。
 
-### Step 3: 作業ツリー確認
+### Step 3: hotfix 専用 worktree の作成
+
+main repo は bare repo で、すべての worktree は既に何らかの作業中という前提になる。
+今の worktree の状態は確認せず、必ず `mkworktree` で hotfix 専用の worktree を新しく作ってそこへ移る：
 
 ```
-git status
+bare_repo=$(git rev-parse --git-common-dir)
+dest=$(mkworktree "$bare_repo" "$(basename "$bare_repo")-hotfix-<feature>")
+cd "$dest"
 ```
 
-未コミット・未 stash の変更があれば中断する：
-> 未コミットの変更があります。
-> 先にコミットまたは stash してからやり直してください。
+以降の Step はこの worktree で進める。
 
-**完了ゲート:** 作業ツリーがクリーンであることを確認したか。
+**完了ゲート:** hotfix 専用の worktree に立っているか。
 
 ### Step 4: 対象tag確認
 
@@ -268,8 +271,6 @@ main 宛の本文には冒頭に次を加える：
   次の一手: 解消手順と `- 復帰: /hotfix <feature> [tag]`
 - **tag のコードに疑わしい箇所が存在しない** → 中断し、work ブランチ上での `/bughunt` 再実行を勧める。Step 6 に対応する。
   次の一手: `- tag のコードで調べ直す: /bughunt <feature>`。work ブランチに立ったまま実行する旨を添える
-- **未コミットの変更がある** → 中断し解消を促す。
-  次の一手: 解消手順と `- 復帰: /hotfix <feature> [tag]`
 - **`gh pr create` が失敗**。push 未完了など → `git push -u origin HEAD` で再 push 後にリトライ
 - **main 宛 PR で差分が大きすぎる・コンフリクト多発** → 次の選択肢を提示して人に委ねる
   - main から別の work ブランチを切って cherry-pick する
