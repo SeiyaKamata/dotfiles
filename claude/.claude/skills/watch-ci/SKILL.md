@@ -86,7 +86,7 @@ gh pr checks <PR番号> --json name,state,conclusion,link
 
 **stacked の集約**: 全 PR について回し、全 PR green なら green、1 つでも失敗があれば赤とする。
 どの PR / ブランチが失敗したかを明記する。
-stacked では下位フェーズの base 側の修正が上位 PR にも影響するため、失敗フェーズを直したら stack を rebase 伝播して再 push し、再度全 PR を監視する。
+stacked では下位フェーズの base 側の修正が上位 PR にも影響するため、失敗フェーズを直したら `/sync` で該当 PR に push し、再度全 PR を監視する。
 
 ### Step 3: greenのとき
 
@@ -98,11 +98,7 @@ gh pr view <PR番号> --json reviewThreads --jq '.reviewThreads[] | select(.isRe
 
 - **未解決あり** → 件数と概要を押さえ、`/triage-comments` を次の一手に出す。
   切り替えは行わない
-- **未解決なし** → 「役割」の通り draft のまま完了とし、完了カードの次の一手に `- Ready for review にする: gh pr ready <PR番号>` を出す
-  ```
-  gh pr view <PR番号> --json isDraft --jq '.isDraft'   # draft か確認（案内文に含めるため）
-  ```
-  既に Open ならその旨をカードに 1 行だけ書き、案内は出さない
+- **未解決なし** → 「役割」の通り draft のまま完了とする
 
 ### Step 4: 赤のとき
 
@@ -202,7 +198,7 @@ count: 1
   無ければブロックごと省略する。
 - 次の一手: **判定は確定しているので該当する道だけ**を出す。
   - green + 未解決コメントあり → `- コメントに対応する: /triage-comments`
-  - green + 未解決コメントなし → `- マージ / Ready for review を判断（停止点）`
+  - green + 未解決コメントなし → `- マージ / Ready for review を判断: 停止点`
   - 赤 → `- 失敗を直す: /fix <feature>`
 
 **中断時**: 同じブロック構成でヘッダを `### CI 監視中断` に差し替える。
@@ -216,10 +212,8 @@ count: 1
 ## エラー処理
 - `gh pr view` で PR が見つからない → カレントブランチが push されているか・PR が作成済みかを確認し、`/land` を復帰先に出して中断する
 - `gh pr checks --watch` がタイムアウト → 再実行するか人間に確認する
-- `gh pr ready` が権限エラー → Web UI での操作を案内する
 
 ## 完了条件
 - 対象 PR の CI 完了を待って green / 赤を判定した
 - 判定結果を報告した
 - `ci-report.md` を書いた。feature 名が求まらなければ書かず、その旨を報告した
-- 単体で green かつ未解決コメントなしのときは、Ready for review の切り替え可否まで済ませた
