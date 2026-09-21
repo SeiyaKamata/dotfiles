@@ -25,7 +25,7 @@ Ready for review はレビュアーに通知が飛ぶ外向きの操作で、し
   判定と PR の URL も報告する
 
 ## 用語
-フェーズは `/sync` が実装後に確定する PR 単位で、ブランチ `<feature>-pN` が対応する。
+フェーズは `/land` が実装後に確定する PR 単位で、ブランチ `<feature>-pN` が対応する。
 
 対象は PR 番号が渡されればその 1 本、渡されなければカレントブランチの PR。
 stacked で複数の PR が既に存在する場合は feature の全 PR を対象に CI を監視して集約する。
@@ -65,7 +65,7 @@ done
 未指定でカレントブランチが `<feature>` / `<feature>-pN` の形でなく、feature 名も求まらない場合は `gh pr view` でカレントブランチの PR を使う。
 
 PR が見つからない場合は中断する。
-未 push・未作成なら `/sync` が復帰先。
+未 push・未作成なら `/land` が復帰先。
 
 ### Step 2: CI の監視と判定
 
@@ -96,7 +96,7 @@ stacked では下位フェーズの base 側の修正が上位 PR にも影響�
 gh pr view <PR番号> --json reviewThreads --jq '.reviewThreads[] | select(.isResolved == false)'
 ```
 
-- **未解決あり** → 件数と概要を押さえ、`/resolve-comments` を次の一手に出す。
+- **未解決あり** → 件数と概要を押さえ、`/triage-comments` を次の一手に出す。
   切り替えは行わない
 - **未解決なし** → 「役割」の通り draft のまま完了とし、完了カードの次の一手に `- Ready for review にする: gh pr ready <PR番号>` を出す
   ```
@@ -192,7 +192,7 @@ count: 1
 - feature 名が求まらずレポートを書けなかった
 
 ### 次の一手
-- コメントに対応する: `/resolve-comments`
+- コメントに対応する: `/triage-comments`
 ```
 
 - やったこと: 主要な結果は無ければ行ごと省略する。
@@ -201,7 +201,7 @@ count: 1
 - 要確認: 判定を左右しうる曖昧さがあれば挙げる。
   無ければブロックごと省略する。
 - 次の一手: **判定は確定しているので該当する道だけ**を出す。
-  - green + 未解決コメントあり → `- コメントに対応する: /resolve-comments`
+  - green + 未解決コメントあり → `- コメントに対応する: /triage-comments`
   - green + 未解決コメントなし → `- マージ / Ready for review を判断（停止点）`
   - 赤 → `- 失敗を直す: /fix <feature>`
 
@@ -210,11 +210,11 @@ count: 1
 - やったこと: 一言サマリに中断理由を書く。
   PR 未作成・`--watch` タイムアウト・権限エラーなどが該当する。
 - 次の一手: 復帰コマンドを出す。
-  PR 未作成なら `- PR を作る: /sync`。
+  PR 未作成なら `- PR を作る: /land`。
   判定が出ていないまま次工程へ進む道は出さない。
 
 ## エラー処理
-- `gh pr view` で PR が見つからない → カレントブランチが push されているか・PR が作成済みかを確認し、`/sync` を復帰先に出して中断する
+- `gh pr view` で PR が見つからない → カレントブランチが push されているか・PR が作成済みかを確認し、`/land` を復帰先に出して中断する
 - `gh pr checks --watch` がタイムアウト → 再実行するか人間に確認する
 - `gh pr ready` が権限エラー → Web UI での操作を案内する
 

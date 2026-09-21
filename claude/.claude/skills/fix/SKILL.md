@@ -1,6 +1,6 @@
 ---
 name: fix
-description: テスト失敗・CI失敗・レビュー指摘の原因を特定し最小限の修正を行う。test FAIL・review NG・CI 赤の後に使う。
+description: テスト失敗・CI失敗・レビュー指摘・承認済みPRコメントの原因を特定し最小限の修正を行う。test FAIL・review NG・CI 赤・コメント承認後に使う。
 allowed-tools: Read, Write, Edit, MultiEdit, Bash, Glob, Grep
 argument-hint: "<feature>"
 ---
@@ -26,6 +26,7 @@ argument-hint: "<feature>"
   - `.specs/<feature>/ci-report.md` — `/watch-ci` 起点で呼ばれたとき
   - `.specs/<feature>/bug-report.md` — `/bughunt` 起点で呼ばれたとき
   - `.specs/<feature>/review.md` — `/review` NG 起点で呼ばれたとき
+  - `.specs/<feature>/comment-report.md` — `/triage-comments` が作り、人間が承認欄を埋めた後に呼ばれたとき
   - `.specs/<feature>/{requirements,design,tasks}.md` — 実装バグか設計の穴かを判断する文脈
 - 出力: コード修正。
   起点になったレポートの `fixed` を `true` に書き換える以外、レポートの判定内容は更新しない。
@@ -42,18 +43,19 @@ argument-hint: "<feature>"
 
 レポートが存在しなければ中断する。
 復帰コマンドはそのレポートを生成するスキル。
-5種類のレポート共通のルール。
+6種類のレポート共通のルール。
 
 - `test-report.md` → `/test <feature>`
 - `bug-report.md` → `/bughunt <feature>`
 - `qa-report.md` → `/qa <feature>`
 - `ci-report.md` → `/watch-ci <feature>`
 - `review.md` → `/review <feature>`
+- `comment-report.md` → `/triage-comments <feature>`
 
 ### Step 3: 着手判定
 
 `fixed` を見る。
-5種類のレポート共通。
+6種類のレポート共通。
 
 - `fixed: true` → 既に `/fix` が着手済みで、まだ下流の再検証を経ていない状態。
   下流の再検証とは `/test` / `/qa` / `/review` を指す。
@@ -64,7 +66,7 @@ argument-hint: "<feature>"
 
 ### Step 4: 対象確認
 
-`test-report.md` / `qa-report.md` / `ci-report.md` / `review.md` は `branch` / `head` をカレントブランチ・`git rev-parse HEAD` と照合する。
+`test-report.md` / `qa-report.md` / `ci-report.md` / `review.md` / `comment-report.md` は `branch` / `head` をカレントブランチ・`git rev-parse HEAD` と照合する。
 `bug-report.md` は `branch`/`head` を持たないためこの照合は無い。
 
 不一致は `/fix` が見ているコードとレポートが指す対象がズレていることを意味するので中断する。
@@ -87,6 +89,9 @@ argument-hint: "<feature>"
   対応するテストがあれば実行する
 - `qa-report.md`: 失敗したシナリオに対応するテストやコマンドを手元で実行する。
   ブラウザ操作は行わない
+- `comment-report.md`: 承認欄に `対応する` と記入された項目だけを対象にする。
+  承認欄が空・`対応しない`・`保留` の項目は対象から外し、Step 9 の要確認に回す。
+  対象項目は `review.md` と同じ手順で、指摘箇所を読み指摘された事象が現状のコードに存在することを確認する
 
 観測した結果は、修正後の比較に使うコマンドと失敗の要旨として控える。
 
@@ -113,6 +118,8 @@ argument-hint: "<feature>"
 
 `review.md` 起点では、その「仕様整合性」「AI コードレビューの指摘」のうち成立と判定された指摘を対象に同じ分類を適用する。
 仕様・設計との不整合はここでも「設計の問題」として扱い、コードを触らず差し戻す。
+
+`comment-report.md` 起点では、Step 5 で対象にした承認済み項目に同じ分類を適用する。
 
 ### Step 7: 最小修正
 特定した原因に対し、問題を解消する最小限の変更のみを加える。
@@ -165,6 +172,7 @@ Step 5 と同じ手段を再実行し、失敗が消えたことを出力で確�
   無ければブロックごと省略する。
 - 次の一手: 診断結果は確定しているので該当する 1 行だけを出す。
   `ci-report.md` 起点なら `- CI を再監視する: /watch-ci <feature>` に差し替える。
+  `comment-report.md` 起点なら `- push・返信する: /sync <feature>` に差し替える。
   設計が原因でコードを触らなかった場合は `- 設計を直す: /design <feature>` に差し替える。
 
 中断時: 同じブロック構成でヘッダを `### fix 中断` に差し替える。
@@ -181,6 +189,7 @@ Step 5 と同じ手段を再実行し、失敗が消えたことを出力で確�
   - `- CI を再監視する: /watch-ci <feature>`
   - `- レビューを回し直す: /review <feature>`
   - `- 調査し直す: /bughunt <feature>`
+  - `- コメントを選別し直す: /triage-comments <feature>`
 
 ## 完了条件
 次のいずれかに達したら完了。

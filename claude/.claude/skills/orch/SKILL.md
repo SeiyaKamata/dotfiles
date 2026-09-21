@@ -19,8 +19,9 @@ argument-hint: "<feature> [<stage>]"
 特に「工程 stage」と「フェーズ phase」を混同しないこと。
 - impl / test / review / qa / commit は feature 単位で動く。
   実装ブランチ 1 本の上で 1 回ずつ回す。
-- sync / watch-ci / resolve-comments が PR 単位で回る。
-  sync の初回だけ feature 単位の実装ブランチから呼ばれ、以降は PR の本数ぶん回る。
+- land / sync / watch-ci / triage-comments / fix が PR 単位で回る。
+  land の初回だけ feature 単位の実装ブランチから呼ばれ、以降は PR の本数ぶん回る。
+  land は PR を新しく作るときだけ、sync は既存 PR にコミットを追加 push するときだけに使う。
 
 ## 進め方
 
@@ -37,7 +38,7 @@ argument-hint: "<feature> [<stage>]"
 ### 工程レジストリ（早見表）
 
 指定可能な開始工程は次の 11 個。
-`/fix` は自己修正ループの内部工程のため対象外。
+`/fix` `/sync` は自己修正ループの内部工程のため対象外。
 `/quick` も対象外。
 Step 3 完了後の分岐で内部的に呼ばれることがあるが、`/bughunt`・`/hotfix` と同じ独立した軽量ルートで、開始工程には指定できない。
 
@@ -58,9 +59,9 @@ Step 3 完了後の分岐で内部的に呼ばれることがあるが、`/bughu
 | `review` | Step 8 | `/review <feature>` |
 | `qa` | Step 9 | `/qa <feature>` |
 | `commit` | Step 10 | `/commit`（feature を渡さない） |
-| `sync` | Step 12 | `/sync <feature>`（対象ブランチの解決は sync 自身が行う） |
+| `land` | Step 12 | `/land <feature>`（対象ブランチの解決は land 自身が行う） |
 | `watch-ci` | Step 13 | `/watch-ci <feature>`（対象 PR の解決は watch-ci 自身が行う） |
-| `resolve-comments` | Step 14 | `/resolve-comments <feature>`（対象 PR の解決は resolve-comments 自身が行う。1 件ずつの確認には orch が人間の代わりに回答する） |
+| `triage-comments` | Step 14 | `/triage-comments <feature>`（対象 PR の解決は Step 14 のフロー、triage-comments → orch が承認欄を埋める → fix → sync、が行う） |
 
 ### Step 1: 引数チェック
 
@@ -199,25 +200,25 @@ orch 固有の追加判断: `qa-report.md` の `count` が 2 以上、非 PASS 2
 
 実装ブランチにコミットする。
 分割はまだ行わない。
-カードの次の一手 `/sync` で PR ループへ進む。
+カードの次の一手 `/land` で PR ループへ進む。
 
 ### Step 11: PR ループの方針
 
 Step 12〜15 を PR 1 本ずつ回す。
 1 周 = 1 PR を CI green + 未返信の未解決コメントなしまで閉じきる。
-sync がまだ次の PR を作っていなければ Step 12 に戻り、作り終えていれば Step 16 へ進む。
+land がまだ次の PR を作っていなければ Step 12 に戻り、作り終えていれば Step 16 へ進む。
 
 なぜ PR を 1 本ずつ出すのか、設計意図はこうだ。
 一斉作成すると、CI と CodeRabbit の指摘が `p1` に返ってくるのが `pN` まで作り終えた後になり、`p1` の修正が全スタックへの rebase 伝播を要求する。
 rebase 伝播は自走で安全に行えないため、PR 数に比例して停止リスクが上がる。
-だから `/sync` は 1 本作ったら止まる。
+だから `/land` は 1 本作ったら止まる。
 修正は常に先端で完結し、待ち時間はこの停止リスクより安い。
 
-### Step 12: `/sync`
+### Step 12: `/land`
 
-対象ブランチの解決も次の PR `p(N+1)` の作成も `/sync` 自身が行うため、orch は先回りして作らない。
+対象ブランチの解決も次の PR `p(N+1)` の作成も `/land` 自身が行うため、orch は先回りして作らない。
 
-実行: `sync/SKILL.md` に従う。
+実行: `land/SKILL.md` に従う。
 PR 本文には `@coderabbitai ignore` が入っていて自動レビューは走らないので、PR ができたら orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って最初のレビューを発火させる。
 以降 CodeRabbit のレビューは orch が打った時だけ走る。
 そのうえでカードの次の一手、`/watch-ci` へ進む。
@@ -225,40 +226,45 @@ PR 本文には `@coderabbitai ignore` が入っていて自動レビューは�
 ### Step 13: `/watch-ci`
 
 `watch-ci/SKILL.md` に従い、この周で作った PR の CI green を待つ。
-- green → `/resolve-comments` へ
-- 赤 → `/fix <feature>` → `/commit` → push → `/watch-ci` に戻る。
+- green → Step 14 へ
+- 赤 → `/fix <feature>` → `/commit` → `/sync <feature>` → `/watch-ci` に戻る。
   `/fix` は `ci-report.md` の `branch` に立った状態で起動する。
-  Step 16 から戻ったときなど別のブランチにいれば、先にそのブランチへ switch する
+  Step 16 から戻ったときなど別のブランチにいれば、先にそのブランチへ switch する。
+  `/sync` は `comment-report.md` が無ければ push だけして戻るので、CI 赤修正のこの経路では返信は発生しない
 
 orch 固有の追加判断: `ci-report.md` の `count` が 3 以上、赤 3 回連続 → 報告して停止
 
-### Step 14: `/resolve-comments`
+### Step 14: コメント対応
 
-`/resolve-comments` の Step 7 は 1 件ずつ方針の確認を求める設計で、呼び出し元が orch か人間かによる分岐を持たない。
-orch から起動する場合は、この確認に orch 自身が人間の代わりとして回答する。
+`/triage-comments <feature>` を実行する。
+`/triage-comments` は対応方針の提案を `.specs/<feature>/comment-report.md` にまとめ、人に確認を求めず完了カードを返す。
 
-回答の判断基準:
+続けて `comment-report.md` の各項目の承認欄を orch 自身が埋める。
+判断基準:
 - 提示された「提案」をそのまま採用する
-- 裏取りが `未検証` のまま、または分類の確信が持てないと明記された件は `3: 保留` を選ぶ
+- 裏取りが `未検証` のまま、または分類の確信が持てないと明記された件は `保留` にする
 - 上記以外は判断に迷わず、確認のための追加の往復を発生させない
 
+承認欄を埋めたら `/fix <feature>` を実行し `対応する` の項目を修正、続けて `/commit` → `/sync <feature>` を実行する。
+`/sync` は push した後 `comment-report.md` を検知して、承認欄に従い返信と issues.md 記録まで行う。
+
 未解決コメント対応ループ。この PR について最大 2 巡:
-- `/resolve-comments` の Step 2 のコマンドで PR のレビュー／コメントを取得し、現在の HEAD コミットより後の `coderabbitai[bot]` のレビューが届くまでポーリングする。
+- `/triage-comments` の Step 2 のコマンドで PR のレビュー／コメントを取得し、現在の HEAD コミットより後の `coderabbitai[bot]` のレビューが届くまでポーリングする。
   1 巡目は Step 12 で orch が打った `@coderabbitai review` によるレビュー、2 巡目以降は下の push 後に orch が打ち直した `@coderabbitai review` によるレビューを待つ。
   一定時間来なければ報告して停止する
 - CodeRabbit は対応済みと判断したスレッドを自分で resolve するため CodeRabbit 分の未解決コメントは自動で消える。
-  人間分は `/resolve-comments` の返信済み判定で消える。
+  人間分は `/triage-comments` の選別済み判定で消える。
   未返信の未解決コメントの有無が終了シグナルになる
-- 未返信の未解決コメントがあり → `/resolve-comments <feature>` を起動し、上記の判断基準で人間 + CodeRabbit の全 author を対応 → `/commit` → push → orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って再レビューを発火 → `/watch-ci` に戻る。
+- 未返信の未解決コメントがあり → 上記フロー、`/triage-comments` → orch が承認欄を埋める → `/fix` → `/commit` → `/sync`、を実行 → orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って再レビューを発火 → `/watch-ci` に戻る。
   CI は push で自動で回る。
   `@coderabbitai ignore` があるので再レビューは orch が打たないと走らない
 - 未返信の未解決コメントがなし → 完了後の分岐へ
 - 2 巡しても未返信の未解決コメントが残る → 報告して停止
 
 完了後:
-- 未返信の未解決コメントなし かつ sync が次の PR を作った → `/sync <feature>` に戻る。
+- 未返信の未解決コメントなし かつ land が次の PR を作った → `/land <feature>` に戻る。
   対象ブランチの解決は Step 12 を参照
-- 未返信の未解決コメントなし かつ sync がこれ以上 PR を作らないと判定した → Step 15 へ
+- 未返信の未解決コメントなし かつ land がこれ以上 PR を作らないと判定した → Step 15 へ
 
 ### Step 15: 人間レビューの依頼
 
@@ -307,7 +313,7 @@ test FAIL 3 連続・review NG 3 連続・qa↔fix 2 周・CI 赤 3 連続・未
   「工程レジストリ」節の前提不足のリカバリを参照
 - `/test` `/review` `/qa` `/fix` が対象確定の前提破れ、実装ブランチへ切り替えられない・入力欠損・レポートの stale で中断した → orch はこれを停止条件として扱う。
   工程が出した中断理由をそのまま人に報告して停止し、orch 側で回避や再試行は行わない
-- `/sync` `/watch-ci` `/resolve-comments` が対象ブランチ・PR の解決に失敗して中断した。
+- `/land` `/sync` `/watch-ci` `/triage-comments` `/fix` が対象ブランチ・PR の解決に失敗して中断した。
   存在しない・複数あって曖昧などが該当する。
   → 同様に停止する。
   対象解決は各 skill 自身の責任であり、orch は代わりに調べ直さない
@@ -329,7 +335,7 @@ Ready for review への切替・merge は人が判断する。
   主要な結果は `- ` の箇条書きで最大 3 行、PR の本数と分割理由・CI / CodeRabbit の状態など。
   工程ごとの経過は各工程の成果物に寄せ、カードには列挙しない。
   開始工程を指定して起動した場合は、主要な結果に開始工程、例えば `開始工程: /design` を含める。
-  分割した場合は、既定の単一 PR から外れた判断なので `/sync` が報告した分割理由を 1 行含める。
+  分割した場合は、既定の単一 PR から外れた判断なので `/land` が報告した分割理由を 1 行含める。
 - 生成物の行は全 PR を 1 本 1 行で本数ぶん出す。
   行数上限は主要な結果にだけ課すので、PR が n 本なら生成物も n 行になる。
 - 各工程の `⏳` は各スキルが自分で出すので、orch が工程開始の実況を代わりに出さない。
