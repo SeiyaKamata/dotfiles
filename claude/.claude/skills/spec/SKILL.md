@@ -74,9 +74,6 @@ Requirement ごとに主体を独立行で 1 回宣言し、各行は主語を�
 読み手が最初に必要とするのは全体像なので、要件サマリを冒頭に置く。
 検討経緯・却下した代替案は書かず、決まったことだけを書く。
 
-frontmatter は `status: confirmed`・`quick_eligible`・`notion_url`・`pr_title`・`branch_name` を必ず付ける。
-`notion_url`・`pr_title`・`branch_name` は下書きにあれば値をそのまま引き継ぎ、無ければ空文字で書く。
-
 ```markdown
 ---
 status: confirmed
@@ -103,11 +100,13 @@ quick判定: [true/false]。理由: [理由]
 [Requirement 全体に関わるなど、特定の 1 行に紐づかない要確認があれば `【要確認】<内容>` を 1 行で。無ければ書かない]
 
 ## スコープ
+[1 項目 1 行の箇条書き。EARS は使わない]
+
 **含む:**
 - [機能A]
 
 **含まない:**
-- [機能C]。理由は[なぜ含まないか] 【要確認: 理由】
+- [機能C]。理由は[なぜ含まないか] [判断で埋めたときだけ 【要確認: 理由】]
 
 ## 要件
 
@@ -116,7 +115,7 @@ quick判定: [true/false]。理由: [理由]
 
 受け入れ条件・主体 `[主体]`
 - [振る舞い]
-- [イベント]とき → [振る舞い] 【要確認: 理由】
+- [イベント]とき → [振る舞い] [判断で埋めたときだけ 【要確認: 理由】]
 - 【異常】[トリガー] → [振る舞い]
 
 ### Requirement 2: [要件名]
@@ -143,10 +142,7 @@ quick判定: [true/false]。理由: [理由]
 
 ### Step 2: スコープ境界
 
-in-scope / out-of-scope を 1 項目 1 行の箇条書きで列挙する。
-EARS は使わない。
-out-of-scope には「なぜ含まないか」を必ず併記する。
-
+in-scope / out-of-scope を列挙する。
 要望から in/out を確定できない項目は、「判断が割れる点の扱い」節に従う。
 
 ### Step 3: 受け入れ条件化
@@ -164,10 +160,7 @@ design/tasks を介さず直接実装する軽量ルートに乗せてよいか�
 - 実装方針で悩む余地がない。設計判断そのものが不要
 
 3 条件をすべて満たす → `quick_eligible: true`。
-1 つでも外れる、または判定に迷う → `quick_eligible: false`。
-design/tasks を飛ばして後戻りするコストの方が高いため、迷ったら通常ルートに倒す。
-
-判定根拠を要件サマリ直後に `quick判定: <true/false>。理由: <理由>` として 1 行残す。
+1 つでも外れる、または判定に迷う → `quick_eligible: false`。飛ばして後戻りするコストの方が高い。
 
 ### Step 5: 書き出し
 
@@ -175,9 +168,7 @@ Step 2〜4 の内容を「requirements.md のフォーマット」で `.specs/<f
 
 ### Step 6: 点検
 
-書き出した `requirements.md` を次の観点で見直し、外れていれば直してから Step 7 へ進む。
-- 「受け入れ条件の書き方」と「requirements.md のフォーマット」を満たしている
-- frontmatter に `status: confirmed` と `quick_eligible` がある
+書き出した `requirements.md` が「受け入れ条件の書き方」と「requirements.md のフォーマット」を満たしているか見直し、外れていれば直してから Step 7 へ進む。
 
 ### Step 7: 出力
 
@@ -194,6 +185,7 @@ Step 2〜4 の内容を「requirements.md のフォーマット」で `.specs/<f
 <件数>件。無ければこのブロックを省略
 
 ### 次の一手
-- <quick_eligible が true なら `QA シナリオを作って直接実装する: /scenarios <feature> → /quick <feature>`、false なら `設計に進む: /design <feature>`>
+- 設計に進む: `/design <feature>`
+- QA シナリオを作って直接実装する: `/scenarios <feature>` → `/quick <feature>`
 - 要件を直す: `/spec <feature>`
 ```
