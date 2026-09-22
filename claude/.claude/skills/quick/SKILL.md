@@ -27,7 +27,7 @@ argument-hint: "<feature>"
 
 ### Step 2: 実装ブランチの確定
 
-PR 運用の有無に関わらず、実装ブランチ `<feature>` の上で実装する。
+実装ブランチ `<feature>` の上で実装する。
 HEAD の状態で分岐する:
 - `<feature>` ブランチが既にある → checkout して前回の実装を再開する
 - detached HEAD → `git checkout -b <feature>` で今の HEAD から切る
