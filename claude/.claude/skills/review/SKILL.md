@@ -15,9 +15,12 @@ NG の戻し先は呼び出し元が判断する。
 ## 入出力
 - 入力:
   - `.specs/<feature>/requirements.md`
-  - `.specs/<feature>/design.md`
-  - `.specs/<feature>/tasks.md`
+  - `.specs/<feature>/design.md`、あれば
+  - `.specs/<feature>/tasks.md`、あれば
   - デフォルトブランチとの git 差分
+
+`/quick` 経由の feature は `requirements.md` だけを仕様に持つ。
+`design.md` / `tasks.md` が無いことは中断理由にせず、`requirements.md` との整合だけを見る。
 - 出力: `.specs/<feature>/review.md`
 
 ## 引数
@@ -53,8 +56,7 @@ date +"%Y-%m-%dT%H:%M:%S%z"                     # ran_at
 
 - 仕様整合性reviewer:
   - `.specs/<feature>/requirements.md` を読ませる。
-  - `.specs/<feature>/design.md` を読ませる。
-  - `.specs/<feature>/tasks.md` を読ませる。
+  - `.specs/<feature>/design.md` と `.specs/<feature>/tasks.md` は存在するものだけ読ませる。
   - `git diff origin/<デフォルトブランチ>` を読ませる。
   - 差分が仕様・設計と整合しているかを確認させ、指摘一覧を返させる。
 - コード品質reviewer:
