@@ -56,7 +56,12 @@ macOS の BSD `date` は `-Iseconds` 非対応なのでフォーマット指定�
 git branch --show-current                       # branch
 git rev-parse HEAD                              # head
 date +"%Y-%m-%dT%H:%M:%S%z"                     # ran_at
+DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); DEFAULT=${DEFAULT##*/}
+[ -z "$DEFAULT" ] && { git remote set-head origin --auto >/dev/null; DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD); DEFAULT=${DEFAULT##*/}; }
 ```
+
+`DEFAULT` は Step 4 の `git diff origin/$DEFAULT` に使う。
+`sed` / `awk` をパイプで挟まないのは、権限の allowlist に無く承認待ちで止まるため。
 
 ### Step 4: 並列レビュー
 `Agent` ツールで次の 2 つを並列に起動する。
