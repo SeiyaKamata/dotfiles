@@ -8,212 +8,113 @@ allowed-tools: Read, Write, Bash(gh *), Bash(git *), Bash(date *), Agent
 # CI監視スキル
 
 ## 役割
-PR の CI が完了するまで監視し、結果を判定して次のアクションを提示する。
-CI 失敗時はログを取得して要点に畳む。
-ログ本体はカードに載せない。
+PR の CI が完了するまで監視し、green / 赤を判定して `.specs/<feature>/ci-report.md` に記録する。
+赤ならログを取得して要点に畳み、ログ本体はメインコンテキストにもカードにも載せない。
+Ready for review への切り替えは行わず、draft のまま完了とする。
+Ready for review はレビュアーに通知が飛ぶ外向きの操作で、取り消しても通知は戻らないので人が明示的に実行する。
 
-**Ready for review への切り替えは行わない。**
-draft のまま完了とし、完了カードで `gh pr ready` を案内する。
-Ready for review はレビュアーに通知が飛ぶ外向きの操作で、しかも取り消しても通知は戻らない。
-このスキルは監視と報告までを担い、外向きの操作は人が明示的に実行する。
+## 判断が割れる点の扱い
+CI の完了を待って結果を完了カードで報告し、途中でユーザーに質問も承認も求めない。
+`gh pr checks --watch` がタイムアウトしたときだけ、再実行するかを人に確認する。
+修正はここでは行わず、赤の内訳をレポートに書いて `/fix` に渡す。
 
-## 入出力
-- **入力**: 対象 PR。
-  引数の PR 番号、引数の feature 名、またはカレントブランチから導出する
-- **出力**: `.specs/<feature>/ci-report.md`。
-  `/fix` が読む失敗の内訳で、毎回上書きする。
-  判定と PR の URL も報告する
+## ci-report.md のフォーマット
+frontmatter は test・review・qa のレポートと共通の形式にする。
+stacked では赤の PR が複数あっても番号順で最初の赤の 1 本だけを書き、全 PR が green なら最後に監視した 1 本を書く。
 
-## 用語
-フェーズは `/land` が実装後に確定する PR 単位で、ブランチ `<feature>-pN` が対応する。
+```markdown
+---
+feature: [feature]
+branch: [対象 PR の head ブランチ]
+head: [gh pr view <PR番号> --json headRefOid --jq .headRefOid で取った 40 文字。短縮しない]
+ran_at: [書き出し時点の時刻。date +"%Y-%m-%dT%H:%M:%S%z" で取得]
+fixed: false [常に false。/fix が修正を適用したときだけ true に書き換える]
+count: [赤の連続回数。今回が赤かつ既存レポートの branch が同じで判定も赤なら既存値 +1、それ以外は 1]
+---
 
-対象は PR 番号が渡されればその 1 本、渡されなければカレントブランチの PR。
-stacked で複数の PR が既に存在する場合は feature の全 PR を対象に CI を監視して集約する。
-`/orch` Step 16 の全 PR 最終確認がこれを使う。
+# CI結果: [feature]
 
-## 対話方針
-CI の完了を待って結果を完了カードで報告する。
-基本は自律で動き、確認するのは「エラー処理」の条件のときだけ。
+## サマリ
+- PR: #[番号] [URL]
+- 判定: [green / 赤]
 
-## 引数
-- `$ARGUMENTS` が数字のみ: PR 番号
-- `$ARGUMENTS` が数字以外の文字列: feature 名
-- 省略時: カレントブランチから導出する
+## 失敗ジョブ
+[赤のときだけ。green なら節ごと省略]
+- [ジョブ名]: [失敗ステップ]。[主要なエラーメッセージ 1〜2 行] — [ジョブの link]
+```
 
 ## 進め方
 
-### Step 1: 対象 PR の特定 — 単一 / stacked
+### Step 1: 対象 PR の特定
 
-PR 番号が指定されていれば、その 1 本を使う。
-未指定なら feature 名を求める。
-引数に feature 名が渡されていればそれを使い、渡されていなければカレントブランチから求める。
-`<feature>-pN` ならフェーズブランチ名から、それ以外ならブランチ名そのものから求める。
+- `$ARGUMENTS` が数字のみ → その PR 番号 1 本
+- `$ARGUMENTS` が数字以外の文字列 → feature 名
+- 省略 → カレントブランチが `<feature>-pN` ならフェーズブランチ名から、それ以外ならブランチ名そのものを feature 名にする
 
-feature 名が求まったら、フェーズブランチの PR を番号順に列挙する：
+feature 名が求まったら、フェーズブランチの PR を番号順に列挙する。
+
 ```
 for b in $(git branch --list "<feature>-p*" --sort=version:refname --format='%(refname:short)'); do
   gh pr list --head "$b" --json number,url,isDraft,headRefName,state --jq '.[]'
 done
 ```
-- 2 件以上ヒット → stacked モードとして、Step 2 を各 PR について回して集約する
-- 1 件ヒット → その PR を単一 PR として対象にする
-- 0 件ヒット → まだフェーズ分割前とみなし、`<feature>` ブランチの PR を見る：
-  ```
-  gh pr list --head "<feature>" --json number,url,isDraft,headRefName,state --jq '.[]'
-  ```
 
-未指定でカレントブランチが `<feature>` / `<feature>-pN` の形でなく、feature 名も求まらない場合は `gh pr view` でカレントブランチの PR を使う。
+- 2 件以上 → stacked として全 PR を対象にし、Step 2 を各 PR について回して集約する
+- 1 件 → その PR を対象にする
+- 0 件 → フェーズ分割前とみなし、`gh pr list --head "<feature>"` で `<feature>` ブランチの PR を見る
 
-PR が見つからない場合は中断する。
-未 push・未作成なら `/land` が復帰先。
+feature 名が求まらなければ `gh pr view` でカレントブランチの PR を使い、レポートは書かずに要確認に出す。
+PR が見つからなければ、カレントブランチが push されているか・PR が作成済みかを確認し、Step 5 の中断カードで `/land` を案内する。
 
 ### Step 2: CI の監視と判定
 
-`--watch` で完了までブロッキング監視する：
+`gh pr checks <PR番号> --watch --interval 30` で完了までブロッキング監視し、`gh pr checks <PR番号> --json name,state,conclusion,link` で最終ステータスを取る。
+- すべての `conclusion` が `SUCCESS` / `NEUTRAL` / `SKIPPED` → green
+- いずれかが `FAILURE` / `CANCELLED` / `TIMED_OUT` / `ACTION_REQUIRED` → 赤
 
-```
-gh pr checks <PR番号> --watch --interval 30
-```
+stacked では全 PR green なら green、1 つでも赤があれば赤とし、どの PR が赤かを明記する。
+下位フェーズの base 側の修正が上位 PR にも影響するので、赤のフェーズを直したら `/sync` で該当 PR に push し、再度全 PR を監視する。
 
-監視完了後、最終ステータスを取得して判定する：
+### Step 3: 判定ごとの確認
 
-```
-gh pr checks <PR番号> --json name,state,conclusion,link
-```
+green なら `gh pr view <PR番号> --json reviewThreads --jq '.reviewThreads[] | select(.isResolved == false)'` で未解決のレビューコメントの件数と概要を押さえる。
 
-- すべての `conclusion` が `SUCCESS` / `NEUTRAL` / `SKIPPED` → **green**
-- いずれかが `FAILURE` / `CANCELLED` / `TIMED_OUT` / `ACTION_REQUIRED` → **赤**
-
-**stacked の集約**: 全 PR について回し、全 PR green なら green、1 つでも失敗があれば赤とする。
-どの PR / ブランチが失敗したかを明記する。
-stacked では下位フェーズの base 側の修正が上位 PR にも影響するため、失敗フェーズを直したら `/sync` で該当 PR に push し、再度全 PR を監視する。
-
-### Step 3: greenのとき
-
-未解決のレビューコメントを確認する：
-
-```
-gh pr view <PR番号> --json reviewThreads --jq '.reviewThreads[] | select(.isResolved == false)'
-```
-
-- **未解決あり** → 件数と概要を押さえ、`/triage-comments` を次の一手に出す。
-  切り替えは行わない
-- **未解決なし** → 「役割」の通り draft のまま完了とする
-
-### Step 4: 赤のとき
-
-失敗ジョブを特定する：
+赤なら失敗ジョブを特定し、ログの取得と要約を `general-purpose` サブエージェントに委譲する。
+`gh run view <run-id> --log-failed` はログ全文を吐くので、メインでは実行しない。
 
 ```
 gh pr checks <PR番号> --json name,state,conclusion,link --jq '[.[] | select(.conclusion == "FAILURE" or .conclusion == "CANCELLED" or .conclusion == "TIMED_OUT")]'
 gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusion,workflowName
 ```
 
-**ログ本体はメインで読まない。**
-`gh run view <run-id> --log-failed` は失敗時にログ全文を吐き、メインでそのまま実行すると
-その全文がコンテキストに載ってトークンを浪費する。
-ログの取得と要約は `general-purpose` サブエージェントに委譲する。
+サブエージェントには対象の `run-id` と失敗ジョブ名を渡し、「`gh run view <run-id> --log-failed` を実行し、失敗ジョブ名・失敗ステップ・主要なエラーメッセージを最大 10〜15 行に絞って報告し、ログ全文は転記しない」と指示する。
 
-サブエージェントに渡すもの:
-- 対象の `run-id`・失敗ジョブ名
-- 「`gh run view <run-id> --log-failed` を実行し、失敗ジョブ名・失敗ステップ・主要なエラーメッセージを
-  最大 10〜15 行程度に絞って報告すること。ログ全文は転記しないこと」という指示
+原因がその PJ で繰り返しハマる構造的なものなら、記録ではなく改善提案として `/spinoff` に切り出す。
+その PR 限りのバグやタイポ修正、git log や diff を見れば分かることは切り出さない。
 
-受け取るのはこの要約だけで、ログ全文はメインのコンテキストに読み込まない。
+### Step 4: レポートの書き出し
 
-修正はここでは行わない。
-どのジョブ・どのステップ・主要なエラーメッセージを押さえ、Step 5 でレポートに書く。
-直すのは `/fix` で、次の一手から起動する。
+feature 名が求まっているときだけ、既存の `ci-report.md` があれば `branch`・判定・`count` を読み、「ci-report.md のフォーマット」で `.specs/<feature>/ci-report.md` に上書きする。
 
-**再発しそうな失敗は改善提案に切り出す。**
-原因がその PJ で繰り返しハマる構造的なものだと判断したら、記録ではなく改善提案として切り出す。
-例えばこの PJ の CI は import 順 lint で必ず落ちる、特定の env を入れ忘れると必ず E2E が落ちる、CI 専用の前提手順があるといったケースで、毎回ハマる構造ごと直す提案にする。
-恒久ルール `CLAUDE.md` へ勝手に追記しない。
+### Step 5: 出力
 
-- **切り出さないもの**: その PR 限りの一回限りのバグ・タイポ修正、git log や diff を見れば分かること
-
-### Step 5: レポートの書き出し
-
-feature 名が求まっているときだけ、`.specs/<feature>/ci-report.md` に最新結果を毎回上書きして書く。
-求まっていなければ書かず、完了カードの「要確認」に出す。
-stacked では、赤の PR が複数あっても番号順で最初の赤の 1 本だけを書く。
-全 PR が green なら、最後に監視した 1 本を書く。
-
-frontmatter は `test-report` / `review` / `qa-report` と共通の形式:
-```yaml
----
-feature: <feature>
-branch: <対象 PR の head ブランチ>
-head: <対象 PR の head コミット。40 文字、短縮しない>
-ran_at: <date +"%Y-%m-%dT%H:%M:%S%z" で取得した時刻>
-fixed: false
-count: 1
----
-```
-
-- `head` は `gh pr view <PR番号> --json headRefOid --jq .headRefOid` で取る。
-- `fixed` は既存ファイルの値を読まず常に `false` を書く。`true` に変えるのは `/fix` だけ。
-- `count` は書き出す前に既存の `ci-report.md` の `branch`・判定・`count` を読んで決める。
-  今回が赤で、既存の `branch` が同じで判定も赤なら `count` を +1 する。
-  それ以外は `count: 1` にする。
-
-本文は次のとおり。
-```markdown
-# CI結果: <feature>
-
-## サマリ
-- PR: #<番号> <URL>
-- 判定: green / 赤
-
-## 失敗ジョブ、赤のとき
-- <ジョブ名>: <失敗ステップ>。<主要なエラーメッセージ 1〜2 行> — <ジョブの link>
-```
-
-### Step 6: 出力
-
-次の完了カードを、コードフェンス自体は出さずに中身だけそのまま出力して終了する。
-カードの前後に作業サマリ・所感・補足を足さない。
+次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
+中断時は見出しを `### CI 監視中断` にし、1 行目に中断理由を書き、生成物の行を省き、次の一手は復帰に必要な操作だけにする。
 
 ```markdown
-### CI 監視完了
-<対象 PR 数と CI 判定を 1 行>
-- <主要な結果 最大 3 行>
+### CI 監視完了 — <green / 赤>
+<対象 PR 数と CI 判定を 1 行。赤なら失敗ジョブの要点を 1 行に畳む>
 
 生成物:
-- `<対象 PR の URL>`
+- <対象 PR の URL。stacked なら監視した全 PR を 1 本 1 行>
 - `.specs/<feature>/ci-report.md`
 
 ### 要確認
-- <判定に影響しうる点> — 例: SKIPPED 扱いにしたジョブ、再実行で結果が変わったジョブ
-- feature 名が求まらずレポートを書けなかった
+- <SKIPPED 扱いにしたジョブ、再実行で結果が変わったジョブなど、判定に影響しうる点>
+- <feature 名が求まらずレポートを書けなかったならその旨>
+<無ければこのブロックを省略>
 
 ### 次の一手
 - コメントに対応する: `/triage-comments`
+  <green で未解決コメントなしなら `- Ready for review / merge を判断する` に、赤なら `- 失敗を直す: /fix <feature>` に差し替える>
 ```
-
-- やったこと: 主要な結果は無ければ行ごと省略する。
-  失敗ジョブのログ本体は載せず要点 1 行に畳む。
-  stacked なら生成物に監視した全 PR を列挙し、行数上限は主要な結果にだけ課す。
-- 要確認: 判定を左右しうる曖昧さがあれば挙げる。
-  無ければブロックごと省略する。
-- 次の一手: **判定は確定しているので該当する道だけ**を出す。
-  - green + 未解決コメントあり → `- コメントに対応する: /triage-comments`
-  - green + 未解決コメントなし → `- マージ / Ready for review を判断: 停止点`
-  - 赤 → `- 失敗を直す: /fix <feature>`
-
-**中断時**: 同じブロック構成でヘッダを `### CI 監視中断` に差し替える。
-
-- やったこと: 一言サマリに中断理由を書く。
-  PR 未作成・`--watch` タイムアウト・権限エラーなどが該当する。
-- 次の一手: 復帰コマンドを出す。
-  PR 未作成なら `- PR を作る: /land`。
-  判定が出ていないまま次工程へ進む道は出さない。
-
-## エラー処理
-- `gh pr view` で PR が見つからない → カレントブランチが push されているか・PR が作成済みかを確認し、`/land` を復帰先に出して中断する
-- `gh pr checks --watch` がタイムアウト → 再実行するか人間に確認する
-
-## 完了条件
-- 対象 PR の CI 完了を待って green / 赤を判定した
-- 判定結果を報告した
-- `ci-report.md` を書いた。feature 名が求まらなければ書かず、その旨を報告した
