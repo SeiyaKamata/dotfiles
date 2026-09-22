@@ -20,7 +20,6 @@ CI の完了を待って結果を完了カードで報告し、途中でユー�
 
 ## ci-report.md のフォーマット
 frontmatter は test・review・qa のレポートと共通の形式にする。
-stacked では赤の PR が複数あっても番号順で最初の赤の 1 本だけを書き、全 PR が green なら最後に監視した 1 本を書く。
 
 ```markdown
 ---
@@ -49,19 +48,9 @@ count: [赤の連続回数。今回が赤かつ既存レポートの branch が�
 
 - `$ARGUMENTS` が数字のみ → その PR 番号 1 本
 - `$ARGUMENTS` が数字以外の文字列 → feature 名
-- 省略 → カレントブランチが `<feature>-pN` ならフェーズブランチ名から、それ以外ならブランチ名そのものを feature 名にする
+- 省略 → カレントブランチ名を feature 名にする
 
-feature 名が求まったら、フェーズブランチの PR を番号順に列挙する。
-
-```
-for b in $(git branch --list "<feature>-p*" --sort=version:refname --format='%(refname:short)'); do
-  gh pr list --head "$b" --json number,url,isDraft,headRefName,state --jq '.[]'
-done
-```
-
-- 2 件以上 → stacked として全 PR を対象にし、Step 2 を各 PR について回して集約する
-- 1 件 → その PR を対象にする
-- 0 件 → フェーズ分割前とみなし、`gh pr list --head "<feature>"` で `<feature>` ブランチの PR を見る
+feature 名が求まったら `gh pr list --head "<feature>" --json number,url,isDraft,headRefName,state --jq '.[]'` で PR を 1 本特定する。
 
 feature 名が求まらなければ `gh pr view` でカレントブランチの PR を使い、レポートは書かずに要確認に出す。
 PR が見つからなければ、カレントブランチが push されているか・PR が作成済みかを確認し、Step 5 の中断カードで `/land` を案内する。
@@ -71,9 +60,6 @@ PR が見つからなければ、カレントブランチが push されてい�
 `gh pr checks <PR番号> --watch --interval 30` で完了までブロッキング監視し、`gh pr checks <PR番号> --json name,state,conclusion,link` で最終ステータスを取る。
 - すべての `conclusion` が `SUCCESS` / `NEUTRAL` / `SKIPPED` → green
 - いずれかが `FAILURE` / `CANCELLED` / `TIMED_OUT` / `ACTION_REQUIRED` → 赤
-
-stacked では全 PR green なら green、1 つでも赤があれば赤とし、どの PR が赤かを明記する。
-下位フェーズの base 側の修正が上位 PR にも影響するので、赤のフェーズを直したら `/sync` で該当 PR に push し、再度全 PR を監視する。
 
 ### Step 3: 判定ごとの確認
 
@@ -103,10 +89,10 @@ feature 名が求まっているときだけ、既存の `ci-report.md` があ�
 
 ```markdown
 ### CI 監視完了 — <green / 赤>
-<対象 PR 数と CI 判定を 1 行。赤なら失敗ジョブの要点を 1 行に畳む>
+<対象 PR と CI 判定を 1 行。赤なら失敗ジョブの要点を 1 行に畳む>
 
 生成物:
-- <対象 PR の URL。stacked なら監視した全 PR を 1 本 1 行>
+- <対象 PR の URL>
 - `.specs/<feature>/ci-report.md`
 
 ### 要確認

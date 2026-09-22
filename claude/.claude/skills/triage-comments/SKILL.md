@@ -103,7 +103,7 @@ head: [HEAD SHA]
 - 無ければ `gh pr view --json number,title,url,headRefName` でカレントブランチの PR
 
 特定できなければ Step 8 の中断カードで報告する。
-feature 名は head ブランチが `<feature>-pN` なら `<feature>`、それ以外はブランチ名をそのまま使う。
+feature 名は head ブランチ名をそのまま使う。
 
 ### Step 2: コメント収集
 

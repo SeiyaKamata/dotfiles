@@ -15,11 +15,11 @@ argument-hint: "<feature> [<stage>]"
 途中の失敗は自己修正ループで潰し、人を呼ぶのは停止点と回復不能な詰まりだけにする。
 
 各工程は人が単体で叩くのと同じ形で起動し、同じ完了カードを返す。
-impl / test / review / qa / commit は実装ブランチ 1 本の上で feature 単位に 1 回ずつ回り、land / sync / watch-ci / triage-comments / fix は PR 単位で PR の本数ぶん回る。
+全工程を実装ブランチ 1 本の上で回し、PR は feature につき 1 本にする。
 
 ## 判断が割れる点の扱い
 完了カードは人向けの区切りではなく工程間の引き継ぎ情報なので、各工程がカードを出しても応答を終えず、同じ応答内で次のアクションを続ける。
-ユーザーの応答を待って止まるのは、Step 17 の停止点に到達したときと「停止条件」に該当したときだけ。
+ユーザーの応答を待って止まるのは、Step 15 の停止点に到達したときと「停止条件」に該当したときだけ。
 
 既定の遷移は各工程の完了カードの「次の一手」に従い、orch はその指示どおりに次を起動する。
 各工程の「完了後」には、ループの停止閾値やカードの判定区分をまたぐ判断のように、カードだけでは分からない orch 固有の判断だけを書く。
@@ -42,9 +42,9 @@ impl / test / review / qa / commit は実装ブランチ 1 本の上で feature 
 | `review` | Step 8 | `/review <feature>` |
 | `qa` | Step 9 | `/qa <feature>` |
 | `commit` | Step 10 | `/commit` |
-| `land` | Step 12 | `/land <feature>` |
-| `watch-ci` | Step 13 | `/watch-ci <feature>` |
-| `triage-comments` | Step 14 | `/triage-comments <feature>` |
+| `land` | Step 11 | `/land <feature>` |
+| `watch-ci` | Step 12 | `/watch-ci <feature>` |
+| `triage-comments` | Step 13 | `/triage-comments <feature>` |
 
 前提成果物は事前チェックせず、開始工程をそのまま起動する。
 不足していれば起動した skill 自身が検知して案内するので、案内された工程を実行してから元の開始工程を再実行し、それでも中断すれば報告して停止する。
@@ -130,8 +130,7 @@ loop:
 
 ### Step 9: `/qa`
 
-qa は commit より前に置く。
-実装が 1 ブランチで完結しているうちに feature 全体の受け入れを確認すれば、qa FAIL 時の修正が PR をまたがず rebase 伝播が起きない。
+qa は commit より前に置き、実装が作業ツリーにあるうちに feature 全体の受け入れを確認する。
 
 完了後: `qa-report.md` の `count` が 2 以上なら報告して停止。
 
@@ -146,33 +145,24 @@ qa は commit より前に置く。
 
 ### Step 10: `/commit`
 
-実装ブランチにコミットし、カードの次の一手 `/land` で PR ループへ進む。
+実装ブランチにコミットし、カードの次の一手 `/land` へ進む。
 
-### Step 11: PR ループの方針
+### Step 11: `/land`
 
-Step 12〜15 を PR 1 本ずつ回し、1 周で 1 PR を CI green + 未返信の未解決コメントなしまで閉じきる。
-land がまだ次の PR を作っていなければ Step 12 に戻り、作り終えていれば Step 16 へ進む。
-
-一斉に作ると `p1` に返ってきた指摘の修正が全スタックへの rebase 伝播を要求し、自走で安全に行えない。
-1 本ずつ閉じれば修正は常に先端で完結し、待ち時間はこの停止リスクより安い。
-
-### Step 12: `/land`
-
-対象ブランチの解決も次の PR `p(N+1)` の作成も `/land` 自身が行う。
+対象ブランチの解決は `/land` 自身が行う。
 PR 本文の `@coderabbitai ignore` で自動レビューは走らないので、PR ができたら orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って最初のレビューを発火させ、カードの次の一手 `/watch-ci` へ進む。
 以降 CodeRabbit のレビューは orch が打った時だけ走る。
 
-### Step 13: `/watch-ci`
+### Step 12: `/watch-ci`
 
-この周で作った PR の CI green を待つ。
-- green → Step 14 へ
+PR の CI green を待つ。
+- green → Step 13 へ
 - 赤 → `/fix <feature>` → `/commit` → `/sync <feature>` → `/watch-ci` に戻る
-  - `/fix` は `ci-report.md` の `branch` に立った状態で起動する。別のブランチにいれば先に switch する
   - `/sync` は `comment-report.md` に未チェックの項目が無ければ push だけして戻る
 
 完了後: `ci-report.md` の `count` が 3 以上なら報告して停止。
 
-### Step 14: コメント対応
+### Step 13: コメント対応
 
 `/triage-comments <feature>` を実行し、`comment-report.md` の各項目の承認欄を orch 自身が埋める。
 - 提示された「提案」をそのまま採用する
@@ -182,26 +172,19 @@ PR 本文の `@coderabbitai ignore` で自動レビューは走らないので�
 承認欄を埋めたら `/fix <feature>` で `対応する` の項目を修正し、`/commit` → `/sync <feature>` で push・返信・issues.md 記録まで行う。
 続けて orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って再レビューを発火し、`/watch-ci` に戻る。
 
-このループは PR ごとに最大 2 巡。
+このループは最大 2 巡。
 - `/triage-comments` の Step 2 のコマンドで PR のコメントを取得し、現在の HEAD より後の `coderabbitai[bot]` のレビューが届くまでポーリングする。一定時間来なければ報告して停止する
 - CodeRabbit は対応済みと判断したスレッドを自分で resolve し、人間分は `/triage-comments` の選別済み判定で消えるので、未返信の未解決コメントの有無が終了シグナルになる
 - 2 巡しても未返信の未解決コメントが残れば報告して停止する
 
-完了後:
-- 未返信の未解決コメントなし かつ land が次の PR を作った → Step 12 へ
-- 未返信の未解決コメントなし かつ land がこれ以上 PR を作らないと判定した → Step 15 へ
+完了後: 未返信の未解決コメントなし → Step 14 へ
 
-### Step 15: 人間レビューの依頼
+### Step 14: 人間レビューの依頼
 
-保留中の差し込み位置で、現状は何もせず Step 16 へ進む。
-PR ごとに人間レビューを回す運用にする場合、ここで `gh pr ready <PR番号>` に切り替える。
+保留中の差し込み位置で、現状は何もせず Step 15 へ進む。
+人間レビューを回す運用にする場合、ここで `gh pr ready <PR番号>` に切り替える。
 
-### Step 16: 全 PR の最終確認
-
-後続 PR の push で状態が動いている可能性があるので、全 PR が CI green であることをまとめて確認する。
-崩れていれば該当 PR について Step 13 を回し直し、全 PR green なら Step 17 へ。
-
-### Step 17: 停止点
+### Step 15: 停止点
 
 次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
 Ready for review への切替と merge は人が判断する。
@@ -210,13 +193,12 @@ Ready for review への切替と merge は人が判断する。
 
 ```markdown
 ### パイプライン完走
-<feature 名と PR 本数・到達状態を 1 行>
+<feature 名と到達状態を 1 行>
 - <開始工程を指定して起動したなら `開始工程: /design` の形で>
-- <分割したなら /land が報告した分割理由>
 - <保持していた要確認>
 
 生成物:
-- <PR の URL。1 本 1 行で本数ぶん>
+- <PR の URL>
 
 ### 次の一手
 - Ready for review / merge を判断する

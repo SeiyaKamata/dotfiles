@@ -49,7 +49,7 @@ CURRENT=$(git branch --show-current)
 gh pr view --json number,url,headRefName
 ```
 
-feature 名は引数があればそれ、無ければ `CURRENT` から `-p<数字>` を除いて求める。
+feature 名は引数があればそれ、無ければ `CURRENT` にする。
 PR が無ければ Step 7 の中断カードで報告して終了する。
 
 ### Step 2: push
