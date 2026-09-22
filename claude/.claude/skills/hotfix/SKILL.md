@@ -9,132 +9,90 @@ argument-hint: "<feature> [tag]"
 # hotfix スキル
 
 ## 役割
-`/bughunt` が原因を絞り込んだバグを、本番環境で動いている tag に当てる。
-tag から hotfix の release ブランチ・work ブランチを切り、修正を実装して 2 つの PR を作成する。
+調査済みのバグを本番環境で動いている tag に当てる。
+tag から release ブランチと work ブランチを切り、症状を止める最小限の修正を実装して、本番へ当てる release 宛と同じ修正を取り込む main 宛の 2 つの draft PR を作る。
+原因調査は行わず、`.specs/<feature>/bug-report.md` に原因が絞り込まれていることを前提にする。
 
-- `release/<base>_p<n>` ← `work/<base>_p<n>`。本番へ当てる
-- `main` ← `work/<base>_p<n>`。同じ修正を main にも取り込む
-
-`<base>` と `<n>` の決め方は下記「ブランチ命名規則」に従う。
-
-原因調査は行わない。
-`/bughunt` に委ねる。
-`bug-report.md` が無ければ調査工程へ差し戻して中断する。
-判定は Step 2 で行う。
-本番へ当てる修正で原因の記録を残すため。
-
-`/bughunt` から見た修正の当て先の分岐にあたる。
-通常ルートは `/bughunt` → `/fix` で、テストを green にする最小修正になる。
-本番 tag へ当てるならこちら。
-`/fix` は本番緊急対応には重いため呼ばない。
-
-## 入出力
-- 入力:
-  - `.specs/<feature>/bug-report.md`。`/bughunt` の調査結果で必須
-  - 対象 tag。引数、または人に確認
-- 出力: 2 本の draft PR。ファイル成果物は持たない
-
-## 対話方針
-本番への修正なので人が起動する。
-起動後は途中で承認を取らずフロー通り進める。
-止まる条件は「エラー処理」に従う。
+## 判断が割れる点の扱い
+本番への修正なので人が起動し、起動後は途中で承認を取らずに進める。
+ユーザーに聞くのは対象 tag が引数に無いとき、ブランチ名が既存と衝突したとき、tag のコードが `bug-report.md` の所見と食い違うときだけ。
+原因が定まらないまま実装へ進まず、Step 10 の中断カードで調査へ差し戻す。
 
 ## ブランチ命名規則
 `release/<base>_p<n>` と `work/<base>_p<n>`。
-`<base>` と `<n>` は対象 tag から決める：
+tag が `^(.+)_p([0-9]+)$` にマッチすれば base はキャプチャ 1、n はキャプチャ 2 + 1 で、マッチしなければ base は tag そのまま、n は 1。
 
-| tag | base | n | 結果 |
-|---|---|---|---|
-| `v1.2.3` | `v1.2.3` | 1 | `release/v1.2.3_p1` / `work/v1.2.3_p1` |
-| `v1.2.3_p1` | `v1.2.3` | 2 | `release/v1.2.3_p2` / `work/v1.2.3_p2` |
-| `v1.2.3_p5` | `v1.2.3` | 6 | `release/v1.2.3_p6` / `work/v1.2.3_p6` |
+| tag | release / work |
+|---|---|
+| `v1.2.3` | `release/v1.2.3_p1` / `work/v1.2.3_p1` |
+| `v1.2.3_p1` | `release/v1.2.3_p2` / `work/v1.2.3_p2` |
+| `v1.2.3_p5` | `release/v1.2.3_p6` / `work/v1.2.3_p6` |
 
-正規表現 `^(.+)_p([0-9]+)$` にマッチすれば base = キャプチャ 1・n = キャプチャ 2 + 1、マッチしなければ base = tag そのまま・n = 1。
-tag 側の `_p<数字>` は取り除いてから新しい番号を付ける。
-`_p1_p2` にしない。
-
-## PR タイトル命名規則
-件名の作り方は `/land`「PR のタイトルと本文」と同じ方式。
-hotfix は `.specs/<feature>/` を経由せず本番 tag から直接ブランチを切るので、常にコミットメッセージから主題を作る。
-work ブランチのコミット列が揃っている。
-固定 prefix `【鎌田QA】` を付けるところまでは共通で、hotfix はさらに先頭へ当て先を示す `[release]` / `[main]` を付ける：
+## PR のタイトルと本文
+`<subject>` は work ブランチのコミット列から作り、release 宛・main 宛で共通にする。
+先頭に当て先を示す `[release]` / `[main]` を付け、固定 prefix `【鎌田QA】` を続ける。
 
 - release 宛: `[release]【鎌田QA】<subject>`
 - main 宛: `[main]【鎌田QA】<subject>`
 
-`<subject>` は release 宛・main 宛で同じ修正なので共通のものを使う。
+```markdown
+[main 宛だけ冒頭に]
+> release宛PRと同じ修正をmainにも取り込むためのPRです。
+> 対応release PR: #[release 宛 PR の番号]
+
+## Summary
+[修正内容の概要を 1〜3 行]
+
+## 背景
+[bug-report.md の症状と疑わしい箇所から、なぜ hotfix が必要だったか]
+
+## 変更内容
+[変更ファイル・変更点を箇条書き]
+
+## 起点tag
+[tag]
+
+## 動作確認
+- [ ] [bug-report.md の回帰テストの観点から]
+```
 
 ## 進め方
 
-### Step 1: 引数チェック
-- `$ARGUMENTS[0]`、feature が未指定なら「使い方: /hotfix <feature> [tag]」を表示して終了
-- `$ARGUMENTS[1]` があれば対象 tag の候補として使う
+### Step 1: 引数の確認
+- `$ARGUMENTS[0]` が無ければ「使い方: /hotfix <feature> [tag]」を表示して終了
+- `$ARGUMENTS[1]` があれば対象 tag の候補にする
 
 ### Step 2: バグ報告確認
 
-`.specs/<feature>/bug-report.md` を読む。
-存在しない場合は中断する。
-Step 13 の中断カードで `/bughunt` を案内する。
-存在しても「再現可否: 再現できず」なら同じく中断する。
-原因が絞り込めていない状態で本番へ当てる修正を始めない。
-
-読み取る項目は、症状・再現手順・疑わしい箇所 `<path>:<line>`・想定する修正範囲・回帰テストの観点。
-これが Step 6 の照合と Step 7 の実装、Step 11 の PR 本文の材料になる。
-
-**完了ゲート:** 再現済みの `bug-report.md` を読み込んだか。
+`.specs/<feature>/bug-report.md` を読み、症状・再現手順・疑わしい箇所・想定する修正範囲・回帰テストの観点を控える。
+存在しない、または「再現可否: 再現できず」なら Step 10 の中断カードで `/bughunt <feature>` を案内する。
 
 ### Step 3: hotfix 専用 worktree の確認と作成
 
-main repo は bare repo で、すべての worktree は既に何らかの作業中という前提になる。
-hotfix は専用の worktree で進めるが、Bash の作業ディレクトリは呼び出しごとにプロジェクトルートへ戻るため、`cd` で移っても次の呼び出しには持ち越されない。
-`/commit` も Read / Edit もこのセッションの worktree で動くので、別の worktree を対象に作業を続けることはできない。
-だから worktree を作ったらこのセッションでは進めず、その worktree で開いたセッションに引き継ぐ。
+main repo は bare repo で、すべての worktree は何らかの作業中という前提になる。
+Bash の作業ディレクトリは呼び出しごとにプロジェクトルートへ戻り、`/commit` も Read / Edit もこのセッションの worktree で動くので、別の worktree を対象に作業は続けられない。
+worktree を作ったらこのセッションでは進めず、その worktree で開いたセッションに引き継ぐ。
 
-worktree 名は `<repo>-<YYYYMMDD>-hotfix-<feature>` とし、`PJ名-YYYYMMDD` の命名規則に hotfix の識別子を続ける。
-今の worktree が hotfix 専用かは、パスの末尾が `-hotfix-<feature>` かで判定する：
-
-```
-git rev-parse --show-toplevel
-```
-
-- 末尾が `-hotfix-<feature>` → 専用 worktree に立っている。Step 4 へ
-- それ以外 → 専用 worktree を作り、`.specs/<feature>` を symlink で共有してから中断する：
-  ```
-  bare_repo=$(git rev-parse --git-common-dir)
-  dest=$(mkworktree "$bare_repo" "$(basename "$bare_repo")-$(date +%Y%m%d)-hotfix-<feature>")
-  mkdir -p "$dest/.specs"
-  ln -s "$(git rev-parse --show-toplevel)/.specs/<feature>" "$dest/.specs/<feature>"
-  ```
-  `.specs/` は gitignore 配下で worktree 間で共有されないため、symlink で `bug-report.md` の実体を 1 箇所に保つ。
-  中断カードで `$dest` を示し、そこで `claude` を起動して `/hotfix <feature> <tag>` を再実行するよう案内する。
-
-**完了ゲート:** hotfix 専用の worktree に立っているか。
-立っていなければ作って中断したか。
-
-### Step 4: 対象tag確認
-
-引数があればそれを使う。
-無ければ人に確認する。直近の tag を提示してよい：
+`git rev-parse --show-toplevel` のパス末尾が `-hotfix-<feature>` なら専用 worktree に立っているので Step 4 へ。
+それ以外なら専用 worktree を作り、`.specs/<feature>` を symlink で共有してから、`$dest` で `claude` を起動して `/hotfix <feature> <tag>` を再実行するよう Step 10 の中断カードで案内する。
 
 ```
-git tag --sort=-creatordate | head -n 10
+bare_repo=$(git rev-parse --git-common-dir)
+dest=$(mkworktree "$bare_repo" "$(basename "$bare_repo")-$(date +%Y%m%d)-hotfix-<feature>")
+mkdir -p "$dest/.specs"
+ln -s "$(git rev-parse --show-toplevel)/.specs/<feature>" "$dest/.specs/<feature>"
 ```
 
-確定したら、その tag がリモートに存在することを確認する：
+`.specs/` は gitignore 配下で worktree 間で共有されないため、symlink で `bug-report.md` の実体を 1 箇所に保つ。
 
-```
-git fetch --tags
-git rev-parse --verify "refs/tags/<tag>"
-```
+### Step 4: 対象 tag の確認
 
-失敗したら tag が存在しない旨を伝えて Step 4 に戻る。
-
-**完了ゲート:** 対象 tag が実在することを確認したか。
+引数に無ければ `git tag --sort=-creatordate | head -n 10` を提示して人に確認する。
+`git fetch --tags` のうえ `git rev-parse --verify "refs/tags/<tag>"` が失敗したら、tag が存在しない旨を伝えて聞き直す。
 
 ### Step 5: ブランチ準備
 
-「ブランチ命名規則」で `release_branch` / `work_branch` を決める。
-tag から直接 release ブランチを切って push し、そこから work ブランチを切る：
+「ブランチ命名規則」で release / work ブランチ名を決め、tag から release ブランチを切って push し、そこから work ブランチを切る。
 
 ```
 git checkout -b <release_branch> refs/tags/<tag>
@@ -142,157 +100,60 @@ git push -u origin <release_branch>
 git checkout -b <work_branch>
 ```
 
-既に同名のローカル／リモートブランチが存在する場合は中断し、既存ブランチを使うのか別名にするのかを確認する。
+同名のローカル / リモートブランチが既にあれば、既存ブランチを使うか別名にするかを人に確認する。
 
-**完了ゲート:** 2 本のブランチを作成し、work ブランチに立っているか。
+### Step 6: tag との照合
 
-### Step 6: tagとの照合
-
-`/bughunt` の調査は別のブランチ、通常 `main` で行われているため、その所見が起点 tag のコードにも当てはまるとは限らない。
-work ブランチ、つまり tag のコードに立った状態で、`bug-report.md` の「疑わしい箇所」を 1 件ずつ読んで確認する：
+調査は通常 `main` で行われているので、その所見が tag のコードにも当てはまるとは限らない。
+work ブランチに立った状態で `bug-report.md` の疑わしい箇所を 1 件ずつ読んで確認する。
 
 | 照合結果 | 進み先 |
 |---|---|
 | 該当箇所が同じ内容で存在する | Step 7 へ |
 | 存在するが差分がある | 差分を人に提示し、想定する修正範囲が通用するかを確認してから Step 7 へ |
-| パス・関数ごと存在しない | 調査ベースがずれている。`bug-report.md` を根拠にせず、**この work ブランチ上で `/bughunt <feature>` を回し直す**ことを勧めて中断する |
-
-**完了ゲート:** tag のコードで疑わしい箇所を照合したか。
+| パス・関数ごと存在しない | 調査ベースがずれているので、work ブランチに立ったまま `/bughunt <feature>` を回し直すよう Step 10 の中断カードで案内する |
 
 ### Step 7: 実装
 
-`bug-report.md` の「想定する修正範囲」をもとに修正方針を組み立て、そのまま実装に入る。
-
-修正は症状を止める最小限にとどめる。
+`bug-report.md` の想定する修正範囲をもとに、症状を止める最小限の修正を実装する。
 リファクタ・周辺の改善は混ぜず、気づいたことは `/spinoff` に切り出す。
 
-**完了ゲート:** 修正を実装したか。
+### Step 8: コミットと push
 
-### Step 8: コミット
+`/commit` を起動し、直接 `git commit` は実行しない。
+完了したら `git push -u origin <work_branch>` する。
 
-`/commit` を起動する。
-直接 `git commit` は実行しない。
-接頭辞は `/commit` が変更内容から決める。
-症状を止める最小修正なので `fix:` になる。
+### Step 9: PR 作成
 
-**完了ゲート:** 修正がコミットされたか。
-
-### Step 9: push
-
-```
-git push -u origin <work_branch>
-```
-
-### Step 10: タイトルの組み立て
-
-「PR タイトル命名規則」に従い、work ブランチのコミット列から `<subject>` を作る。
-
-### Step 11: 本文の組み立て
-
-`bug-report.md` の内容を材料にする。背景は症状と疑わしい箇所から、動作確認は回帰テストの観点から作る：
-
-```
-## Summary
-（修正内容の概要を1〜3行）
-
-## 背景
-（症状と、なぜhotfixが必要だったか）
-
-## 変更内容
-（変更ファイル・変更点を箇条書き）
-
-## 起点tag
-<tag>
-
-## 動作確認
-- [ ] ...
-```
-
-### Step 12: PR作成
-
-`gh label list` で利用可能なラベルを確認し、`hotfix` などの該当ラベルがあれば付与する。
-どちらも draft で作る。
+`gh label list` で `hotfix` などの該当ラベルを確認し、「PR のタイトルと本文」で release 宛、main 宛の順に draft で作る。
 ready 化は人が判断する。
 
-release 宛：
 ```
-gh pr create --base <release_branch> --head <work_branch> \
-  --title "[release]【鎌田QA】<subject>" --body "<本文>" \
-  --assignee @me --label "<該当ラベル>" --draft
+gh pr create --draft --base <release_branch> --head <work_branch> --title "[release]【鎌田QA】<subject>" --body "<本文>" --assignee @me --label "<該当ラベル>"
+gh pr create --draft --base main --head <work_branch> --title "[main]【鎌田QA】<subject>" --body "<本文>" --assignee @me --label "<該当ラベル>"
 ```
 
-main 宛。同じ work ブランチを head にして base だけ変える：
-```
-gh pr create --base main --head <work_branch> \
-  --title "[main]【鎌田QA】<subject>" --body "<本文>" \
-  --assignee @me --label "<該当ラベル>" --draft
-```
+`gh pr create` が push 未完了で失敗したら `git push -u origin HEAD` のうえ再試行する。
+main 宛の差分が大きすぎる、またはコンフリクトが多発するなら、main から別の work ブランチを切って cherry-pick するか、release を main にマージする運用に切り替えるかを人に委ねる。
 
-main 宛の本文には冒頭に次を加える：
+### Step 10: 出力
 
-```
-> release宛PRと同じ修正をmainにも取り込むためのPRです。
-> 対応release PR: #<release宛PRの番号>
-```
-
-**完了ゲート:** 2 本の draft PR が作成されたか。
-
-### Step 13: 出力
-
-次の完了カードを、コードフェンス自体は出さずに中身だけそのまま出力して終了する。
-カードの前後に作業サマリ・所感・補足を足さない。
+次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
+中断時は見出しを `### hotfix 中断` にし、1 行目に中断理由を書き、作成できた PR があれば生成物の行を残し、次の一手は復帰に必要な操作だけにする。
 
 ```markdown
 ### hotfix PR 作成完了
-<何を修正した hotfix かを 1 行>
-- <起点 tag / ブランチ名など 最大 3 行>
+<何を修正した hotfix かと、起点 tag・release / work ブランチ名を 1 行>
 
 生成物:
 - <release 宛 PR の URL>
 - <main 宛 PR の URL>
 
 ### 要確認
-- <本番影響で確認しきれていない点・動作確認チェックリストの未消化項目>
+- <ローカルで再現できなかった条件・影響範囲の見立てなど、本番影響で確認しきれていない点>
+- <Step 6 で tag と bug-report.md に差分があればその内容>
+<無ければこのブロックを省略>
 
 ### 次の一手
-- CI を監視する: `/watch-ci`（2 本とも）
+- CI を監視する: `/watch-ci`。2 本とも
 ```
-
-- やったこと: 起点 tag・release / work ブランチ名を書く。
-  PR 本文・diff の詳細は転記しない。
-  `bug-report.md` は入力なので生成物の行は出さない。
-  行数上限は主要な結果にだけ課す。
-- 要確認: 本番に当てる修正なので、確認しきれていない点を必ず挙げる。
-  ローカルで再現できなかった条件・影響範囲の見立てなどが該当する。
-  Step 6 の照合で tag と `bug-report.md` に差分があった場合は必ずここに書く。
-  無ければブロックごと省略する。
-- 次の一手: 2 本とも監視が要るので 1 行にまとめる。
-
-中断時: ヘッダを `### hotfix 中断` に差し替える。
-一言サマリに中断理由、次の一手に復帰コマンドを書く。
-作成できた PR があれば生成物の行は残す。
-中断理由と次の一手の対応は「エラー処理」に従う。
-
-原因が定まらないまま実装へ進む道は出さない。
-
-## エラー処理
-- **`.specs/<feature>/bug-report.md` が無い・再現できず** → 中断し `/bughunt` へ差し戻す。Step 2 に対応する。
-  次の一手: `- まず原因を調べる: /bughunt <feature>`
-- **hotfix 専用 worktree に立っていない** → worktree を作って中断する。Step 3 に対応する。
-  次の一手: `- <dest> で claude を起動し、/hotfix <feature> <tag> を再実行`
-- **`git rev-parse --verify "refs/tags/<tag>"` が失敗** → tag が存在しない旨を伝え、Step 4 に戻る。
-  次の一手: 復帰 `- 復帰: /hotfix <feature> [tag]`
-- **ブランチ名が既存と衝突** → 中断し、既存ブランチを使うのか別名にするのかを確認する。
-  次の一手: 解消手順と `- 復帰: /hotfix <feature> [tag]`
-- **tag のコードに疑わしい箇所が存在しない** → 中断し、work ブランチ上での `/bughunt` 再実行を勧める。Step 6 に対応する。
-  次の一手: `- tag のコードで調べ直す: /bughunt <feature>`。work ブランチに立ったまま実行する旨を添える
-- **`gh pr create` が失敗**。push 未完了など → `git push -u origin HEAD` で再 push 後にリトライ
-- **main 宛 PR で差分が大きすぎる・コンフリクト多発** → 次の選択肢を提示して人に委ねる
-  - main から別の work ブランチを切って cherry-pick する
-  - release を main にマージする運用に切り替える
-
-## 完了条件
-ready 化とマージは人が判断する。
-
-- release 宛・main 宛の 2 つの draft PR を作成した
-- 両方の URL を報告した
