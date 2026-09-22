@@ -199,7 +199,7 @@ orch 固有の追加判断: `qa-report.md` の `count` が 2 以上、非 PASS 2
 
 - 起動されるタイミング: `/test` FAIL・`/qa` fail・`/watch-ci` 赤・設計起因以外の `/review` NG・`/bughunt` 完了のとき、呼び出し元から `/fix <feature>` で起動される
 
-対象確認: `fix/SKILL.md` の Step 2〜4 に従う。
+対象確認: `fix/SKILL.md` の Step 2 に従う。
 
 完了後:
 - 「設計の問題」と判断 → `/design` に戻す
