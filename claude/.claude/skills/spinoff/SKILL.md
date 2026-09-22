@@ -17,8 +17,7 @@ allowed-tools: Read, Write, Glob, Grep, Bash(ls *)
 それとの決定的な違いがここにある。
 
 ## 入出力
-- **入力**: `.specs/<元feature>/review.md` / プロンプトで直接渡された指摘 / `/spec` が分割候補として挙げた Requirement。
-  `.specs/<元feature>/requirements.md` の該当部分で、`/spec` の完了カードが案内する導線
+- **入力**: `.specs/<元feature>/review.md` / プロンプトで直接渡された指摘
 - **出力**: `.specs/<新feature>/requirements.md`。
   `status: draft` を付け、1 件以上作る
 
@@ -53,9 +52,6 @@ allowed-tools: Read, Write, Glob, Grep, Bash(ls *)
 
 - `$ARGUMENTS[0]` 元 feature があれば `.specs/<feature>/review.md` を `ls`/`Glob` で探し、見つかれば読む
 - プロンプトで指摘が直接渡されていれば、それも候補に含める
-- `/spec` の完了カードが案内する導線として、`/spec` が挙げた分割候補の切り出しとして起動された場合は、`.specs/<元feature>/requirements.md` の指定された Requirement、見出し・受け入れ条件・関連するスコープ項目を候補として扱う。
-  詳細化は切り出し先の `/spec` の責務なので、要件形式のまま下書きに転記してよい。
-  元 feature の requirements.md からの除去はここでは行わない。人が `/spec <元feature>` の編集モードで「含まない」へ移す
 - 元 feature が未指定かつプロンプトの指摘も無ければ「使い方: /spinoff <feature>」を表示して終了
 - review も無くプロンプトの指摘も無ければ「切り出せるスコープ外指摘が無い」旨を伝えて終了
 
