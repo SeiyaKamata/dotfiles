@@ -36,8 +36,16 @@ NG の戻し先は呼び出し元が判断する。
 - `$ARGUMENTS[0]` feature が未指定なら「使い方: /review <feature>」を表示して終了
 
 ### Step 2: ブランチの確定
-カレントブランチが実装ブランチ `<feature>` でなければ、報告して中断する。
-switch などのブランチ操作はしない。
+カレントブランチが実装ブランチ `<feature>` でなければ、まず自分で switch を試みる：
+```
+git switch <feature>
+```
+- switch できた → 実装ブランチ `<feature>` にいる。想定どおり
+- `<feature>` ブランチが存在しない → 現在のブランチをそのまま採用する。
+  PR を作らない運用で直接コミットしているとみなす
+- 未コミットの変更があって switch できない → 報告して中断する。
+  stash などの作業ツリー操作はしない
+- detached HEAD のまま `<feature>` も無い → `branch: none` として続行する
 
 ### Step 3: 実行コンテキストの確定
 `feature` / `branch` / `head` を確定する。
@@ -107,7 +115,7 @@ date +"%Y-%m-%dT%H:%M:%S%z"                     # ran_at
 ```markdown
 ---
 feature: <feature>
-branch: <feature>
+branch: <カレントブランチ>              # 取得不能時は none
 head: 4f8c1e9b2a...                    # 取得不能時は none
 ran_at: 2026-07-28T22:45:00+0900
 fixed: false                           # 直前に /fix が対象コードを修正していたか
