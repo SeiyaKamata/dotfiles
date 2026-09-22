@@ -171,8 +171,8 @@ work ブランチ、つまり tag のコードに立った状態で、`bug-repor
 
 `/commit` を起動する。
 直接 `git commit` は実行しない。
-グローバル規約に従う。
-hotfix では Conventional Commits の `fix` を基本タイプとして使う旨を `/commit` に伝える。
+接頭辞は `/commit` が変更内容から決める。
+症状を止める最小修正なので `fix:` になる。
 
 **完了ゲート:** 修正がコミットされたか。
 
