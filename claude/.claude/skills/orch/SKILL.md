@@ -239,7 +239,7 @@ PR 本文には `@coderabbitai ignore` が入っていて自動レビューは�
 - 赤 → `/fix <feature>` → `/commit` → `/sync <feature>` → `/watch-ci` に戻る。
   `/fix` は `ci-report.md` の `branch` に立った状態で起動する。
   Step 16 から戻ったときなど別のブランチにいれば、先にそのブランチへ switch する。
-  `/sync` は `comment-report.md` が無ければ push だけして戻るので、CI 赤修正のこの経路では返信は発生しない
+  `/sync` は `comment-report.md` に未チェックの項目が無ければ push だけして戻るので、CI 赤修正のこの経路では返信は発生しない
 
 orch 固有の追加判断: `ci-report.md` の `count` が 3 以上、赤 3 回連続 → 報告して停止
 
