@@ -36,7 +36,7 @@ HEAD の状態で分岐する:
 
 ```
 DEFAULT=$(git default-branch)
-git fetch origin "+refs/heads/$DEFAULT:refs/heads/$DEFAULT"
+git fetch origin "+refs/heads/${DEFAULT}:refs/heads/${DEFAULT}"
 git checkout -b <feature> "$DEFAULT"
 ```
 

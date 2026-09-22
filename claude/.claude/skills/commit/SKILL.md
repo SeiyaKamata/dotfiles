@@ -88,7 +88,7 @@ greenfield ファイルは 1 ファイルが 1 つの関心事なので、3 行�
 ```
 CURRENT=$(git branch --show-current)
 DEFAULT=$(git default-branch)
-git fetch origin "+refs/heads/$DEFAULT:refs/heads/$DEFAULT"
+git fetch origin "+refs/heads/${DEFAULT}:refs/heads/${DEFAULT}"
 ```
 
 - `CURRENT` が空、detached HEAD → 警告へ
