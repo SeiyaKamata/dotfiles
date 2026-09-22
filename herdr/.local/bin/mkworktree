@@ -3,7 +3,8 @@
 # repos/<name> と同じ階層の worktrees/ 配下に worktree を作る前提
 # （Develop/<org>/repos, Develop/<org>/worktrees の対応）。
 # 対話プロンプトは持たない。devpick からも Claude からも同じ引数で呼べるようにするため。
-# 常に origin の最新デフォルトブランチを起点に新規branchを作る。
+# 常に origin の最新デフォルトブランチの先端に detached HEAD で作る。
+# ブランチは実装を始める skill が切るので、ここでは作らない。
 # name省略時は <repo名>-<YYYYMMDD> を機械的に生成する。衝突したら連番を足す。
 set -euo pipefail
 
@@ -45,6 +46,6 @@ fi
 # 対象ブランチだけを更新する。全ブランチを対象にすると、他のworktreeでcheckout中のブランチがある場合に失敗するため。
 git -C "$repo" fetch origin "+refs/heads/$default_branch:refs/heads/$default_branch" >&2
 
-git -C "$repo" worktree add "$dest" -b "$name" "$default_branch" >&2
+git -C "$repo" worktree add --detach "$dest" "$default_branch" >&2
 
 printf '%s\n' "$dest"
