@@ -2,7 +2,7 @@
 name: hotfix
 description: 調査済みのバグ報告を受け、本番tagからreleaseブランチとworkブランチを切って修正し、release宛・main宛の2つのPRを作成する。
 disable-model-invocation: true
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git *), Bash(gh *), Bash(mkworktree *), Skill
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git *), Bash(gh *), Bash(mkworktree *), Bash(mkdir *), Bash(ln *), Skill
 argument-hint: "<feature> [tag]"
 ---
 
@@ -83,20 +83,32 @@ Step 13 の中断カードで `/bughunt` を案内する。
 
 **完了ゲート:** 再現済みの `bug-report.md` を読み込んだか。
 
-### Step 3: hotfix 専用 worktree の作成
+### Step 3: hotfix 専用 worktree の確認と作成
 
 main repo は bare repo で、すべての worktree は既に何らかの作業中という前提になる。
-今の worktree の状態は確認せず、必ず `mkworktree` で hotfix 専用の worktree を新しく作ってそこへ移る：
+hotfix は専用の worktree で進めるが、Bash の作業ディレクトリは呼び出しごとにプロジェクトルートへ戻るため、`cd` で移っても次の呼び出しには持ち越されない。
+`/commit` も Read / Edit もこのセッションの worktree で動くので、別の worktree を対象に作業を続けることはできない。
+だから worktree を作ったらこのセッションでは進めず、その worktree で開いたセッションに引き継ぐ。
+
+今の worktree が hotfix 専用かは、パスの末尾が `-hotfix-<feature>` かで判定する：
 
 ```
-bare_repo=$(git rev-parse --git-common-dir)
-dest=$(mkworktree "$bare_repo" "$(basename "$bare_repo")-hotfix-<feature>")
-cd "$dest"
+git rev-parse --show-toplevel
 ```
 
-以降の Step はこの worktree で進める。
+- 末尾が `-hotfix-<feature>` → 専用 worktree に立っている。Step 4 へ
+- それ以外 → 専用 worktree を作り、`.specs/<feature>` を symlink で共有してから中断する：
+  ```
+  bare_repo=$(git rev-parse --git-common-dir)
+  dest=$(mkworktree "$bare_repo" "$(basename "$bare_repo")-hotfix-<feature>")
+  mkdir -p "$dest/.specs"
+  ln -s "$(git rev-parse --show-toplevel)/.specs/<feature>" "$dest/.specs/<feature>"
+  ```
+  `.specs/` は gitignore 配下で worktree 間で共有されないため、symlink で `bug-report.md` の実体を 1 箇所に保つ。
+  中断カードで `$dest` を示し、そこで `claude` を起動して `/hotfix <feature> <tag>` を再実行するよう案内する。
 
 **完了ゲート:** hotfix 専用の worktree に立っているか。
+立っていなければ作って中断したか。
 
 ### Step 4: 対象tag確認
 
@@ -265,6 +277,8 @@ main 宛の本文には冒頭に次を加える：
 ## エラー処理
 - **`.specs/<feature>/bug-report.md` が無い・再現できず** → 中断し `/bughunt` へ差し戻す。Step 2 に対応する。
   次の一手: `- まず原因を調べる: /bughunt <feature>`
+- **hotfix 専用 worktree に立っていない** → worktree を作って中断する。Step 3 に対応する。
+  次の一手: `- <dest> で claude を起動し、/hotfix <feature> <tag> を再実行`
 - **`git rev-parse --verify "refs/tags/<tag>"` が失敗** → tag が存在しない旨を伝え、Step 4 に戻る。
   次の一手: 復帰 `- 復帰: /hotfix <feature> [tag]`
 - **ブランチ名が既存と衝突** → 中断し、既存ブランチを使うのか別名にするのかを確認する。
