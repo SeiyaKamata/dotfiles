@@ -168,7 +168,7 @@ test -f .specs/<feature>/requirements.md
 find . -path './.git' -prune -o -name 'requirements.md' -print | grep '\.specs/'
 ```
 - 単一ヒット → それを使う。
-  複数ヒットして選べない → ユーザーに確認する。
+  複数ヒットして選べない → 特定失敗。候補のパスを Step 8 の要確認に列挙する。
   0 件 → 特定失敗
 - **Read のみで扱う。Edit / Write はしない**
 
@@ -276,7 +276,7 @@ head: <HEAD SHA>
 - スコープ外 <n> 件 → /spinoff
 - 要件の見直しが必要 <n> 件 → /spec <feature>
 - nitpick 除外 <n> 件。bot が軽微と分類し、レポートに載せていない
-- 要件未照合。requirements.md を特定できず
+- 要件未照合。requirements.md を特定できず。複数ヒットなら候補のパスを添える
 
 ### 次の一手
 - レポートの承認欄を確認する: `.specs/<feature>/comment-report.md`
