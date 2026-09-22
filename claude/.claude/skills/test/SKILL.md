@@ -26,7 +26,7 @@ feature: [feature]
 branch: [Step 2 で確定したブランチ。detached なら none]
 head: [Step 2 で確定した HEAD。40 文字、短縮しない]
 ran_at: [書き出し時点の時刻。date +"%Y-%m-%dT%H:%M:%S%z" で取得]
-fixed: false
+fixed: false [常に false。/fix が修正を適用したときだけ true に書き換える]
 count: [FAIL の連続回数。今回が FAIL かつ既存レポートも FAIL なら既存値 +1、それ以外は 1]
 ---
 
@@ -40,9 +40,6 @@ count: [FAIL の連続回数。今回が FAIL かつ既存レポートも FAIL �
 [FAIL のときだけ。PASS なら節ごと省略]
 - [テスト名]: [エラー内容]
 ```
-
-`fixed` は常に `false` で書く。
-`/fix` が修正を適用したときだけ `true` に書き換える欄で、レポートの初期状態は未着手を表す。
 
 ## 進め方
 
