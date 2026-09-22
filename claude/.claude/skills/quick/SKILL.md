@@ -32,16 +32,13 @@ HEAD の状態で分岐する:
 - `<feature>` ブランチが既にある → checkout して前回の実装を再開する
 - detached HEAD → `git checkout -b <feature>` で今の HEAD から切る
   - worktree はデフォルトブランチの先端に detached で作られているので、これが起点になる
-- ブランチ上 → デフォルトブランチを fetch し、その先端から切る
+- ブランチ上 → デフォルトブランチを最新化し、その先端から切る
 
 ```
-DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); DEFAULT=${DEFAULT##*/}
-[ -z "$DEFAULT" ] && { git remote set-head origin --auto >/dev/null; DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD); DEFAULT=${DEFAULT##*/}; }
-git fetch origin "$DEFAULT"
-git checkout -b <feature> "origin/$DEFAULT"
+DEFAULT=$(git default-branch)
+git fetch origin "+refs/heads/$DEFAULT:refs/heads/$DEFAULT"
+git checkout -b <feature> "$DEFAULT"
 ```
-
-`sed` をパイプで挟まないのは、権限の allowlist に無く承認待ちで止まるため。
 
 ### Step 3: 実装
 

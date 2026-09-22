@@ -153,25 +153,19 @@ refactor: ♻️ タイトル
 
 ```
 CURRENT=$(git branch --show-current)
-DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); DEFAULT=${DEFAULT##*/}
-[ -z "$DEFAULT" ] && { git remote set-head origin --auto >/dev/null; DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD); DEFAULT=${DEFAULT##*/}; }
+DEFAULT=$(git default-branch)
 ```
-
-`sed` / `awk` を使わないのは、パイプの補助コマンドが権限の allowlist に無く承認待ちで止まるため。
-デフォルトブランチは `origin/HEAD` から引き、未設定のときだけ `set-head --auto` で 1 度張り直す。
 
 判定：
 
 - `CURRENT` が空（detached HEAD）→ 警告へ
-- リモートでマージ済み（下記がマッチ）→ 警告へ
+- デフォルトブランチにマージ済み（下記が真）→ 警告へ
   ```
-  git fetch origin
-  [ "$CURRENT" != "$DEFAULT" ] && \
-    git branch -r --merged "origin/$DEFAULT" --format='%(refname:short)' | grep -qxF "origin/$CURRENT"
+  git fetch origin "+refs/heads/$DEFAULT:refs/heads/$DEFAULT"
+  [ "$CURRENT" != "$DEFAULT" ] && git merge-base --is-ancestor HEAD "$DEFAULT"
   ```
   **`CURRENT` が `DEFAULT` と等しいときはこの判定を走らせない。**
-  デフォルトブランチは自分自身にマージ済みで、`git branch -r --merged origin/main` は `origin/main` を含む。
-  そのため無条件に走らせるとデフォルトブランチで必ずマッチし、下で意図的に外した判定が裏口から復活する。
+  デフォルトブランチの先端は自分自身の祖先なので必ず真になり、下で意図的に外した判定が裏口から復活する。
 - いずれも該当しなければ Step 2 へ
 
 **`CURRENT` が `DEFAULT` と一致することは判定しない。**
@@ -186,8 +180,8 @@ DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); DEFAUL
   ブランチ名は変更内容から `<type>/<短い説明>` の形で提案する。
   例: `fix/login-redirect`
   ```
-  git checkout "$DEFAULT" && git pull
-  git checkout -b <新ブランチ名>
+  git fetch origin "+refs/heads/$DEFAULT:refs/heads/$DEFAULT"
+  git checkout -b <新ブランチ名> "$DEFAULT"
   ```
 - 「このまま進める」→ Step 2 へ
 

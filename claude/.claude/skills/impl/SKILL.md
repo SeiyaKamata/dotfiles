@@ -38,20 +38,20 @@ argument-hint: "<feature> [task-numbers]"
 
 対象タスクの `_Depends:_` に `## 事前セットアップ` の未チェックの `S<n>` があれば、人の作業待ちなので Step 7 の中断カードで止まる。
 
-### Step 3: ブランチ準備
-実装ブランチ `<feature>` 1 本をデフォルトブランチから切る。
+### Step 3: 実装ブランチの確定
+実装ブランチ `<feature>` 1 本の上で全タスクを実装する。
 実装を隔離しておけば、途中で捨てる・作り直すのが安全になる。
+HEAD の状態で分岐する:
+- `<feature>` ブランチが既にある → checkout して前回の実装を再開する
+- detached HEAD → `git checkout -b <feature>` で今の HEAD から切る
+  - worktree はデフォルトブランチの先端に detached で作られているので、これが起点になる
+- ブランチ上 → デフォルトブランチを最新化し、その先端から切る
 
 ```
-DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); DEFAULT=${DEFAULT##*/}
-[ -z "$DEFAULT" ] && { git remote set-head origin --auto >/dev/null; DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD); DEFAULT=${DEFAULT##*/}; }
-git fetch origin "$DEFAULT"
-git checkout -b <feature> "origin/$DEFAULT"
+DEFAULT=$(git default-branch)
+git fetch origin "+refs/heads/$DEFAULT:refs/heads/$DEFAULT"
+git checkout -b <feature> "$DEFAULT"
 ```
-
-`git remote show origin | sed` を使わないのは、`sed` がパイプ経由で権限の allowlist に無く承認待ちで止まるため。
-
-既に `<feature>` があれば前回の実装を再開するので、新規作成せずそれに checkout する。
 
 ### Step 4: 配布対象の決定
 

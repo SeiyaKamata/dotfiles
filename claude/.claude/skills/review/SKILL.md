@@ -75,7 +75,7 @@ count: [NG の連続回数。今回が NG かつ既存レポートも NG なら�
 
 - 仕様整合性 reviewer
   - `.specs/<feature>/requirements.md` と、存在すれば `design.md` / `tasks.md` を読ませる
-  - `git diff origin/<デフォルトブランチ>` を読ませ、仕様・設計と整合しているかの指摘一覧を返させる
+  - `git diff <デフォルトブランチ>...HEAD` を読ませ、仕様・設計と整合しているかの指摘一覧を返させる
 - コード品質 reviewer
   - `coderabbit:code-review` skill が導入済みならそれを、未導入なら `code-review` skill を `Skill` ツールで起動させる
   - 効果レベルは指定せず、`--comment` / `--fix` は使わせない

@@ -1,0 +1,20 @@
+#!/bin/bash
+# デフォルトブランチ名を標準出力に出す。`git default-branch` として呼ぶ。
+# bare repo 運用が前提で、bare 側の HEAD が指すブランチをデフォルトブランチとする。
+set -euo pipefail
+
+common=$(git rev-parse --git-common-dir)
+if b=$(git --git-dir="$common" symbolic-ref --short HEAD 2>/dev/null); then
+  printf '%s\n' "$b"
+  exit 0
+fi
+
+for cand in main master; do
+  if git show-ref --verify --quiet "refs/heads/$cand"; then
+    printf '%s\n' "$cand"
+    exit 0
+  fi
+done
+
+echo "デフォルトブランチを判定できません" >&2
+exit 1

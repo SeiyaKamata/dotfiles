@@ -79,13 +79,9 @@ PR を余分に作っても閉じれば済むが、レビューを求める repo
 ### Step 3: feature名からのブランチ解決
 
 ```
-DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); DEFAULT=${DEFAULT##*/}
-[ -z "$DEFAULT" ] && { git remote set-head origin --auto >/dev/null; DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD); DEFAULT=${DEFAULT##*/}; }
+DEFAULT=$(git default-branch)
 CURRENT=$(git branch --show-current)
 ```
-
-`awk` / `sed` をパイプで挟まないのは、権限の allowlist に無く承認待ちで止まるため。
-デフォルトブランチは `origin/HEAD` から引く。
 
 `CURRENT` が `<feature>`、引数の feature 名、とも `<feature>-pN` とも一致しなければ、対象ブランチを自分で探して `git switch` する：
 ```
@@ -123,8 +119,9 @@ feature 名は `-p<数字>` を除いて求める。
 分割の判定材料は実装後のコミット済みの実物だけ。
 
 ```
-git log origin/"$DEFAULT"..HEAD --oneline
-git diff origin/"$DEFAULT"..HEAD --stat
+git fetch origin "+refs/heads/$DEFAULT:refs/heads/$DEFAULT"
+git log "$DEFAULT"..HEAD --oneline
+git diff "$DEFAULT"...HEAD --stat
 ```
 
 ### Step 6: 分割の判定
@@ -251,8 +248,8 @@ gh label list
 
 **単一モード:**
 ```
-git log origin/<ベースブランチ>..HEAD --oneline
-git diff origin/<ベースブランチ>..HEAD --stat
+git log <ベースブランチ>..HEAD --oneline
+git diff <ベースブランチ>...HEAD --stat
 gh pr create --draft --base <ベースブランチ> --title "<タイトル>" --body "<本文>" --assignee @me --label "<ラベル>"
 ```
 未 push なら先に `git push -u origin HEAD`。
