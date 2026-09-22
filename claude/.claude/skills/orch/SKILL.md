@@ -37,7 +37,7 @@ argument-hint: "<feature> [<stage>]"
 
 ### 工程レジストリ（早見表）
 
-指定可能な開始工程は次の 11 個。
+指定可能な開始工程は次の 12 個。
 `/fix` `/sync` は自己修正ループの内部工程のため対象外。
 `/quick` も対象外。
 Step 3 完了後の分岐で内部的に呼ばれることがあるが、`/bughunt`・`/hotfix` と同じ独立した軽量ルートで、開始工程には指定できない。
@@ -54,6 +54,7 @@ Step 3 完了後の分岐で内部的に呼ばれることがあるが、`/bughu
 | `spec` | Step 3 | `/spec <feature>` |
 | `design` | Step 4 | `/design <feature>` |
 | `tasks` | Step 5 | `/tasks <feature>` |
+| `scenarios` | Step 5 の `/scenarios` 起動から | `/scenarios <feature>` |
 | `impl` | Step 6 | `/impl <feature>` |
 | `test` | Step 7 | `/test <feature>` |
 | `review` | Step 8 | `/review <feature>` |
@@ -69,9 +70,9 @@ Step 3 完了後の分岐で内部的に呼ばれることがあるが、`/bughu
 1. 引数が 0 個 → `使い方: /orch <feature> [<stage>]` を表示して終了
 2. feature = 第 1 引数
 3. 第 2 引数、開始工程が指定されていない → 開始工程 = `spec`
-4. 第 2 引数が指定されている場合、工程レジストリの工程名11語と完全一致するか確認する
+4. 第 2 引数が指定されている場合、工程レジストリの工程名12語と完全一致するか確認する
    - 一致する → 開始工程 = 第 2 引数
-   - 一致しない → `使い方: /orch <feature> [<stage>]` を表示して終了。`<stage>` は 11 語のいずれかのみ有効
+   - 一致しない → `使い方: /orch <feature> [<stage>]` を表示して終了。`<stage>` は 12 語のいずれかのみ有効
 
 ### Step 2: ディスパッチ
 
@@ -109,7 +110,9 @@ orch は各工程のカードを受け取ったら、遷移先を 1 行で記録
 |---|---|---|---|---|
 | `/spec` | `spec-reviewer` | 起動時の要望テキスト + 既存の `requirements.md`（あれば。`status: draft` の下書きを含む） | `requirements.md` | なし |
 | `/design` | `design-reviewer` | `requirements.md` | `design.md` | なし |
-| `/tasks` | `tasks-reviewer` | `design.md` | `tasks.md` + `qa.md` | `tasks/SKILL.md`「大タスク = 関心のグルーピング」 |
+| `/tasks` | `tasks-reviewer` | `design.md` | `tasks.md` | `tasks/SKILL.md`「大タスク = 関心のグルーピング」 |
+
+`/scenarios` は工程レビュアーを持たず、skill 自身の完了ゲートで確定する。
 
 受け取り側の仕様は各 `agents/<レビュアー名>.md`。
 検証条件リストは常に、対象工程の `SKILL.md`「書き出し」Step の「完了ゲート」をそのまま全項目渡す。
@@ -148,8 +151,9 @@ Step 3〜5 はいずれも「共通: 妥当性検証ループ」に従い、OK �
 
 確定したら、`requirements.md` の frontmatter `quick_eligible` を見て次工程を分岐する。
 判定自体は `/spec` が Step 6 で行うので、orch はここで判定し直さない。
-- `true` → `/quick <feature>` へ。
+- `true` → `/scenarios <feature>` を起動して `qa.md` を作り、続けて `/quick <feature>` へ。
   design/tasks を飛ばし実装まで quick が担う。
+  `qa.md` は Step 9 の `/qa` が読むので、quick ルートでも impl の前に必ず作る。
   完了後の遷移は quick の完了カード「次の一手」に従い、`/test` または `/review` へ進む
 - `false` → `/design` へ
 - `/quick` が中断カードで `/design` への合流を提示した場合 → カードの指示どおり `/design` へ合流する
@@ -160,7 +164,8 @@ Step 3〜5 はいずれも「共通: 妥当性検証ループ」に従い、OK �
 
 ### Step 5: `/tasks`
 
-確定したら `/impl` へ。
+確定したら `/scenarios <feature>` を起動して `qa.md` を作り、完了したら `/impl` へ。
+開始工程が `scenarios` のときは `/tasks` を実行せず、ここの `/scenarios` 起動から始める。
 
 ### Step 6: `/impl`
 
@@ -292,9 +297,10 @@ PR ごとに人間レビューを回す運用にする場合、この位置で `
 実装中、`/impl`〜`/fix` を含む上記の各工程に仕様・設計・タスクの変更が必要になった場合は、変更が生じた工程から編集モードで再入し、OK の前進チェーンを辿り直す。
 どの工程から再入するか、影響範囲の判断は次に従う。
 
-- 要件が変わる → `/spec <feature>`（編集）→ `/design`（編集）→ `/tasks`（編集）→ 実装へ
-- 設計だけ変わる → `/design <feature>`（編集）→ `/tasks`（編集）→ 実装へ
+- 要件が変わる → `/spec <feature>`（編集）→ `/design`（編集）→ `/tasks`（編集）→ `/scenarios`（編集）→ 実装へ
+- 設計だけ変わる → `/design <feature>`（編集）→ `/tasks`（編集）→ `/scenarios`（編集）→ 実装へ
 - タスクだけ変わる → `/tasks <feature>`（編集）→ 実装へ
+- QA シナリオだけ変わる → `/scenarios <feature>`（編集）→ 実装へ
 
 各スキルは編集モードの再入時に上流 doc との整合を自分で再チェックし、ズレがあれば差分だけを patch する。
 この判断は `/orch` 駆動かどうかに関わらず適用される。

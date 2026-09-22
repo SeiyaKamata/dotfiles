@@ -256,7 +256,7 @@ frontmatter に `status: confirmed` と `quick_eligible` があるか。
   内容の列挙はしない。
   無ければブロックごと省略する。
 - 次の一手: 1 行目は `quick_eligible` で分岐する。
-  `true` → `- 直接実装する: /quick <feature>`。
+  `true` → `- QA シナリオを作って直接実装する: /scenarios <feature> → /quick <feature>`。
   `false` → `- 設計に進む: /design <feature>`。
   分割候補があるときだけ `- 分割する: /spinoff <feature>` を足し、切り出す Requirement を指示して起動する旨を添える。
 
