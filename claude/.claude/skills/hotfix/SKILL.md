@@ -2,7 +2,7 @@
 name: hotfix
 description: 調査済みのバグ報告を受け、本番tagからreleaseブランチとworkブランチを切って修正し、release宛・main宛の2つのPRを作成する。
 disable-model-invocation: true
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git *), Bash(gh *), Bash(mkworktree *), Bash(mkdir *), Bash(ln *), Skill
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git *), Bash(gh *), Bash(mkworktree *), Bash(mkdir *), Bash(ln *), Bash(date *), Skill
 argument-hint: "<feature> [tag]"
 ---
 
@@ -90,6 +90,7 @@ hotfix は専用の worktree で進めるが、Bash の作業ディレクトリ�
 `/commit` も Read / Edit もこのセッションの worktree で動くので、別の worktree を対象に作業を続けることはできない。
 だから worktree を作ったらこのセッションでは進めず、その worktree で開いたセッションに引き継ぐ。
 
+worktree 名は `<repo>-<YYYYMMDD>-hotfix-<feature>` とし、`PJ名-YYYYMMDD` の命名規則に hotfix の識別子を続ける。
 今の worktree が hotfix 専用かは、パスの末尾が `-hotfix-<feature>` かで判定する：
 
 ```
@@ -100,7 +101,7 @@ git rev-parse --show-toplevel
 - それ以外 → 専用 worktree を作り、`.specs/<feature>` を symlink で共有してから中断する：
   ```
   bare_repo=$(git rev-parse --git-common-dir)
-  dest=$(mkworktree "$bare_repo" "$(basename "$bare_repo")-hotfix-<feature>")
+  dest=$(mkworktree "$bare_repo" "$(basename "$bare_repo")-$(date +%Y%m%d)-hotfix-<feature>")
   mkdir -p "$dest/.specs"
   ln -s "$(git rev-parse --show-toplevel)/.specs/<feature>" "$dest/.specs/<feature>"
   ```
