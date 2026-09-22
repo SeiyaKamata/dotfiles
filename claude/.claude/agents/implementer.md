@@ -1,7 +1,7 @@
 ---
 name: implementer
 description: .specs/<feature>/ の仕様を読み、割り当てられたタスクだけを実装して結果を報告する。/impl から配布されるタスクを実行するための専用エージェント。
-tools: Read, Write, Edit, MultiEdit, Bash, Glob, Grep, WebSearch, WebFetch
+tools: Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch
 model: sonnet
 effort: medium
 maxTurns: 60

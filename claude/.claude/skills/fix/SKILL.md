@@ -1,7 +1,7 @@
 ---
 name: fix
 description: テスト失敗・CI失敗・レビュー指摘・承認済みPRコメントの原因を特定し最小限の修正を行う。test FAIL・review NG・CI 赤・コメント承認後に使う。
-allowed-tools: Read, Write, Edit, MultiEdit, Bash, Glob, Grep
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 argument-hint: "<feature>"
 ---
 
