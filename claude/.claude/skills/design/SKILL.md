@@ -1,7 +1,7 @@
 ---
 name: design
 description: 要件を受け取り技術設計を行う。.specs/<feature>/requirements.mdが出来上がったら使う。
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git fetch *), WebSearch, WebFetch
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git rev-parse *), Bash(git -C *), Bash(mkworktree *), WebSearch, WebFetch
 argument-hint: "<feature>"
 ---
 
@@ -154,8 +154,10 @@ feature が複数リポジトリにまたがるときは、各コンポーネン
 
 ### Step 4: 外部環境の確認
 
-- **別 PJ の実装状況・挙動**: `requirements.md` に「実装済み」のような記載があれば、その PJ を `git fetch` してデフォルトブランチのコードで確認する
-  - 依頼元の作業ツリーは remote に載っているとは限らない
+- **別 PJ の実装状況・挙動**: `requirements.md` に「実装済み」のような記載があれば、その PJ のデフォルトブランチを worktree に展開し、Read / Grep で確認する
+  - bare repo は自分の bare repo `git rev-parse --git-common-dir` と同じ親ディレクトリにある `<リポジトリ名>` を採り、`git -C <bare repo> rev-parse --is-bare-repository` が `true` でなければ確認を諦めて `## レビューポイント` に出す
+  - `git -C <bare repo> fetch origin` で最新化してから `dest=$(mkworktree <bare repo> <リポジトリ名>-<feature>)` で切る。同名の worktree が既にあればそれを使う
+  - 依頼元の作業ツリーは remote に載っているとは限らないので、デフォルトブランチのコードを正とする
   - 食い違いは `## 実装上の注意事項` に書き、`requirements.md` 側の修正要否を `## レビューポイント` に挙げる
 - **環境変数・設定値の導入**: ローカル・各デプロイ環境の投入先ファイルを実リポジトリで特定してから設計する
   - 「インフラ側で対応」とスコープ外に出す前にデプロイ定義の有無を確認し、特定できなければ `## レビューポイント` に出す
