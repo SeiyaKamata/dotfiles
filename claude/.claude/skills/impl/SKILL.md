@@ -1,6 +1,6 @@
 ---
 name: impl
-description: タスクリストを受け取り実装を行う。.specs/<feature>/tasks.mdが出来上がったら使う。
+description: 実装計画のタスク一覧を受け取り実装を行う。.specs/<feature>/plan.mdが出来上がったら使う。
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, WebSearch, WebFetch
 argument-hint: "<feature> [task-numbers]"
 ---
@@ -8,7 +8,7 @@ argument-hint: "<feature> [task-numbers]"
 # 実装スキル
 
 ## 役割
-`.specs/<feature>/tasks.md` の `## タスク一覧` を実装する。
+`.specs/<feature>/plan.md` の `## タスク一覧` を実装する。
 コードは `implementer` サブエージェントに書かせ、自分はコーディネーターとして配布・ビルド確認・進捗更新だけを行う。
 仕様だけで実装が通るかを確かめるため、自分ではコードを書かない。
 
@@ -29,11 +29,11 @@ argument-hint: "<feature> [task-numbers]"
 - `$ARGUMENTS[1]` に `1.1` や `1,2` の形でサブタスク番号があれば手動モードにし、指定サブタスクだけを実装する
 
 ### Step 2: コンテキスト収集
-配布と確認に要るものだけを集め、`requirements.md` と `design.md` の本文は読まない。
+配布と確認に要るものだけを集め、`requirements.md` の本文と `plan.md` の設計節は読まない。
 仕様の裏取りは `implementer` が自分で行う。
 
-- `.specs/<feature>/tasks.md` の `## タスク一覧` から、サブタスクの説明・完了条件・`_Requirements:_`・`_Depends:_`・`_Repo:_`
-- `design.md` の `## 付録: 設計サマリ` の踏襲元列
+- `.specs/<feature>/plan.md` の `## タスク一覧` から、サブタスクの説明・完了条件・`_Requirements:_`・`_Depends:_`・`_Repo:_`
+- `plan.md` の `## 付録: 設計サマリ` の踏襲元列
 - ビルド設定ファイルから読み取ったテスト・ビルドコマンド
 
 対象タスクの `_Depends:_` に `## 事前セットアップ` の未チェックの `S<n>` があれば、人の作業待ちなので Step 7 の中断カードで止まる。
@@ -69,8 +69,8 @@ git checkout -b <feature> "$DEFAULT"
 プロンプトに渡すもの:
 - feature 名
 - `## タスク一覧` から転記したサブタスクの説明・完了条件・`_Requirements:_`・`_Depends:_`
-- `design.md` の `## 付録: 設計サマリ` の踏襲元列があれば、そのパスと踏襲する点をそのまま渡し、その形に合わせて書く旨を明示する
-- 「tasks.md に書かれた順に実装し、git・tasks.md・テストとビルドの実行には触れず、報告フォーマットで返す」旨
+- `plan.md` の `## 付録: 設計サマリ` の踏襲元列があれば、そのパスと踏襲する点をそのまま渡し、その形に合わせて書く旨を明示する
+- 「plan.md のタスク一覧に書かれた順に実装し、git・plan.md・テストとビルドの実行には触れず、報告フォーマットで返す」旨
   - `implementer` 側にも定義済みだが明示する
 
 ### Step 6: 報告の取り込みとビルド確認
@@ -104,7 +104,7 @@ git checkout -b <feature> "$DEFAULT"
 ### 実装完了
 <何タスクを実装したかを 1 行>
 
-生成物: `.specs/<feature>/tasks.md` のチェックボックス更新
+生成物: `.specs/<feature>/plan.md` のチェックボックス更新
 
 ### 要確認
 - <implementer の報告の `自分で決めた判断` をそのまま> — 該当: <タスク番号 / ファイル>
@@ -113,7 +113,7 @@ git checkout -b <feature> "$DEFAULT"
 ### 次の一手
 - テストを回す: `/test <feature>`
   <テストコマンドが無いリポジトリなら `- レビューに進む: /review <feature>` に差し替える>
-- 仕様を直す: `/spec` `/design` `/tasks` のいずれかを再実行
+- 仕様を直す: `/spec` `/plan` のいずれかを再実行
   <要確認があるときだけ>
 - 他リポジトリの完了は notify_when_idle の通知で確認する
   <Step 4 で dispatch を呼んだときだけ>
