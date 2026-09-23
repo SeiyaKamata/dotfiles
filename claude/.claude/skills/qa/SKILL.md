@@ -1,7 +1,7 @@
 ---
 name: qa
 description: コードレビュー後にブラウザで動作確認する最終受け入れゲート。/review の後に使う。
-allowed-tools: Read, Write, Edit, Bash(git *), Bash(swws *), Bash(curl *), Agent
+allowed-tools: Read, Write, Edit, Bash(git *), Bash(swws *), Bash(curl *), Bash(date *), Agent
 disallowed-tools: mcp__playwright__*
 argument-hint: "<feature>"
 ---
@@ -33,7 +33,7 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 feature: [feature]
 branch: [カレントブランチ。取得不能時は none]
 head: [git rev-parse HEAD。取得不能時は none]
-ran_at: [書き出し時点の ISO 8601]
+ran_at: [書き出し時点の時刻。date +"%Y-%m-%dT%H:%M:%S%z" で取得]
 fixed: false
 count: [非 PASS の連続回数]
 ---

@@ -1,7 +1,7 @@
 ---
 name: triage-comments
 description: 自分のPRに付いた未解決コメントを収集・分類・裏取りし、対応方針の提案をレポートにまとめる。CI完了後に使う。
-allowed-tools: Read, Write, Glob, Grep, Bash(gh *), Bash(find *), Bash(test *)
+allowed-tools: Read, Write, Glob, Grep, Bash(gh *), Bash(find *), Bash(date *)
 argument-hint: "[PR番号]"
 ---
 
@@ -72,12 +72,17 @@ author では絞り込まず、人間と CodeRabbit の両方を対象にする�
 既存ファイルがあれば既存の項目をチェック状態ごと全部維持し、新規コメントを末尾に追記する。
 項目は削除せず、対応済みは `[x]` のまま履歴として残す。
 
+frontmatter は test・review・qa のレポートと共通の形式に `pr` を足したもので、`count` は持たない。
+コメント対応は連続失敗の判定を持たず、ループの上限は呼び出し元が回数で管理する。
+
 ```markdown
 ---
-fixed: false
+feature: [feature]
 pr: [PR番号]
 branch: [headRefName]
-head: [HEAD SHA]
+head: [対象 PR の head コミット。40 文字、短縮しない]
+ran_at: [書き出し時点の時刻。date +"%Y-%m-%dT%H:%M:%S%z" で取得]
+fixed: false [常に false。/fix が修正を適用したときだけ true に書き換える]
 ---
 
 # コメント対応レポート: PR #[PR番号]
