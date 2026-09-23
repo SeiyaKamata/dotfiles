@@ -1,7 +1,7 @@
 ---
 name: epic
 description: 複数の PR に分けて取り込む大きな仕事を、順序付きの feature 一覧として epic.md に計画する。1 つの PR に収まらない要望を受けたとき、または epic の feature が merge されて次に進むときに使う。
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(gh pr *), Bash(gh repo view *), Bash(git *)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(gh pr *), Bash(gh repo view *), Bash(git *), Bash(mkworktree *)
 argument-hint: "<epic>"
 ---
 
@@ -31,6 +31,15 @@ feature の切り方と順序で判断が割れる点は最も素直な案を採
   - 並び順だけに依存を委ねない
 - 後続の feature は粗く書く
   - 先行 feature が merge されるまで確定しないことは「後続で決めること」に出し、feature の目的欄に書き込まない
+
+## 契約
+リポジトリをまたいで合わせる形は `## 契約` に決まった形だけで書く。
+API の受け口、リクエストとレスポンスの形、イベント名、共有する型が対象で、理由や比較は書かない。
+各 feature の `/spec` が epic.md を読んで受け入れ条件に落とすので、出す側と受ける側の要件が同じ形を指す。
+契約を変えるときは epic.md を直し、関わる feature の `/spec` を再実行する。
+
+契約が OpenAPI のようにリポジトリ内のファイルで管理されているなら、形を写さず、そのファイルのパスと変更する feature の番号だけを書く。
+単一リポジトリの epic では節ごと省く。
 
 ## 状態の扱い
 epic.md に進行状態を保存しない。
@@ -69,6 +78,9 @@ owner は現在のリポジトリの `gh repo view --json owner` から採る。
 ## 順序の根拠
 [なぜこの順で取り込めば安全か。互換の維持、フラグ、データ移行の方針]
 
+## 契約
+[リポジトリをまたいで合わせる形を決まった形だけで。ファイルで管理しているならそのパスと変更する feature の番号]
+
 ## 後続で決めること
 - [先行 feature が merge されるまで確定しない事項と、どの feature の結果で決まるか]
 ```
@@ -91,7 +103,9 @@ owner は現在のリポジトリの `gh repo view --json owner` から採る。
 1. 目的と完了条件
 2. 1 つの PR で入れられない理由。ここで 1 つの PR に収まると分かれば、epic を作らず `/spec <feature>` を案内して終了する
 3. feature の切り方と順序。「feature の切り方」に従う
-4. 各 feature の名前。`Glob(".specs/*")` で既存の feature 名と重ならないことを確認する
+4. 複数リポジトリにまたがるなら契約。関わるリポジトリのデフォルトブランチを worktree に展開し、現状の受け口と型を読んでから決める
+   - bare repo は自分の bare repo `git rev-parse --git-common-dir` と同じ親ディレクトリにある `<リポジトリ名>` を採り、`git -C <bare repo> fetch origin` で最新化してから `dest=$(mkworktree <bare repo> <リポジトリ名>-<epic>)` で切る。同名の worktree が既にあればそれを使う
+5. 各 feature の名前。`Glob(".specs/*")` で既存の feature 名と重ならないことを確認する
 
 ### Step 3: 書き出し
 
