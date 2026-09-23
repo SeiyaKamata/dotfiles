@@ -1,7 +1,7 @@
 ---
 name: bughunt
 description: バグ報告を起点に再現・原因の一次特定・bug-report.mdへの記録を行う調査工程。コードは直さない。バグ報告を受けたら最初に使う。
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
+allowed-tools: Read, Write, Edit, Agent
 argument-hint: "<feature>"
 ---
 
