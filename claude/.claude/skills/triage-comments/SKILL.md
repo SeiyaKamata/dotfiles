@@ -2,7 +2,7 @@
 name: triage-comments
 description: 自分のPRに付いた未解決コメントを収集・分類・裏取りし、対応方針の提案をレポートにまとめる。CI完了後に使う。
 allowed-tools: Read, Write, Glob, Grep, Bash(gh *), Bash(find *), Bash(date *)
-argument-hint: "[PR番号]"
+argument-hint: "[<feature>]"
 ---
 
 # PRコメント選別スキル
@@ -104,11 +104,12 @@ fixed: false [常に false。/fix が修正を適用したときだけ true に�
 ### Step 1: 対象 PR の特定
 
 常に 1 PR だけを対象にする。
-- `$ARGUMENTS[0]` があれば `gh pr view <PR番号> --json number,title,url,headRefName`
+- `$ARGUMENTS[0]` があれば `gh pr view <feature> --json number,title,url,headRefName`
+  - `gh pr view` はブランチ名を受け付けるので、実装ブランチ `<feature>` の PR がそのまま引ける
 - 無ければ `gh pr view --json number,title,url,headRefName` でカレントブランチの PR
 
 特定できなければ Step 8 の中断カードで報告する。
-feature 名は head ブランチ名をそのまま使う。
+feature 名は引数があればそれ、無ければ head ブランチ名にする。
 
 ### Step 2: コメント収集
 
