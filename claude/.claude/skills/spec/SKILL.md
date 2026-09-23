@@ -70,6 +70,7 @@ Requirement ごとに主体を独立行で 1 回宣言し、各行は主語を�
 ```markdown
 ---
 status: confirmed
+epic: [feature が epic に属するなら epic 名。無ければ空文字]
 notion_url: [下書きにあれば引き継ぐ。無ければ空文字]
 pr_title: [下書きにあれば引き継ぐ。無ければ空文字]
 branch_name: [下書きにあれば引き継ぐ。無ければ空文字]
@@ -122,6 +123,8 @@ branch_name: [下書きにあれば引き継ぐ。無ければ空文字]
 - `$ARGUMENTS[0]` があれば kebab-case・3〜5 語程度に正規化し、feature 名の候補にする
 - 無ければ会話文脈の要望から同じ制約で候補を生成する
 - 引数も要望も無ければ「使い方: /spec [feature]」を表示して終了
+- `.specs/epics/*.md` の `## feature 一覧` に候補と同名の feature があれば、その `epic.md` を要望の材料として読み、frontmatter の `epic` に epic 名を書く
+  - epic の目的・完了条件・順序の根拠を踏まえて要件化し、他の feature の担当範囲を取り込まない
 
 `.specs/<候補>/requirements.md` の有無と frontmatter の `status`、変更要望で分岐する:
 - **無い**: 新規。`Glob(".specs/*")` で紛らわしい既存 feature 名があれば、末尾に連番か区別できる語を足した別名にし、Step 2 から書き起こす
