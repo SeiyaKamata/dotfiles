@@ -1,18 +1,37 @@
 #!/bin/bash
 # git worktree add はcheckoutを伴うため、新規worktree作成時にもこのフックが発火する。
-# worktreeごとに独立している、git管理外の共有ファイル/ディレクトリ (.specs, CLAUDE.local.md) を
-# 本体クローンへのシンボリックリンクとして自動的に共有するためのフック。core.hooksPath でglobalに有効化されている。
+# git管理外の共有ファイル/ディレクトリを worktree にシンボリックリンクとして張るためのフック。core.hooksPath でglobalに有効化されている。
+# .specs は org 直下 (Develop/<org>/.specs) に 1 つだけ置き、org 内の全リポジトリ・全 worktree で共有する。
+#   複数リポジトリにまたがる feature や epic が 1 箇所に置けるようにするため。
+# CLAUDE.local.md はリポジトリ固有なので、リポジトリ本体 (bare repo なら bare repo ディレクトリ自身) のものを張る。
 set -e
 
 worktree_root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
-common_dir=$(git rev-parse --git-common-dir 2>/dev/null) || exit 0
-main_repo=$(cd "$(dirname "$common_dir")" && pwd)
+common_dir=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || exit 0
 
-[ "$worktree_root" = "$main_repo" ] && exit 0
+if git -C "$common_dir" rev-parse --is-bare-repository 2>/dev/null | grep -qx true; then
+  repo_home="$common_dir"
+else
+  repo_home=$(dirname "$common_dir")
+fi
 
-for name in .specs CLAUDE.local.md; do
-  [ -e "$worktree_root/$name" ] && continue
-  [ -e "$main_repo/$name" ] || continue
-  target=$(python3 -c "import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))" "$main_repo/$name" "$worktree_root")
+[ "$worktree_root" = "$repo_home" ] && exit 0
+
+# Develop/<org>/repos/<repo> の配置なら org 直下を .specs の共有先にし、そうでなければリポジトリ本体に置く。
+if [ "$(basename "$(dirname "$repo_home")")" = "repos" ]; then
+  specs_home=$(dirname "$(dirname "$repo_home")")
+else
+  specs_home="$repo_home"
+fi
+
+link() {
+  local src="$1" name="$2"
+  [ -e "$worktree_root/$name" ] && return 0
+  [ -e "$src" ] || return 0
+  local target
+  target=$(python3 -c "import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))" "$src" "$worktree_root")
   ln -s "$target" "$worktree_root/$name"
-done
+}
+
+link "$specs_home/.specs" .specs
+link "$repo_home/CLAUDE.local.md" CLAUDE.local.md
