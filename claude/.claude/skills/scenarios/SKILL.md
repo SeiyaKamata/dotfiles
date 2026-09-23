@@ -1,6 +1,6 @@
 ---
 name: scenarios
-description: 受け入れ条件からQAシナリオを導出しqa.mdに書き出す。通常ルートでは/tasksの後、quickルートでは/specの後、いずれも/implの前に使う。
+description: 受け入れ条件からQAシナリオを導出しqa.mdに書き出す。/planの後、/implの前に使う。
 allowed-tools: Read, Write, Edit, Glob, Grep
 argument-hint: "<feature>"
 ---
@@ -36,7 +36,7 @@ UI に一切現れないものだけを次の 2 つに分ける。
 - マージ後にも検証できない → `## 自動QA対象外`
   - 実時間の経過待ち・本番専用インフラ依存が該当する
 
-結果が UI に現れるかは `design.md` の「失敗の可視性」の判断に従い、`design.md` が無いときは既存の画面の挙動に従う。
+結果が UI に現れるかは `plan.md` の「失敗の可視性」の判断に従い、`plan.md` が無いときは既存の画面の挙動に従う。
 
 ## qa.md のフォーマット
 
@@ -70,18 +70,18 @@ UI に一切現れないものだけを次の 2 つに分ける。
 
 - `$ARGUMENTS[0]` が無ければ「使い方: /scenarios <feature>」を表示して終了
 - `.specs/<feature>/requirements.md` を読む。無ければ Step 6 の中断カードで報告して終了
-- `.specs/<feature>/design.md` があれば読む
+- `.specs/<feature>/plan.md` があれば読む
 
 `.specs/<feature>/qa.md` の有無で分岐する:
 - **無い**: 新規作成。Step 2 から書き起こす
-- **有る**: 編集。現在の `requirements.md` / `design.md` と突き合わせ、シナリオの無い受け入れ条件・削除された要件のシナリオの残存のようなズレと変更要望に該当する箇所だけを Step 2〜3 で直す
+- **有る**: 編集。現在の `requirements.md` / `plan.md` と突き合わせ、シナリオの無い受け入れ条件・削除された要件のシナリオの残存のようなズレと変更要望に該当する箇所だけを Step 2〜3 で直す
   - どちらも無ければ Step 2〜5 を飛ばし、Step 6 で「変更なし」と報告して終了
 
 ### Step 2: 手順の手がかりの特定
 
 シナリオの `手順` に書く画面・操作の手がかりを確定する。
-- `design.md` がある → `## API/インターフェース設計` と `## アーキテクチャ` の画面に関する記述を使う
-- `design.md` が無い → 要件が触る既存の画面を Grep / Glob で探し、その画面の操作を使う
+- `plan.md` がある → `## API/インターフェース設計` と `## アーキテクチャ` の画面に関する記述を使う
+- `plan.md` が無い → 要件が触る既存の画面を Grep / Glob で探し、その画面の操作を使う
 
 ### Step 3: QAシナリオの導出
 
@@ -117,6 +117,5 @@ Step 3 の内容を「qa.md のフォーマット」で `.specs/<feature>/qa.md`
 
 ### 次の一手
 - 実装に進む: `/impl <feature>`
-- 直接実装する: `/quick <feature>`
 - シナリオを直す: `/scenarios <feature>`
 ```

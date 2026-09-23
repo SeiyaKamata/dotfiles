@@ -1,6 +1,6 @@
 ---
 name: dispatch
-description: tasks.mdが複数リポジトリにまたがる場合に、担当外のリポジトリへ herdr space を開いて /impl の実行を並列に依頼する。/impl が自分の担当外の大タスクに気づいたときに呼ぶ。
+description: plan.mdのタスク一覧が複数リポジトリにまたがる場合に、担当外のリポジトリへ herdr space を開いて /impl の実行を並列に依頼する。/impl が自分の担当外の大タスクに気づいたときに呼ぶ。
 allowed-tools: Read, Bash(git *), Bash(mkworktree *), Bash(herdr *), SendMessage, ListAgents
 argument-hint: "<feature>"
 ---
@@ -8,7 +8,7 @@ argument-hint: "<feature>"
 # 複数リポジトリ配置スキル
 
 ## 役割
-`.specs/<feature>/tasks.md` の `_Repo:_` が自分のリポジトリと異なる大タスクを、そのリポジトリの claude code セッションに `/impl <feature>` として並列に依頼する。
+`.specs/<feature>/plan.md` の `_Repo:_` が自分のリポジトリと異なる大タスクを、そのリポジトリの claude code セッションに `/impl <feature>` として並列に依頼する。
 何を実装するかは判断せず、worktree 作成・herdr 起動・`SendMessage` 依頼という配置操作だけを行い、各セッションの実装完了は待たない。
 完了は `notify_when_idle` の通知で呼び出し元のセッションへ直接届く。
 
@@ -22,7 +22,7 @@ bare repo が見つからない・herdr で開けないなど配置操作が成�
 
 - `$ARGUMENTS[0]` が無ければ「使い方: /dispatch <feature>」を表示して終了
 - 自分のリポジトリ名は `git rev-parse --git-common-dir` の basename で確定する。bare repo のディレクトリ名がリポジトリ名になる
-- `.specs/<feature>/tasks.md` の `## タスク一覧` を読み、`_Repo:_` が自分と異なる大タスクをリポジトリ別にまとめる
+- `.specs/<feature>/plan.md` の `## タスク一覧` を読み、`_Repo:_` が自分と異なる大タスクをリポジトリ別にまとめる
 
 対象が無ければ Step 3 で「配置対象なし」と報告して終了する。
 

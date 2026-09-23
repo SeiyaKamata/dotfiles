@@ -11,7 +11,7 @@ argument-hint: "<feature> [<stage>]"
 ## 役割
 仕様駆動開発のパイプライン全体を管理し、各工程を順番に起動する。
 人間承認ゲートを持たず、要件策定から draft PR + CI green + 未返信の未解決コメント解消まで自走する。
-`/spec`・`/design`・`/tasks` の成果物は工程別レビュアーで検証し、NG ならその工程を再起動して直させる。
+`/spec`・`/plan` の成果物は工程別レビュアーで検証し、NG ならその工程を再起動して直させる。
 途中の失敗は自己修正ループで潰し、人を呼ぶのは停止点と回復不能な詰まりだけにする。
 
 各工程は人が単体で叩くのと同じ形で起動し、同じ完了カードを返す。
@@ -19,7 +19,7 @@ argument-hint: "<feature> [<stage>]"
 
 ## 判断が割れる点の扱い
 完了カードは人向けの区切りではなく工程間の引き継ぎ情報なので、各工程がカードを出しても応答を終えず、同じ応答内で次のアクションを続ける。
-ユーザーの応答を待って止まるのは、Step 15 の停止点に到達したときと「停止条件」に該当したときだけ。
+ユーザーの応答を待って止まるのは、Step 14 の停止点に到達したときと「停止条件」に該当したときだけ。
 
 既定の遷移は各工程の完了カードの「次の一手」に従い、orch はその指示どおりに次を起動する。
 各工程の「完了後」には、ループの停止閾値やカードの判定区分をまたぐ判断のように、カードだけでは分からない orch 固有の判断だけを書く。
@@ -29,37 +29,35 @@ argument-hint: "<feature> [<stage>]"
 
 ## 工程レジストリ
 開始工程を `/orch <feature> [<stage>]` で指定でき、指定工程より前は実行しない。
-`/fix` `/sync` は自己修正ループの内部工程、`/quick` は Step 3 の分岐で内部的に呼ばれる軽量ルートなので、開始工程には指定できない。
+`/fix` `/sync` は自己修正ループの内部工程なので、開始工程には指定できない。
 
 | 開始工程 | 開始 Step | 起動コマンド |
 |---|---|---|
 | `spec` | Step 3 | `/spec <feature>` |
-| `design` | Step 4 | `/design <feature>` |
-| `tasks` | Step 5 | `/tasks <feature>` |
-| `scenarios` | Step 5 の `/scenarios` 起動から | `/scenarios <feature>` |
-| `impl` | Step 6 | `/impl <feature>` |
-| `test` | Step 7 | `/test <feature>` |
-| `review` | Step 8 | `/review <feature>` |
-| `qa` | Step 9 | `/qa <feature>` |
-| `commit` | Step 10 | `/commit` |
-| `land` | Step 11 | `/land <feature>` |
-| `watch-ci` | Step 12 | `/watch-ci <feature>` |
-| `triage-comments` | Step 13 | `/triage-comments <feature>` |
+| `plan` | Step 4 | `/plan <feature>` |
+| `scenarios` | Step 4 の `/scenarios` 起動から | `/scenarios <feature>` |
+| `impl` | Step 5 | `/impl <feature>` |
+| `test` | Step 6 | `/test <feature>` |
+| `review` | Step 7 | `/review <feature>` |
+| `qa` | Step 8 | `/qa <feature>` |
+| `commit` | Step 9 | `/commit` |
+| `land` | Step 10 | `/land <feature>` |
+| `watch-ci` | Step 11 | `/watch-ci <feature>` |
+| `triage-comments` | Step 12 | `/triage-comments <feature>` |
 
 前提成果物は事前チェックせず、開始工程をそのまま起動する。
 不足していれば起動した skill 自身が検知して案内するので、案内された工程を実行してから元の開始工程を再実行し、それでも中断すれば報告して停止する。
 対象ブランチ・対象 PR の解決も起動先の skill 自身が `<feature>` から行い、orch は先回りして用意しない。
 
 ## 妥当性検証ループ
-`/spec` `/design` `/tasks` は完了後、orch が対象工程のレビュアーを起動して成果物を検証し、NG ならその工程を再起動して直させる。
+`/spec` `/plan` は完了後、orch が対象工程のレビュアーを起動して成果物を検証し、NG ならその工程を再起動して直させる。
 レビュアーは PdM の代役で、成果物が上流の意図を満たす正当な中身かだけを見る。
 書式への適合は各工程の点検 Step が担うので、レビュアーには渡さない。
 
 | 工程 | レビュアー | 上流成果物 | レビュー対象 | 参照ドキュメント |
 |---|---|---|---|---|
 | `/spec` | `spec-reviewer` | 起動時の要望テキスト + 既存の `requirements.md`(あれば) | `requirements.md` | なし |
-| `/design` | `design-reviewer` | `requirements.md` | `design.md` | なし |
-| `/tasks` | `tasks-reviewer` | `design.md` + `requirements.md` | `tasks.md` | `tasks/SKILL.md`「大タスク = 関心のグルーピング」 |
+| `/plan` | `plan-reviewer` | `requirements.md` | `plan.md` | `plan/SKILL.md`「大タスク = 関心のグルーピング」 |
 
 ```
 review_round = 0
@@ -87,7 +85,7 @@ loop:
 ### Step 1: 引数の確認
 - 引数が 0 個なら「使い方: /orch <feature> [<stage>]」を表示して終了
 - 第 1 引数を feature、第 2 引数を開始工程にする。無ければ `spec`
-- 第 2 引数が工程レジストリの 12 語と完全一致しなければ同じ使い方を表示して終了
+- 第 2 引数が工程レジストリの 11 語と完全一致しなければ同じ使い方を表示して終了
 
 ### Step 2: ディスパッチ
 
@@ -99,36 +97,28 @@ loop:
 「妥当性検証ループ」で確定する。
 要件を確定できなければ停止する。
 
-確定したら `requirements.md` の frontmatter `quick_eligible` で分岐し、orch は判定し直さない。
-- `true` → `/scenarios <feature>` で `qa.md` を作り、続けて `/quick <feature>` へ。完了後は quick のカードに従い `/test` または `/review` へ
-  - `qa.md` は Step 9 の `/qa` が読むので、quick ルートでも実装の前に必ず作る
-  - `/quick` が中断カードで `/design` への合流を提示したら、それに従う
-- `false` → `/design` へ
+確定したら `/plan` へ。
 
-### Step 4: `/design`
-
-「妥当性検証ループ」で確定したら `/tasks` へ。
-
-### Step 5: `/tasks`
+### Step 4: `/plan`
 
 「妥当性検証ループ」で確定したら `/scenarios <feature>` で `qa.md` を作り、完了したら `/impl` へ。
-開始工程が `scenarios` のときは `/tasks` を実行せず、ここの `/scenarios` 起動から始める。
+開始工程が `scenarios` のときは `/plan` を実行せず、ここの `/scenarios` 起動から始める。
 
-### Step 6: `/impl`
+### Step 5: `/impl`
 
 実装ブランチ `<feature>` 1 本の上で全タスクを実装する。
 
-### Step 7: `/test`
+### Step 6: `/test`
 
 完了後: `test-report.md` の `count` が 3 以上なら報告して停止。
 
-### Step 8: `/review`
+### Step 7: `/review`
 
 完了後:
 - `review.md` の `count` が 3 以上なら報告して停止
-- OK でも推奨対応に上流 doc の記述修正が挙がっていれば、`/spec`・`/design` を再実行して記述だけ直す。実装は正しいので `/tasks` と実装はやり直さない
+- OK でも推奨対応に上流 doc の記述修正が挙がっていれば、`/spec`・`/plan` を再実行して記述だけ直す。実装は正しいので実装はやり直さない
 
-### Step 9: `/qa`
+### Step 8: `/qa`
 
 qa は commit より前に置き、実装が作業ツリーにあるうちに feature 全体の受け入れを確認する。
 
@@ -140,29 +130,29 @@ qa は commit より前に置き、実装が作業ツリーにあるうちに fe
 対象確認は `fix/SKILL.md` の Step 2 に従う。
 
 完了後:
-- 「設計の問題」と判断 → `/design` に戻す
-- design と impl のループが 2 周しても収束しない → 報告して停止
+- 「設計の問題」と判断 → `/plan` に戻す
+- plan と impl のループが 2 周しても収束しない → 報告して停止
 
-### Step 10: `/commit`
+### Step 9: `/commit`
 
 実装ブランチにコミットし、カードの次の一手 `/land` へ進む。
 
-### Step 11: `/land`
+### Step 10: `/land`
 
 対象ブランチの解決は `/land` 自身が行う。
 PR 本文の `@coderabbitai ignore` で自動レビューは走らないので、PR ができたら orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って最初のレビューを発火させ、カードの次の一手 `/watch-ci` へ進む。
 以降 CodeRabbit のレビューは orch が打った時だけ走る。
 
-### Step 12: `/watch-ci`
+### Step 11: `/watch-ci`
 
 PR の CI green を待つ。
-- green → Step 13 へ
+- green → Step 12 へ
 - 赤 → `/fix <feature>` → `/commit` → `/sync <feature>` → `/watch-ci` に戻る
   - `/sync` は `comment-report.md` に未チェックの項目が無ければ push だけして戻る
 
 完了後: `ci-report.md` の `count` が 3 以上なら報告して停止。
 
-### Step 13: コメント対応
+### Step 12: コメント対応
 
 `/triage-comments <feature>` を実行し、`comment-report.md` の各項目の承認欄を orch 自身が埋める。
 - 提示された「提案」をそのまま採用する
@@ -177,14 +167,14 @@ PR の CI green を待つ。
 - CodeRabbit は対応済みと判断したスレッドを自分で resolve し、人間分は `/triage-comments` の選別済み判定で消えるので、未返信の未解決コメントの有無が終了シグナルになる
 - 2 巡しても未返信の未解決コメントが残れば報告して停止する
 
-完了後: 未返信の未解決コメントなし → Step 14 へ
+完了後: 未返信の未解決コメントなし → Step 13 へ
 
-### Step 14: 人間レビューの依頼
+### Step 13: 人間レビューの依頼
 
-保留中の差し込み位置で、現状は何もせず Step 15 へ進む。
+保留中の差し込み位置で、現状は何もせず Step 14 へ進む。
 人間レビューを回す運用にする場合、ここで `gh pr ready <PR番号>` に切り替える。
 
-### Step 15: 停止点
+### Step 14: 停止点
 
 次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
 Ready for review への切替と merge は人が判断する。
@@ -194,7 +184,7 @@ Ready for review への切替と merge は人が判断する。
 ```markdown
 ### パイプライン完走
 <feature 名と到達状態を 1 行>
-- <開始工程を指定して起動したなら `開始工程: /design` の形で>
+- <開始工程を指定して起動したなら `開始工程: /plan` の形で>
 - <保持していた要確認>
 
 生成物:
@@ -208,9 +198,9 @@ Ready for review への切替と merge は人が判断する。
 実装中に仕様・設計・タスクの変更が必要になったら、変更が生じた工程から再入し、OK の前進チェーンを辿り直す。
 どのスキルが変更の必要性に気づいた場合でも、`/orch` 駆動かどうかに関わらず同じ基準で再入先を決める。
 
-- 要件が変わる → `/spec <feature>` → `/design` → `/tasks` → `/scenarios` → 実装へ
-- 設計だけ変わる → `/design <feature>` → `/tasks` → `/scenarios` → 実装へ
-- タスクだけ変わる → `/tasks <feature>` → 実装へ
+- 要件が変わる → `/spec <feature>` → `/plan` → `/scenarios` → 実装へ
+- 設計だけ変わる → `/plan <feature>` → `/scenarios` → 実装へ
+- タスクだけ変わる → `/plan <feature>` → 実装へ
 - QA シナリオだけ変わる → `/scenarios <feature>` → 実装へ
 
 各スキルは再入時に上流 doc との整合を自分で再チェックし、ズレがあれば差分だけを直す。

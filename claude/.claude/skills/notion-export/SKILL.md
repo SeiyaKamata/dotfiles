@@ -47,7 +47,7 @@ feature の実装結果を `.specs/<feature>/` の成果物と `gh` から集め
 - <PR タイトルをそのまま。draft なら末尾に (draft)>: <URL>
 
 ## <日付メンション> 実装方針: <feature>
-<requirements の目的と design の要点を 5 行以内。PR が複数あれば「PR1: … / PR2: …」の 1 行を添える>
+<requirements の目的と plan の要点を 5 行以内。PR が複数あれば「PR1: … / PR2: …」の 1 行を添える>
 ```
 
 ## 進め方
@@ -65,7 +65,7 @@ feature の実装結果を `.specs/<feature>/` の成果物と `gh` から集め
 - PR: `gh pr list --search "head:<feature>" --state all --json number,title,url,isDraft,headRefName` で列挙する
   - 0 件なら現在のブランチと `gh pr list --author @me` から補い、それでも無ければ「該当なし」
 - QA 結果: `qa-report.md` の判定とシナリオ。無ければ `qa.md`、それも無ければ「未実施」
-- 実装方針: `requirements.md` の概要と `design.md` の要点
+- 実装方針: `requirements.md` の概要と `plan.md` の要点
 
 欠けている材料は推測で埋めない。
 

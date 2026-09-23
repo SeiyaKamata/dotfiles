@@ -23,7 +23,7 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 | 裏取りで成立を確認できたバグ・セキュリティ・クラッシュなど重大な問題がある | NG |
 | 指摘がスタイル・軽微な改善のみ | OK。指摘は記録する |
 | 重大と報告されたが裏取りで不成立だった | NG にしない。理由つきで記録する |
-| 実装は仕様どおりだが、`requirements.md` / `design.md` の記述が実コードと食い違っている | OK。食い違いを推奨対応に上流 doc の修正として列挙し、要確認にも出す |
+| 実装は仕様どおりだが、`requirements.md` / `plan.md` の記述が実コードと食い違っている | OK。食い違いを推奨対応に上流 doc の修正として列挙し、要確認にも出す |
 
 ## review.md のフォーマット
 frontmatter は test・qa のレポートと共通の形式にする。
@@ -74,13 +74,13 @@ count: [NG の連続回数。今回が NG かつ既存レポートも NG なら�
 いずれも fresh な general-purpose agent とし、レビュー対象は自分で読ませる。
 
 - 仕様整合性 reviewer
-  - `.specs/<feature>/requirements.md` と、存在すれば `design.md` / `tasks.md` を読ませる
+  - `.specs/<feature>/requirements.md` と、存在すれば `plan.md` を読ませる
   - `git diff <デフォルトブランチ>...HEAD` を読ませ、仕様・設計と整合しているかの指摘一覧を返させる
 - コード品質 reviewer
   - `coderabbit:code-review` skill が導入済みならそれを、未導入なら `code-review` skill を `Skill` ツールで起動させる
   - 効果レベルは指定せず、`--comment` / `--fix` は使わせない
 
-`design.md` / `tasks.md` が無い feature は `requirements.md` との整合だけを見る。
+`plan.md` が無い feature は `requirements.md` との整合だけを見る。
 無いことを中断理由にしない。
 
 ### Step 4: 指摘の裏取り
@@ -117,5 +117,5 @@ count: [NG の連続回数。今回が NG かつ既存レポートも NG なら�
 
 ### 次の一手
 - 動作確認する: `/qa <feature>`
-  <NG なら `- 設計を直す: /design <feature>` と `- 実装を直す: /fix <feature>` に差し替える>
+  <NG なら `- 計画を直す: /plan <feature>` と `- 実装を直す: /fix <feature>` に差し替える>
 ```

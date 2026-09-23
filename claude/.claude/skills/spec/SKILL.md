@@ -70,7 +70,6 @@ Requirement ごとに主体を独立行で 1 回宣言し、各行は主語を�
 ```markdown
 ---
 status: confirmed
-quick_eligible: [true または false]
 notion_url: [下書きにあれば引き継ぐ。無ければ空文字]
 pr_title: [下書きにあれば引き継ぐ。無ければ空文字]
 branch_name: [下書きにあれば引き継ぐ。無ければ空文字]
@@ -87,8 +86,6 @@ branch_name: [下書きにあれば引き継ぐ。無ければ空文字]
 | 1 | [Requirement 1 の見出しと同じ文言] | `[主体]` |
 | 2 | ... | ... |
 [1 行 1 要件。番号・文言・主体を本体と一致させ、番号は 1, 2, 3 と連番にする]
-
-quick判定: [true/false]。理由: [理由]
 
 [Requirement 全体に関わるなど、特定の 1 行に紐づかない要確認があれば `【要確認】<内容>` を 1 行で。無ければ書かない]
 
@@ -131,7 +128,7 @@ quick判定: [true/false]。理由: [理由]
 - **有る + `status: draft`**: 下書き。本文を要望の材料として使い、Step 2 から詳細化する
 - **有る + `status: confirmed` + 変更要望あり**: 該当箇所だけを直し、要望に無い不備は気づいても直さない
   - 境界に関わる要望なら Step 2 から、そうでなければ Step 3 から
-- **有る + `status: confirmed` + 変更要望なし**: Step 2〜6 を飛ばし、Step 7 で「変更なし」と報告して終了
+- **有る + `status: confirmed` + 変更要望なし**: Step 2〜5 を飛ばし、Step 6 で「変更なし」と報告して終了
 
 ### Step 2: スコープ境界
 
@@ -143,27 +140,17 @@ in-scope / out-of-scope を列挙する。
 in-scope の項目**だけ**を Requirement に起こす。
 埋める観点・型・書式は「受け入れ条件の書き方」に従う。
 
-要望が実質的に空で Requirement を 1 つも起こせないときだけ中断し、Step 7 の中断カードで報告する。
+要望が実質的に空で Requirement を 1 つも起こせないときだけ中断し、Step 6 の中断カードで報告する。
 
-### Step 4: quick判定
+### Step 4: 書き出し
 
-design/tasks を介さず直接実装する軽量ルートに乗せてよいかを次の 3 条件で判定する。
-- 変更が単一の関心事に閉じている。複数の大タスクに分ける意味がない
-- API・DB スキーマ・画面構成のような新規の外部インターフェースを伴わない
-- 実装方針で悩む余地がない。設計判断そのものが不要
+Step 2〜3 の内容を「requirements.md のフォーマット」で `.specs/<feature>/requirements.md` に書く。
 
-3 条件をすべて満たす → `quick_eligible: true`。
-1 つでも外れる、または判定に迷う → `quick_eligible: false`。飛ばして後戻りするコストの方が高い。
+### Step 5: 点検
 
-### Step 5: 書き出し
+書き出した `requirements.md` が「受け入れ条件の書き方」と「requirements.md のフォーマット」を満たしているか見直し、外れていれば直してから Step 6 へ進む。
 
-Step 2〜4 の内容を「requirements.md のフォーマット」で `.specs/<feature>/requirements.md` に書く。
-
-### Step 6: 点検
-
-書き出した `requirements.md` が「受け入れ条件の書き方」と「requirements.md のフォーマット」を満たしているか見直し、外れていれば直してから Step 7 へ進む。
-
-### Step 7: 出力
+### Step 6: 出力
 
 次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
 中断時は見出しを `### 要件定義中断` にし、1 行目に中断理由と `requirements.md` が未確定である旨を書き、次の一手は `/spec <feature>` だけにする。
@@ -178,7 +165,6 @@ Step 2〜4 の内容を「requirements.md のフォーマット」で `.specs/<f
 <件数>件。無ければこのブロックを省略
 
 ### 次の一手
-- 設計に進む: `/design <feature>`
-- QA シナリオを作って直接実装する: `/scenarios <feature>` → `/quick <feature>`
+- 実装計画に進む: `/plan <feature>`
 - 要件を直す: `/spec <feature>`
 ```
