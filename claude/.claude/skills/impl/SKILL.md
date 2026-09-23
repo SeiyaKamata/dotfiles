@@ -29,7 +29,7 @@ argument-hint: "<feature> [task-numbers]"
 - `$ARGUMENTS[1]` に `1.1` や `1,2` の形でサブタスク番号があれば手動モードにし、指定サブタスクだけを実装する
 
 ### Step 2: コンテキスト収集
-配布と確認に要るものだけを集め、`requirements.md` と `design.md` は読まない。
+配布と確認に要るものだけを集め、`requirements.md` と `design.md` の本文は読まない。
 仕様の裏取りは `implementer` が自分で行う。
 
 - `.specs/<feature>/tasks.md` の `## タスク一覧` から、サブタスクの説明・完了条件・`_Requirements:_`・`_Depends:_`・`_Repo:_`
