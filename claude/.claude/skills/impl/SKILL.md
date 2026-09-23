@@ -1,7 +1,7 @@
 ---
 name: impl
 description: 実装計画のタスク一覧を受け取り実装を行う。.specs/<feature>/plan.mdが出来上がったら使う。
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, WebSearch, WebFetch
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, WebSearch, WebFetch
 argument-hint: "<feature> [task-numbers]"
 ---
 
@@ -32,7 +32,7 @@ argument-hint: "<feature> [task-numbers]"
 配布と確認に要るものだけを集め、`requirements.md` の本文と `plan.md` の設計節は読まない。
 仕様の裏取りは `implementer` が自分で行う。
 
-- `.specs/<feature>/plan.md` の `## タスク一覧` から、大タスクごとのメタ情報 `Req:` `Depends:` `Repo:` `Follows:` と狙いの文、サブタスクの文と `完了:`
+- `.specs/<feature>/plan.md` の `## タスク一覧` から、大タスクごとのメタ情報 `Req:` `Depends:` `Follows:` と狙いの文、サブタスクの文と `完了:`
 - ビルド設定ファイルから読み取ったテスト・ビルドコマンド
 
 対象の大タスクの `Depends:` に `## 事前セットアップ` の未チェックの `S<n>` があれば、人の作業待ちなので Step 7 の中断カードで止まる。
@@ -54,11 +54,7 @@ git checkout -b <feature> "$DEFAULT"
 
 ### Step 4: 配布対象の決定
 
-大タスクに `Repo:` があるときは feature が複数リポジトリにまたがっているので、現在の作業ディレクトリのリポジトリ名と一致する大タスクだけを配布対象にする。
-一致しない大タスクが 1 つ以上あれば、まだ呼んでいなければここで一度だけ `dispatch <feature>` を `Skill` ツールで呼び、他リポジトリの実装を並列に走らせる。
-`dispatch` の完了は待たず、自分のリポジトリ分をそのまま続ける。
-
-- 手動モードでなければ、配布対象の大タスクのうち未完了の最初の 1 つ。大タスクの完了は配下のサブタスクが全部 `[x]` かで判定する
+- 手動モードでなければ、未完了の大タスクの最初の 1 つ。大タスクの完了は配下のサブタスクが全部 `[x]` かで判定する
 - 手動モードなら指定サブタスクだけ
 
 ### Step 5: implementer に配布
@@ -111,6 +107,4 @@ git checkout -b <feature> "$DEFAULT"
   <テストコマンドが無いリポジトリなら `- レビューに進む: /review <feature>` に差し替える>
 - 仕様を直す: `/spec` `/plan` のいずれかを再実行
   <要確認があるときだけ>
-- 他リポジトリの完了は notify_when_idle の通知で確認する
-  <Step 4 で dispatch を呼んだときだけ>
 ```

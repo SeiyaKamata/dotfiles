@@ -1,7 +1,7 @@
 ---
 name: epic
 description: 複数の PR に分けて取り込む大きな仕事を、順序付きの feature 一覧として epic.md に計画する。1 つの PR に収まらない要望を受けたとき、または epic の feature が merge されて次に進むときに使う。
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(gh pr *), Bash(git *)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(gh pr *), Bash(gh repo view *), Bash(git *)
 argument-hint: "<epic>"
 ---
 
@@ -21,6 +21,8 @@ feature の切り方と順序で判断が割れる点は最も素直な案を採
 
 - 1 feature は単独で merge しても壊れない単位にする
   - 後続 feature が無くても本番に入れられる状態で切る
+- 1 feature は 1 リポジトリに閉じる
+  - 複数リポジトリにまたがる仕事はリポジトリごとに feature を切り、受け口を出す側を `準備` として先に置く
 - 種別は `準備` `本体` `後片付け` の 3 値
   - `準備`: 本体を安全に入れるための先行変更。既存コードの整理、互換レイヤの追加、別リポジトリ側の受け口
   - `本体`: 目的を実現する変更
@@ -43,8 +45,8 @@ epic.md が変わるのは計画そのものが変わったときだけにし、
 | 計画中 | `.specs/<feature>/requirements.md` がある |
 | 未着手 | `.specs/<feature>/` が無い |
 
-PR は現在のリポジトリで `gh pr list --head <feature> --state all --json number,state,isDraft,url` で調べる。
-別リポジトリの feature は現在のリポジトリからは見つからないので、成果物だけで判定し、状態に `PR 未確認` を添える。
+PR は feature 一覧の `Repo` 列のリポジトリで `gh pr list --repo <owner>/<repo> --head <feature> --state all --json number,state,isDraft,url` で調べる。
+owner は現在のリポジトリの `gh repo view --json owner` から採る。
 
 ## epic.md のフォーマット
 
@@ -58,11 +60,11 @@ PR は現在のリポジトリで `gh pr list --head <feature> --state all --jso
 - [epic 全体として満たすべきこと。1 行 1 項目。EARS は使わない]
 
 ## feature 一覧
-| # | feature | 種別 | 目的 | Depends |
-|---|---|---|---|---|
-| 1 | [kebab-case の feature 名] | 準備 | [この feature で何を達成するか 1 行] | |
-| 2 | [...] | 本体 | [...] | 1 |
-| 3 | [...] | 後片付け | [...] | 2 |
+| # | feature | Repo | 種別 | 目的 | Depends |
+|---|---|---|---|---|---|
+| 1 | [kebab-case の feature 名] | [リポジトリ名] | 準備 | [この feature で何を達成するか 1 行] | |
+| 2 | [...] | [...] | 本体 | [...] | 1 |
+| 3 | [...] | [...] | 後片付け | [...] | 2 |
 
 ## 順序の根拠
 [なぜこの順で取り込めば安全か。互換の維持、フラグ、データ移行の方針]
@@ -115,11 +117,11 @@ Step 2 の内容を「epic.md のフォーマット」で `.specs/epics/<epic>.m
 
 生成物: `.specs/epics/<epic>.md`
 
-| # | feature | 種別 | 状態 |
-|---|---|---|---|
-| 1 | [...] | 準備 | 完了 #123 |
-| 2 | [...] | 本体 | PR(draft) #130 |
-| 3 | [...] | 本体 | 未着手 |
+| # | feature | Repo | 種別 | 状態 |
+|---|---|---|---|---|
+| 1 | [...] | [...] | 準備 | 完了 #123 |
+| 2 | [...] | [...] | 本体 | PR(draft) #130 |
+| 3 | [...] | [...] | 本体 | 未着手 |
 
 ### 次の一手
 - 次の feature の要件を書く: `/spec <feature>`
