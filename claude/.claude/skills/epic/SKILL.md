@@ -1,7 +1,7 @@
 ---
 name: epic
 description: 複数の PR に分けて取り込む大きな仕事を、順序付きの feature 一覧として epic.md に計画する。1 つの PR に収まらない要望を受けたとき、または epic の feature が merge されて次に進むときに使う。
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(gh pr *), Bash(gh repo view *), Bash(git *), Bash(mkworktree *)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(gh pr *), Bash(git *), Bash(mkworktree *)
 argument-hint: "<epic>"
 ---
 
@@ -11,6 +11,7 @@ argument-hint: "<epic>"
 1 つの目的のために複数の PR を順に取り込む仕事を、feature の順序付き一覧として `.specs/epics/<epic>.md` に書く。
 epic は PR も実装ブランチも持たず、feature ごとに 1 本の PR を作る。
 epic を知る工程はこのスキルと `/spec` だけで、`/plan` 以降は feature の `requirements.md` だけを見る。
+このスキルは org 直下 `Develop/<org>/` で叩く。`.specs` と `repos/` がそこにあり、各リポジトリの bare repo は `repos/<Repo>`。
 
 ## 判断が割れる点の扱い
 途中でユーザーに質問も承認要求もせず、`epic.md` の書き出しまで走り切る。
@@ -55,7 +56,7 @@ epic.md が変わるのは計画そのものが変わったときだけにし、
 | 未着手 | `.specs/<feature>/` が無い |
 
 PR は feature 一覧の `Repo` 列のリポジトリで `gh pr list --repo <owner>/<repo> --head <feature> --state all --json number,state,isDraft,url` で調べる。
-owner は現在のリポジトリの `gh repo view --json owner` から採る。
+`<owner>/<repo>` は `git -C repos/<Repo> remote get-url origin` から採る。
 
 ## epic.md のフォーマット
 
@@ -104,7 +105,7 @@ owner は現在のリポジトリの `gh repo view --json owner` から採る。
 2. 1 つの PR で入れられない理由。ここで 1 つの PR に収まると分かれば、epic を作らず `/spec <feature>` を案内して終了する
 3. feature の切り方と順序。「feature の切り方」に従う
 4. 複数リポジトリにまたがるなら契約。関わるリポジトリのデフォルトブランチを worktree に展開し、現状の受け口と型を読んでから決める
-   - bare repo は自分の bare repo `git rev-parse --git-common-dir` と同じ親ディレクトリにある `<リポジトリ名>` を採り、`git -C <bare repo> fetch origin` で最新化してから `dest=$(mkworktree <bare repo> <リポジトリ名>-<epic>)` で切る。同名の worktree が既にあればそれを使う
+   - `git -C repos/<Repo> fetch origin` で最新化してから `dest=$(mkworktree repos/<Repo> <Repo>-<epic>)` で切る。同名の worktree が既にあればそれを使う
 5. 各 feature の名前。`Glob(".specs/*")` で既存の feature 名と重ならないことを確認する
 
 ### Step 3: 書き出し
