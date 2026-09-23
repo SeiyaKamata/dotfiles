@@ -1,7 +1,7 @@
 ---
 name: spec
 description: ユーザーから機能要望を受け取り、feature名を決めて要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または既存requirements.mdの詳細化・修正で使う。
-allowed-tools: Read, Write, Edit, Glob, Grep
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git rev-parse *)
 argument-hint: "[feature]"
 ---
 
@@ -70,6 +70,7 @@ Requirement ごとに主体を独立行で 1 回宣言し、各行は主語を�
 ```markdown
 ---
 status: confirmed
+repo: [この feature を実装するリポジトリ。bare repo のディレクトリ名]
 epic: [feature が epic に属するなら epic 名。無ければ空文字]
 notion_url: [下書きにあれば引き継ぐ。無ければ空文字]
 pr_title: [下書きにあれば引き継ぐ。無ければ空文字]
@@ -126,6 +127,7 @@ branch_name: [下書きにあれば引き継ぐ。無ければ空文字]
 - `.specs/epics/*.md` の `## feature 一覧` に候補と同名の feature があれば、その `epic.md` を要望の材料として読み、frontmatter の `epic` に epic 名を書く
   - epic の目的・完了条件・順序の根拠を踏まえて要件化し、他の feature の担当範囲を取り込まない
   - epic に `## 契約` があれば、この feature が出す側か受ける側かに応じて、その形を受け入れ条件に写す
+- frontmatter の `repo` は、epic に属するなら epic.md の `Repo` 列から、そうでなければ今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename から採る
 
 `.specs/<候補>/requirements.md` の有無と frontmatter の `status`、変更要望で分岐する:
 - **無い**: 新規。`Glob(".specs/*")` で紛らわしい既存 feature 名があれば、末尾に連番か区別できる語を足した別名にし、Step 2 から書き起こす

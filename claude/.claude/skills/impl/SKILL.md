@@ -27,6 +27,7 @@ argument-hint: "<feature> [task-numbers]"
 ### Step 1: 引数の確認
 - `$ARGUMENTS[0]` が無ければ「使い方: /impl <feature> [task-numbers]」を表示して終了
 - `$ARGUMENTS[1]` に `1.1` や `1,2` の形でサブタスク番号があれば手動モードにし、指定サブタスクだけを実装する
+- `.specs/<feature>/requirements.md` の frontmatter の `repo` が今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename と違えば、Step 7 の中断カードで「`<repo>` の worktree で叩く」と案内して終了
 
 ### Step 2: コンテキスト収集
 配布と確認に要るものだけを集め、`requirements.md` の本文と `plan.md` の設計節は読まない。

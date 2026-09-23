@@ -26,6 +26,7 @@ frontmatter のキーは `/spec` の確定稿と同じ並びにし、`/spec` が
 ```markdown
 ---
 status: draft
+repo: [実装するリポジトリが分かっていれば bare repo のディレクトリ名。無ければ空文字で /spec が確定する]
 epic: [epic の feature として書き留めるなら epic 名。無ければ空文字]
 notion_url: [材料に Notion のページがあればその URL。無ければ空文字]
 pr_title: [材料に PR タイトルの指定があればそれ。無ければ空文字]

@@ -178,6 +178,7 @@ impl の完了条件は `## タスク一覧` だけで、人しか実行でき�
 
 - `$ARGUMENTS[0]` が未指定なら「使い方: /plan <feature>」を表示して終了
 - `.specs/<feature>/requirements.md` が無ければ `/spec <feature>` を案内して終了
+- frontmatter の `repo` が今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename と違えば、Step 9 の中断カードで「`<repo>` の worktree で叩く」と案内して終了
 
 `.specs/<feature>/plan.md` の有無で分岐する:
 - **無い**: 新規作成モード。Step 2 へ

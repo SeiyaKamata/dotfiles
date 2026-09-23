@@ -25,6 +25,8 @@ Notion の要点を落とさず要約し、長文の丸写しはしない。
 ```markdown
 ---
 status: draft
+repo: [Notion に対象リポジトリの記載があれば bare repo のディレクトリ名。無ければ空文字で /spec が確定する]
+epic: ""
 notion_url: [取り込み元ページの URL]
 pr_title: ["[<Task ID>] <タイトル>" の形。Task ID が無ければ空文字]
 branch_name: [Branch Name プロパティの値。記録のみで、無ければ空文字]
