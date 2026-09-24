@@ -1,0 +1,34 @@
+#!/bin/bash
+# devpick/mkworktree で作った worktree を fzf で選んで削除する。mkworktree の逆コマンド。
+# $HOME/Develop/*/worktrees 配下のみを対象にする。repos/ の bare repo は対象外。
+set -euo pipefail
+
+sel=$(command find "$HOME"/Develop/*/worktrees -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null \
+  | while IFS= read -r path; do
+      branch=$(git -C "$path" branch --show-current 2>/dev/null)
+      printf '%s\t%s\t%s\n' "${path##*/}" "${branch:--}" "$path"
+    done \
+  | sort \
+  | awk -F'\t' '{ name[NR]=$1; branch[NR]=$2; path[NR]=$3; if (length($1) > w) w = length($1) }
+                END { for (i = 1; i <= NR; i++) printf "%-" w "s\t%s\t%s\n", name[i], branch[i], path[i] }' \
+  | fzf --prompt="rm worktree> " --delimiter='\t' --with-nth=1,2 --nth=1)
+
+[ -n "$sel" ] || exit 0
+path="${sel##*$'\t'}"
+
+force=()
+if [ -n "$(git -C "$path" status --porcelain 2>/dev/null)" ]; then
+  echo "未コミットの変更があります: $path" >&2
+  read -r -p "それでも削除しますか？ [y/N] " ans
+  [ "$ans" = "y" ] || exit 1
+  force=(--force)
+fi
+
+git -C "$path" worktree remove "${force[@]}" "$path"
+
+# workspace が開いていれば閉じる。開いていなくても削除自体は上で完了しているので無視してよい。
+ws_id=$(herdr worktree list --cwd "$path" 2>/dev/null \
+  | jq -r --arg p "$path" '.result.worktrees[]? | select(.path == $p) | .open_workspace_id // empty')
+[ -n "$ws_id" ] && herdr workspace close "$ws_id" >/dev/null 2>&1
+
+echo "削除しました: $path"
