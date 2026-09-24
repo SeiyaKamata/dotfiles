@@ -26,7 +26,7 @@ alias gd="git diff"
 alias gds="git diff --staged"
 
 # Log aliases (gl)
-alias gl="git log -n 100 --oneline --color=always --decorate | nl -ba | less -R"
+alias gl="git log -n 20 --oneline --color=always --decorate | nl -ba"
 alias glg="git log --oneline --graph"
 
 # Push aliases (gP)
