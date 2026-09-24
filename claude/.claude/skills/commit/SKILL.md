@@ -135,6 +135,25 @@ EOF
 - メッセージは変数展開を避けるため HEREDOC の literal mode `<<'EOF'` で渡す
 - hunk 分割が必要なら計画で決めた方法に従う
 
+ある項目をコミットするために他の項目の変更を作業ツリーから一時的に戻す必要があるときは、直接いじらず次の手順で退避してから行う。
+
+```
+git add -A
+git commit -m "WIP: 分割前の全変更"
+git branch backup/<現在のブランチ名>-commit
+git reset --soft HEAD~1
+```
+
+`git reset --soft` で全変更が再び stage された状態に戻るので、そこから通常どおり計画の項目ごとに `add` してコミットする。
+全項目のコミットが終わったら、取りこぼしがないか `git diff backup/<現在のブランチ名>-commit` で確認する。
+差分が空ならバックアップブランチを削除して終了する。
+差分が残っていれば計画に無い変更が漏れているので、追加のコミットにするか計画を見直す。
+
+```
+git diff backup/<現在のブランチ名>-commit
+git branch -D backup/<現在のブランチ名>-commit
+```
+
 pre-commit hook・lint による拒否を含めコミットが失敗したら、以降のコミットは実行せず、`git reset` でその時点の add を取り消し、完了済みコミットは残したまま Step 5 の中断カードで報告する。
 
 ### Step 5: 出力
