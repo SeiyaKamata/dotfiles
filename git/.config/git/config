@@ -5,7 +5,6 @@
     editor = nvim
     pager = delta
     untrackedCache = true
-    hooksPath = ~/.config/git/hooks
 [init]
     defaultBranch = main
 [pull]

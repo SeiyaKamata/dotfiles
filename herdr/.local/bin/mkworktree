@@ -48,4 +48,25 @@ git -C "$repo" fetch origin "+refs/heads/$default_branch:refs/heads/$default_bra
 
 git -C "$repo" worktree add --detach "$dest" "$default_branch" >&2
 
+# .specs は org 直下 (Develop/<org>/.specs) に 1 つだけ置き、org 内の全リポジトリ・全 worktree で共有する。
+#   複数リポジトリにまたがる feature や epic が 1 箇所に置けるようにするため。
+# CLAUDE.local.md はリポジトリ固有なので、bare repo自身のものを張る。
+if [ "$(basename "$(dirname "$repo")")" = "repos" ]; then
+  specs_home="$(dirname "$(dirname "$repo")")"
+else
+  specs_home="$repo"
+fi
+
+link() {
+  local src="$1" name="$2"
+  [ -e "$dest/$name" ] && return 0
+  [ -e "$src" ] || return 0
+  local target
+  target=$(python3 -c "import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))" "$src" "$dest")
+  ln -s "$target" "$dest/$name"
+}
+
+link "$specs_home/.specs" .specs
+link "$repo/CLAUDE.local.md" CLAUDE.local.md
+
 printf '%s\n' "$dest"
