@@ -68,5 +68,6 @@ link() {
 
 link "$specs_home/.specs" .specs
 link "$repo/CLAUDE.local.md" CLAUDE.local.md
+link "$repo/.claude/settings.local.json" .claude/settings.local.json
 
 printf '%s\n' "$dest"
