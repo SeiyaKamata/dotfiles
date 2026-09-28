@@ -5,7 +5,7 @@
 # 対話プロンプトは持たない。devpick からも Claude からも同じ引数で呼べるようにするため。
 # 常に origin の最新デフォルトブランチの先端に detached HEAD で作る。
 # ブランチは実装を始める skill が切るので、ここでは作らない。
-# name省略時は <repo名>-<YYYYMMDD> を機械的に生成する。衝突したら連番を足す。
+# name省略時は <repo名>-<YYYYMMDDHHMMSS> を機械的に生成する。衝突したら連番を足す。
 set -euo pipefail
 
 repo="${1:?usage: mkworktree <bare-repo-path> [name]}"
@@ -19,7 +19,7 @@ worktrees_root="$(dirname "$(dirname "$repo")")/worktrees"
 mkdir -p "$worktrees_root"
 
 if [ -z "$name" ]; then
-  base="$(basename "$repo")-$(date +%Y%m%d)"
+  base="$(basename "$repo")-$(date +%Y%m%d%H%M%S)"
   name="$base"
   suffix=2
   while [ -e "$worktrees_root/$name" ]; do
