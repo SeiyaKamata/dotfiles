@@ -54,6 +54,30 @@ other_worktrees() {
   running_worktrees | grep -vxF "$APP_DIR" || true
 }
 
+# 稼働状況を「空き / 使用中(自分) / 使用中(別worktree) / 混在」の4状態で報告する。
+# status コマンドと launch の競合警告の両方から呼び、AIがログだけで状態判定できるよう文言を揃える。
+report_state() {
+  local all others mine
+  all=$(running_worktrees)
+  if [ -z "$all" ]; then
+    echo "空き: $project_name は稼働中コンテナなし"
+    return 0
+  fi
+  others=$(printf '%s\n' "$all" | grep -vxF "$APP_DIR" || true)
+  mine=$(printf '%s\n' "$all" | grep -xF "$APP_DIR" || true)
+  if [ -z "$others" ]; then
+    echo "使用中(自分): $project_name <- $APP_DIR"
+  elif [ -z "$mine" ]; then
+    echo "使用中(別worktree): $project_name"
+    printf '  <- %s\n' $others
+    echo "  今ここ: $APP_DIR"
+  else
+    echo "混在: $project_name に複数 worktree が同居しています"
+    echo "  自分: $APP_DIR"
+    printf '  別 : %s\n' $others
+  fi
+}
+
 # 「使用中チェック → up」をロック下でアトミックに 1 回試行する。
 # チェックと up の間に別プロセスが割り込めないので、複数セッションが同時に
 # 叩いても status が警告する「混在」状態にならない。
@@ -89,9 +113,7 @@ launch() {
       *) return "$rc" ;;            # ロック取得失敗(3) / 起動コマンドの失敗
     esac
 
-    echo "⚠️  $project_name は別の worktree で使用中です:" >&2
-    printf '      %s\n' $(other_worktrees) >&2
-    echo "    今ここ: $APP_DIR" >&2
+    report_state >&2
 
     if [ "$LOOP" = "1" ] && [ "$i" -lt "${#waits[@]}" ]; then
       local w=${waits[$i]}
@@ -112,52 +134,34 @@ launch() {
 
 case "$PROFILE" in
   status)
-    all=$(running_worktrees)
-    if [ -z "$all" ]; then
-      echo "空き: $project_name は稼働中コンテナなし"
-    else
-      others=$(printf '%s\n' "$all" | grep -vxF "$APP_DIR" || true)
-      mine=$(printf '%s\n' "$all" | grep -xF "$APP_DIR" || true)
-      if [ -z "$others" ]; then
-        echo "使用中(自分): $project_name <- $APP_DIR"
-      elif [ -z "$mine" ]; then
-        echo "使用中(別worktree): $project_name"
-        printf '  <- %s\n' $others
-        echo "  今ここ: $APP_DIR"
-      else
-        echo "⚠️ 混在: $project_name に複数 worktree が同居しています"
-        echo "  自分: $APP_DIR"
-        printf '  別 : %s\n' $others
-        echo "  'chworktree stop' でいったん全停止して起動し直すのを推奨します。"
-      fi
-    fi
+    report_state
     ;;
   web)
-    run_up() { echo "→ $(basename "$APP_DIR") (web) に切り替えます"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE up -d; }
+    run_up() { echo "→ $APP_DIR (web) に切り替えます"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE up -d; }
     launch
     ;;
   full)
-    run_up() { echo "→ $(basename "$APP_DIR") (full) 全サービスを起動します"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE --profile extra --profile worker up -d; }
+    run_up() { echo "→ $APP_DIR (full) 全サービスを起動します"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE --profile extra --profile worker up -d; }
     launch
     ;;
   api)
-    run_up() { echo "→ $(basename "$APP_DIR") (api) を起動します"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE up api -d; }
+    run_up() { echo "→ $APP_DIR (api) を起動します"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE up api -d; }
     launch
     ;;
   sec-web)
-    run_up() { echo "→ $(basename "$APP_DIR") (web+traefik) に切り替えます"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE up web traefik -d; }
+    run_up() { echo "→ $APP_DIR (web+traefik) に切り替えます"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE up web traefik -d; }
     launch
     ;;
   worker)
-    run_up() { echo "→ $(basename "$APP_DIR") (worker) を起動します"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE --profile worker up heavy worker -d; }
+    run_up() { echo "→ $APP_DIR (worker) を起動します"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE --profile worker up heavy worker -d; }
     launch
     ;;
   worker-stop)
-    echo "→ worker を停止します"
+    echo "→ $APP_DIR の worker を停止します"
     $COMPOSE --profile worker stop heavy worker
     ;;
   stop)
-    echo "→ $project_name を停止します（解放）"
+    echo "→ $APP_DIR ($project_name) を停止します（解放）"
     $COMPOSE --profile extra --profile worker stop
     ;;
   *)
