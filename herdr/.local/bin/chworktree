@@ -4,11 +4,14 @@ set -euo pipefail
 INFISICAL="infisical run --env=dev --path=/ --recursive --domain=https://app.infisical.com/api --"
 
 # -loop: up 系が別 worktree と競合したら空くまでリトライする。付けなければ即失敗。
+# -f: 別 worktree が使用中でもチェックを飛ばして必ず起動する。
 LOOP=0
+FORCE=0
 args=()
 for a in "$@"; do
   case "$a" in
     -loop|--loop) LOOP=1 ;;
+    -f|--force) FORCE=1 ;;
     *) args+=("$a") ;;
   esac
 done
@@ -57,12 +60,11 @@ other_worktrees() {
 # ロックは mkdir のアトミック性（既存なら失敗）を使う。flock は macOS 標準に
 # 無いため使わない。取得できたサブシェルの EXIT で必ず rmdir して解放する。
 # 戻り値: 0=起動した / 2=別 worktree が使用中 / それ以外=起動コマンドの失敗。
-# CHWORKTREE_FORCE=1 のときはチェックを飛ばして必ず起動する。
 attempt_up() {
   (
     mkdir "$LOCKDIR" 2>/dev/null || { echo "ロック取得に失敗しました: $LOCKDIR" >&2; exit 3; }
     trap 'rmdir "$LOCKDIR"' EXIT
-    if [ "${CHWORKTREE_FORCE:-0}" != "1" ]; then
+    if [ "$FORCE" != "1" ]; then
       [ -z "$(other_worktrees)" ] || exit 2
     fi
     run_up
@@ -103,7 +105,7 @@ launch() {
     if [ "$LOOP" != "1" ]; then
       echo "    自動でリトライするなら: chworktree -loop $PROFILE" >&2
     fi
-    echo "    どうしても今すぐ奪うなら: CHWORKTREE_FORCE=1 chworktree $PROFILE" >&2
+    echo "    どうしても今すぐ奪うなら: chworktree -f $PROFILE" >&2
     return 2
   done
 }
@@ -159,7 +161,7 @@ case "$PROFILE" in
     $COMPOSE --profile extra --profile worker stop
     ;;
   *)
-    echo "使い方: $(basename "$0") [-loop] [status|web|full|api|sec-web|worker|worker-stop|stop]" >&2
+    echo "使い方: $(basename "$0") [-loop] [-f] [status|web|full|api|sec-web|worker|worker-stop|stop]" >&2
     exit 1
     ;;
 esac
