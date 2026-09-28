@@ -1,7 +1,7 @@
 ---
 name: qa
 description: コードレビュー後にブラウザで動作確認する最終受け入れゲート。/review の後に使う。
-allowed-tools: Read, Write, Edit, Bash(git *), Bash(swws *), Bash(curl *), Bash(date *), Agent
+allowed-tools: Read, Write, Edit, Bash(git *), Bash(chworktree *), Bash(curl *), Bash(date *), Agent
 disallowed-tools: mcp__playwright__*
 argument-hint: "<feature>"
 ---
@@ -19,8 +19,8 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 シナリオに書かれておらず判断で補った点は、完了カードの要確認に出す。
 
 ## 環境の扱い
-環境は落ちている前提で始め、開始時点の状態に関係なく検証が終わったら常に `swws stop` で片付ける。
-「自分が起動した分だけ停止する」判定は追跡を一度誤ると環境が残るので採らず、`swws stop` は未起動でも安全なので無条件に呼ぶ。
+環境は落ちている前提で始め、開始時点の状態に関係なく検証が終わったら常に `chworktree stop` で片付ける。
+「自分が起動した分だけ停止する」判定は追跡を一度誤ると環境が残るので採らず、`chworktree stop` は未起動でも安全なので無条件に呼ぶ。
 
 ## qa-report.md のフォーマット
 
@@ -72,7 +72,7 @@ count: [非 PASS の連続回数]
 記載が無ければ推測せず、Step 8 の中断カードで記載を促して終了する。
 
 ```
-swws status
+chworktree status
 ```
 
 到達性を起動済みの証拠にしない。
@@ -80,14 +80,14 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
 
 ### Step 3: 状態に応じて起動する
 
-`git rev-parse --show-toplevel` で得た自分の worktree と `swws status` を照合して分岐する。
+`git rev-parse --show-toplevel` で得た自分の worktree と `chworktree status` を照合して分岐する。
 
 | 稼働状態 | 動作 |
 |---|---|
-| 何も起動していない | `swws <profile>` で起動する |
+| 何も起動していない | `chworktree <profile>` で起動する |
 | 自分の worktree が起動中 | そのまま使う |
-| 別 worktree が起動中 | `swws -loop <profile>` で空くのを待って切り替える |
-| 複数 worktree が同居 | `swws stop` で全停止してから `swws <profile>` で起動し直す |
+| 別 worktree が起動中 | `chworktree -loop <profile>` で空くのを待って切り替える |
+| 複数 worktree が同居 | `chworktree stop` で全停止してから `chworktree <profile>` で起動し直す |
 
 `-loop` は長時間ブロッキングしうるので `run_in_background` で実行する。
 
@@ -114,7 +114,7 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
 ### Step 7: 環境停止
 
 ```
-swws stop
+chworktree stop
 ```
 
 停止に失敗しても判定は確定しているので中断せず、要確認に載せる。
@@ -136,7 +136,7 @@ FAIL の原因調査で環境が要るなら `/fix` 側で起動し直す。
 
 ### 要確認
 - <シナリオに書かれておらず判断で補った点> 該当: Q<n>
-- <swws stop に失敗した旨>
+- <chworktree stop に失敗した旨>
 
 ### 次の一手
 - コミットする: `/commit`
