@@ -27,7 +27,7 @@ project_name=$(basename "$project_root" | tr '[:upper:]' '[:lower:]' | sed 's/[^
 COMPOSE="docker compose -p $project_name -f $APP_DIR/compose.yaml"
 overlay="$project_root/compose.kmt.yaml"
 [ -f "$overlay" ] && COMPOSE="$COMPOSE -f $overlay"
-LOCKDIR="/tmp/swws-${project_name}.lockdir"
+LOCKDIR="/tmp/chworktree-${project_name}.lockdir"
 
 # このプロジェクトで稼働中のコンテナがマウントしている worktree 一覧（distinct）。
 # 何も無ければ空文字＝空き。停止済みは解放とみなす（稼働中のみ対象）。
@@ -57,12 +57,12 @@ other_worktrees() {
 # ロックは mkdir のアトミック性（既存なら失敗）を使う。flock は macOS 標準に
 # 無いため使わない。取得できたサブシェルの EXIT で必ず rmdir して解放する。
 # 戻り値: 0=起動した / 2=別 worktree が使用中 / それ以外=起動コマンドの失敗。
-# SWWS_FORCE=1 のときはチェックを飛ばして必ず起動する。
+# CHWORKTREE_FORCE=1 のときはチェックを飛ばして必ず起動する。
 attempt_up() {
   (
     mkdir "$LOCKDIR" 2>/dev/null || { echo "ロック取得に失敗しました: $LOCKDIR" >&2; exit 3; }
     trap 'rmdir "$LOCKDIR"' EXIT
-    if [ "${SWWS_FORCE:-0}" != "1" ]; then
+    if [ "${CHWORKTREE_FORCE:-0}" != "1" ]; then
       [ -z "$(other_worktrees)" ] || exit 2
     fi
     run_up
@@ -72,7 +72,7 @@ attempt_up() {
 # up 系の起動ドライバ。別 worktree が使用中なら、-loop 指定時のみ
 # 5分 → 10分 → 10分 の間隔で最大 3 回リトライする。
 # 3 回リトライしても空かなければ失敗（exit 2）。他 worktree は奪わない。
-# sleep 中はロックを解放しているので、待機中でも他 worktree の 'swws stop' を妨げない。
+# sleep 中はロックを解放しているので、待機中でも他 worktree の 'chworktree stop' を妨げない。
 launch() {
   local waits=(300 600 600) i=0 rc
   while true; do
@@ -99,11 +99,11 @@ launch() {
       continue
     fi
 
-    echo "    解放するには使用中の worktree で 'swws stop' を実行してください。" >&2
+    echo "    解放するには使用中の worktree で 'chworktree stop' を実行してください。" >&2
     if [ "$LOOP" != "1" ]; then
-      echo "    自動でリトライするなら: swws -loop $PROFILE" >&2
+      echo "    自動でリトライするなら: chworktree -loop $PROFILE" >&2
     fi
-    echo "    どうしても今すぐ奪うなら: SWWS_FORCE=1 swws $PROFILE" >&2
+    echo "    どうしても今すぐ奪うなら: CHWORKTREE_FORCE=1 chworktree $PROFILE" >&2
     return 2
   done
 }
@@ -126,7 +126,7 @@ case "$PROFILE" in
         echo "⚠️ 混在: $project_name に複数 worktree が同居しています"
         echo "  自分: $APP_DIR"
         printf '  別 : %s\n' $others
-        echo "  'swws stop' でいったん全停止して起動し直すのを推奨します。"
+        echo "  'chworktree stop' でいったん全停止して起動し直すのを推奨します。"
       fi
     fi
     ;;

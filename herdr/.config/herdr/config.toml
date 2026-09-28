@@ -45,7 +45,7 @@ edit_scrollback = ""                # 下の [[keys.command]] prefix+e (nvim pop
 # リサイズは prefix+r (resize_mode) → 矢印/hjkl。コピペはマウス選択+内蔵クリップボード連携で代替。
 # ステータスラインは herdr のサイドバー UI に置き換わる。
 
-new_worktree = ""                   # herdr 内蔵の worktree 作成は使わない（swws/devpick で自前管理しているため無効化）
+new_worktree = ""                   # herdr 内蔵の worktree 作成は使わない（chworktree/devpick で自前管理しているため無効化）
 
 [ui]
 agent_panel_sort = "spaces"
