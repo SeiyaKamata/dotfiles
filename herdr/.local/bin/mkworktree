@@ -69,6 +69,17 @@ link() {
   ln -s "$target" "$dest/$name"
 }
 
+init() {
+  local src="$1" content="$2"
+  [ -e "$src" ] && return 0
+  mkdir -p "$(dirname "$src")"
+  printf '%s' "$content" > "$src"
+}
+
+init "$repo/CLAUDE.local.md" ""
+init "$repo/.claude/settings.local.json" '{}
+'
+
 link "$specs_home/.specs" .specs
 link "$repo/CLAUDE.local.md" CLAUDE.local.md
 link "$repo/.claude/settings.local.json" .claude/settings.local.json
