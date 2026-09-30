@@ -15,7 +15,7 @@ for a in "$@"; do
     *) args+=("$a") ;;
   esac
 done
-PROFILE="${args[0]:-web}"
+PROFILE="${args[0]:-}"
 
 current_worktree() {
   git rev-parse --show-toplevel 2>/dev/null
@@ -136,36 +136,28 @@ case "$PROFILE" in
   status)
     report_state
     ;;
-  web)
-    run_up() { echo "→ $APP_DIR (web) に切り替えます"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE up -d; }
+  "")
+    run_up() { echo "→ $APP_DIR 画面確認に必要な最小構成を起動します"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE up -d; }
     launch
     ;;
   full)
     run_up() { echo "→ $APP_DIR (full) 全サービスを起動します"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE --profile extra --profile worker up -d; }
     launch
     ;;
-  api)
-    run_up() { echo "→ $APP_DIR (api) を起動します"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE up api -d; }
-    launch
-    ;;
-  sec-web)
-    run_up() { echo "→ $APP_DIR (web+traefik) に切り替えます"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE up web traefik -d; }
-    launch
-    ;;
   worker)
-    run_up() { echo "→ $APP_DIR (worker) を起動します"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE --profile worker up heavy worker -d; }
+    run_up() { echo "→ $APP_DIR (worker) を起動します"; $INFISICAL env APP_DIR="$APP_DIR" $COMPOSE --profile worker up heavy worker notification -d; }
     launch
     ;;
   worker-stop)
     echo "→ $APP_DIR の worker を停止します"
-    $COMPOSE --profile worker stop heavy worker
+    $COMPOSE --profile worker stop heavy worker notification
     ;;
   stop)
     echo "→ $APP_DIR ($project_name) を停止します（解放）"
     $COMPOSE --profile extra --profile worker stop
     ;;
   *)
-    echo "使い方: $(basename "$0") [-loop] [-f] [status|web|full|api|sec-web|worker|worker-stop|stop]" >&2
+    echo "使い方: $(basename "$0") [-loop] [-f] [status|full|worker|worker-stop|stop]  (引数なしは最小構成)" >&2
     exit 1
     ;;
 esac
