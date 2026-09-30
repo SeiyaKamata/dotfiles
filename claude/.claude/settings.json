@@ -41,7 +41,8 @@
       "Bash(go fmt *)",
       "Bash(go tool *)",
       "Read(~/Develop/*)",
-      "Edit(~/Develop/**/.specs/**)"
+      "Edit(~/Develop/.specs/**)",
+      "Edit(~/Develop/*/.specs/**)"
     ],
     "deny": [
       "AskUserQuestion",
