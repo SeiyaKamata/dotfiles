@@ -61,8 +61,11 @@ link() {
   local src="$1" name="$2"
   [ -e "$dest/$name" ] && return 0
   [ -e "$src" ] || return 0
+  local link_dir
+  link_dir="$dest/$(dirname "$name")"
+  mkdir -p "$link_dir"
   local target
-  target=$(python3 -c "import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))" "$src" "$dest")
+  target=$(python3 -c "import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))" "$src" "$link_dir")
   ln -s "$target" "$dest/$name"
 }
 
