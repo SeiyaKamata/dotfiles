@@ -57,7 +57,7 @@ argument-hint: "<feature> [<stage>]"
 | 工程 | レビュアー | 上流成果物 | レビュー対象 | 参照ドキュメント |
 |---|---|---|---|---|
 | `/spec` | `spec-reviewer` | 起動時の要望テキスト + 既存の `requirements.md`(あれば) | `requirements.md` | なし |
-| `/plan` | `plan-reviewer` | `requirements.md` | `plan.md` | `plan/SKILL.md`「大タスク = 関心のグルーピング」 |
+| `/plan` | `plan-reviewer` | `requirements.md` | `plan.md` | `plan/SKILL.md`「タスク = 関心のグルーピング」 |
 
 ```
 review_round = 0
