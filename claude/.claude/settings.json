@@ -43,13 +43,19 @@
       "Bash(go tool *)",
       "Read(~/Develop/*)",
       "Edit(~/Develop/.specs/**)",
-      "Edit(~/Develop/*/.specs/**)"
+      "Edit(~/Develop/*/.specs/**)",
+      "Edit(~/Develop/*/worktrees/*/.specs/**)"
     ],
     "deny": [
       "AskUserQuestion",
       "Bash(docker *)",
       "Bash(docker-compose *)",
-      "Bash(git worktree *)"
+      "Bash(git worktree *)",
+      "Bash(git * worktree *)",
+      "Bash(herdr worktree *)",
+      "Bash(herdr * worktree *)",
+      "EnterWorktree",
+      "ExitWorktree"
     ],
     "ask": [
       "Bash(git push --force*)",
