@@ -26,6 +26,7 @@
       "Bash(cat *)",
       "Bash(ls *)",
       "Bash(ls)",
+      "Bash(cd *)",
       "Bash(find *)",
       "Bash(grep *)",
       "Bash(rg *)",
