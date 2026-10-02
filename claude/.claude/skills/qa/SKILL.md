@@ -1,7 +1,7 @@
 ---
 name: qa
 description: コードレビュー後にブラウザで動作確認する最終受け入れゲート。/review の後に使う。
-allowed-tools: Read, Write, Edit, Bash(git *), Bash(chworktree *), Bash(curl *), Bash(date *), Agent
+allowed-tools: Read, Write, Edit, Bash(git *), Bash(chworktree *), Bash(date *), Agent
 disallowed-tools: mcp__playwright__*
 argument-hint: "<feature>"
 ---
@@ -41,7 +41,7 @@ count: [非 PASS の連続回数]
 # QA結果: [機能名]
 
 ## サマリ
-- 判定: [PASS / FAIL / BLOCKED。BLOCKED は環境を起動できず検証未実施]
+- 判定: [PASS / FAIL / BLOCKED。BLOCKED は環境を起動できないか到達できず検証未実施]
 - シナリオ数 / pass / fail: [N / N / N]
 
 ## 失敗シナリオ
@@ -76,7 +76,7 @@ chworktree status
 ```
 
 到達性を起動済みの証拠にしない。
-compose プロジェクトは 1 リポジトリに 1 つしかなく、別 worktree の環境が起動していてもベース URL には到達できてしまうので、`curl` が通ることを根拠に進むと別ブランチのコードを PASS にする。
+compose プロジェクトは 1 リポジトリに 1 つしかなく、別 worktree の環境が起動していてもベース URL には到達できてしまうので、到達できることを根拠に進むと別ブランチのコードを PASS にする。
 
 ### Step 3: 状態に応じて起動する
 
@@ -91,10 +91,10 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
 
 `-loop` は長時間ブロッキングしうるので `run_in_background` で実行する。
 
-### Step 4: 到達性の確認
+### Step 4: 起動失敗の扱い
 
-`curl -sSf <baseURL>` でベース URL に到達できるか、数秒間隔で再確認する。
-起動できない・到達しない・`-loop` が空かないときは BLOCKED とし、Step 7 で停止してから Step 8 の中断カードで報告する。
+起動できない・`-loop` が空かないときは BLOCKED とし、Step 7 で停止してから Step 8 の中断カードで報告する。
+ベース URL への到達性は Bash で確認せず、Step 5 の委譲先が最初に確かめる。
 
 ### Step 5: シナリオ実行の委譲
 
@@ -104,6 +104,7 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
 
 渡すのはベース URL、`## ローカルQAシナリオ` のブロックそのまま、git 管理外のスクリーンショット保存先ディレクトリの 3 つ。
 受け取るのは `Q<n>: pass|fail` と原因 1 行とスクショパスの配列だけ。
+ベース URL に到達できないと返ってきたときはシナリオ未実施なので BLOCKED とし、Step 7 で停止してから Step 8 の中断カードで報告する。再委譲はしない。
 
 ### Step 6: 書き出し
 
