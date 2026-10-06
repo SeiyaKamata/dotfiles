@@ -3,7 +3,6 @@ name: qa
 description: コードレビュー後にブラウザで動作確認する最終受け入れゲート。/review の後に使う。
 allowed-tools: Read, Write, Edit, Bash(git *), Bash(chworktree *), Bash(date *), Agent
 disallowed-tools: mcp__playwright__*
-argument-hint: "<feature>"
 ---
 
 # QAスキル
@@ -24,13 +23,12 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 
 ## qa-report.md のフォーマット
 
-`/fix` が読む失敗の内訳で、毎回 `.specs/<feature>/qa-report.md` に上書きする。
+`/fix` が読む失敗の内訳で、毎回 `.specs/qa-report.md` に上書きする。
 `count` は非 PASS の連続回数で、今回も前回も非 PASS なら前回値 +1、それ以外は 1 にする。
 `fixed` は常に `false` を書き、`true` にするのは `/fix` だけ。
 
 ```markdown
 ---
-feature: [feature]
 branch: [カレントブランチ。取得不能時は none]
 head: [git rev-parse HEAD。取得不能時は none]
 ran_at: [書き出し時点の時刻。date +"%Y-%m-%dT%H:%M:%S%z" で取得]
@@ -54,14 +52,14 @@ count: [非 PASS の連続回数]
 
 ### Step 1: 対象の確定
 
-- `$ARGUMENTS[0]` が無ければ「使い方: /qa <feature>」を表示して終了
-- `.specs/<feature>/qa.md` が無ければ Step 8 の中断カードで報告して終了
+- `.specs/qa.md` が無ければ Step 8 の中断カードで報告して終了
 
-カレントブランチが実装ブランチ `<feature>` でなければ `git switch <feature>` を試みる。
+カレントブランチが実装ブランチ `<branch>` でなければ `git switch <branch>` を試みる。
+実装ブランチ名 `<branch>` は `.specs/requirements.md` の frontmatter の `branch_name` があればそれ、無ければ `git rev-parse --show-toplevel` のディレクトリ名にする。
 - switch できた → そのまま続行
-- `<feature>` が存在しない → 現在のブランチをそのまま採用する
+- `<branch>` が存在しない → 現在のブランチをそのまま採用する
 - 未コミットの変更があって switch できない → Step 8 の中断カードで報告する。stash などの作業ツリー操作はしない
-- detached HEAD のまま `<feature>` も無い → `branch: none` として続行する
+- detached HEAD のまま `<branch>` も無い → `branch: none` として続行する
 
 `git rev-parse HEAD` で head を確定する。
 `qa.md` の `## ローカルQAシナリオ` が無いか 0 件なら、ブラウザで検証するものが無いので環境を起動せず、Step 2〜5 と Step 7 を飛ばして Step 6 でシナリオ数 0 の PASS を書き出す。
@@ -108,9 +106,9 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
 
 ### Step 6: 書き出し
 
-- 結果で `.specs/<feature>/qa.md` の `## ローカルQAシナリオ` のチェックを更新する。pass は `[x]`、fail は `[ ]` のまま
+- 結果で `.specs/qa.md` の `## ローカルQAシナリオ` のチェックを更新する。pass は `[x]`、fail は `[ ]` のまま
 - 既存の `qa-report.md` があれば上書き前に前回の判定と `count` を読む
-- 「qa-report.md のフォーマット」で `.specs/<feature>/qa-report.md` を書き出す
+- 「qa-report.md のフォーマット」で `.specs/qa-report.md` を書き出す
 
 ### Step 7: 環境停止
 
@@ -125,15 +123,15 @@ FAIL の原因調査で環境が要るなら `/fix` 側で起動し直す。
 
 次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
 見出し末尾の判定は PASS か FAIL で、ローカルシナリオ 0 件の PASS は 1 行目に「ブラウザ検証対象なし」と書く。
-中断時は BLOCKED を含めて見出しを `### QA 中断` にし、1 行目に中断理由を書き、生成物の行は未生成なら省き、次の一手は `/qa <feature>` にする。プロファイル未検出なら `CLAUDE.local.md` に `## 環境起動` 節を 1 行で書く旨を先に置く。
+中断時は BLOCKED を含めて見出しを `### QA 中断` にし、1 行目に中断理由を書き、生成物の行は未生成なら省き、次の一手は `/qa` にする。プロファイル未検出なら `CLAUDE.local.md` に `## 環境起動` 節を 1 行で書く旨を先に置く。
 
 ```markdown
 ### QA 完了 — <PASS / FAIL>
 <シナリオ数と判定を 1 行>
 
 生成物:
-- `.specs/<feature>/qa.md`
-- `.specs/<feature>/qa-report.md`
+- `.specs/qa.md`
+- `.specs/qa-report.md`
 
 ### 要確認
 - <シナリオに書かれておらず判断で補った点> 該当: Q<n>
@@ -141,7 +139,7 @@ FAIL の原因調査で環境が要るなら `/fix` 側で起動し直す。
 
 ### 次の一手
 - コミットする: `/commit`
-- 失敗を直す: `/fix <feature>`
+- 失敗を直す: `/fix`
 ```
 
 要確認は該当する行だけを出し、無ければブロックごと省略する。

@@ -1,14 +1,14 @@
 ---
 name: impl
-description: 実装計画のタスク一覧を受け取り実装を行う。.specs/<feature>/plan.mdが出来上がったら使う。
+description: 実装計画のタスク一覧を受け取り実装を行う。.specs/plan.mdが出来上がったら使う。
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, WebSearch, WebFetch
-argument-hint: "<feature> [task-numbers]"
+argument-hint: "[task-numbers]"
 ---
 
 # 実装スキル
 
 ## 役割
-`.specs/<feature>/plan.md` の `## タスク一覧` を実装する。
+`.specs/plan.md` の `## タスク一覧` を実装する。
 コードは `implementer` サブエージェントに書かせ、自分はコーディネーターとして配布・ビルド確認・進捗更新だけを行う。
 仕様だけで実装が通るかを確かめるため、自分ではコードを書かない。
 
@@ -25,32 +25,32 @@ argument-hint: "<feature> [task-numbers]"
 ## 進め方
 
 ### Step 1: 引数の確認
-- `$ARGUMENTS[0]` が無ければ「使い方: /impl <feature> [task-numbers]」を表示して終了
-- `$ARGUMENTS[1]` に `1,2` の形でタスク番号があれば手動モードにし、指定タスクだけを実装する
-- `.specs/<feature>/requirements.md` の frontmatter の `repo` が今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename と違えば、Step 7 の中断カードで「`<repo>` の worktree で叩く」と案内して終了
+- `$ARGUMENTS[0]` に `1,2` の形でタスク番号があれば手動モードにし、指定タスクだけを実装する
+- `.specs/requirements.md` の frontmatter の `repo` の列挙に、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename が含まれなければ、Step 7 の中断カードで「`repo` のいずれかの worktree で叩く」と案内して終了
 
 ### Step 2: コンテキスト収集
 配布と確認に要るものだけを集め、`requirements.md` の本文と `plan.md` の設計節は読まない。
 仕様の裏取りは `implementer` が自分で行う。
 
-- `.specs/<feature>/plan.md` の `## タスク一覧` から、タスクごとのメタ情報 `Req:` `Depends:` `Follows:` と狙いの文、細部
+- `.specs/plan.md` の `## タスク一覧` から、タスクごとのメタ情報 `Req:` `Depends:` `Follows:` と狙いの文、細部
 - ビルド設定ファイルから読み取ったテスト・ビルドコマンド
 
 対象のタスクの `Depends:` に `## 事前セットアップ` の未チェックの `S<n>` があれば、人の作業待ちなので Step 7 の中断カードで止まる。
 
 ### Step 3: 実装ブランチの確定
-実装ブランチ `<feature>` 1 本の上で全タスクを実装する。
+実装ブランチ `<branch>` 1 本の上で全タスクを実装する。
 実装を隔離しておけば、途中で捨てる・作り直すのが安全になる。
+実装ブランチ名 `<branch>` は `.specs/requirements.md` の frontmatter の `branch_name` があればそれ、無ければ `git rev-parse --show-toplevel` のディレクトリ名にする。
 HEAD の状態で分岐する:
-- `<feature>` ブランチが既にある → checkout して前回の実装を再開する
-- detached HEAD → `git checkout -b <feature>` で今の HEAD から切る
+- `<branch>` ブランチが既にある → checkout して前回の実装を再開する
+- detached HEAD → `git checkout -b <branch>` で今の HEAD から切る
   - worktree はデフォルトブランチの先端に detached で作られているので、これが起点になる
 - ブランチ上 → デフォルトブランチを最新化し、その先端から切る
 
 ```
 DEFAULT=$(git default-branch)
 git fetch origin "+refs/heads/${DEFAULT}:refs/heads/${DEFAULT}"
-git checkout -b <feature> "$DEFAULT"
+git checkout -b <branch> "$DEFAULT"
 ```
 
 ### Step 4: 配布対象の決定
@@ -61,7 +61,6 @@ git checkout -b <feature> "$DEFAULT"
 ### Step 5: implementer に配布
 
 プロンプトに渡すもの:
-- feature 名
 - タスクの節から転記した狙いの文・`Req:`・細部
 - タスクに `Follows:` があれば、そのパスをそのまま渡し、その形に合わせて書く旨を明示する
 - 「plan.md のタスク一覧に書かれた順に実装し、git・plan.md・テストとビルドの実行には触れず、報告フォーマットで返す」旨
@@ -91,21 +90,21 @@ git checkout -b <feature> "$DEFAULT"
 `S<n>` 待ちの中断では、1 行目に当該項目の内容と `To:` をそのまま引き写し、「別 PJ の変更待ち」に丸めない。
 次の一手は `To:` の有無で分ける。
 - `To:` があれば相手 PJ のセッションと `ListAgents` / `SendMessage` で会話しながら詰める
-- 無ければ当該項目を実施してから `/impl <feature>` を再実行する
+- 無ければ当該項目を実施してから `/impl` を再実行する
 
 ```markdown
 ### 実装完了
 <何タスクを実装したかを 1 行>
 
-生成物: `.specs/<feature>/plan.md` のチェックボックス更新
+生成物: `.specs/plan.md` のチェックボックス更新
 
 ### 要確認
 - <implementer の報告の `自分で決めた判断` をそのまま> — 該当: <タスク番号 / ファイル>
 <無ければこのブロックを省略>
 
 ### 次の一手
-- テストを回す: `/test <feature>`
-  <テストコマンドが無いリポジトリなら `- レビューに進む: /review <feature>` に差し替える>
+- テストを回す: `/test`
+  <テストコマンドが無いリポジトリなら `- レビューに進む: /review` に差し替える>
 - 仕様を直す: `/spec` `/plan` のいずれかを再実行
   <要確認があるときだけ>
 ```
