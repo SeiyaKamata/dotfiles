@@ -2,7 +2,6 @@
 .specs
 .playwright-mcp/
 .envrc
-.target_feature
 **/.claude/settings.local.json
 
 # Claude

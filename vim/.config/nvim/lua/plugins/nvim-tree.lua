@@ -51,16 +51,6 @@ return {
 					if node.type == "directory" then
 						vim.fn.setreg('"', node.name)
 						vim.fn.setreg("+", node.name)
-						local relpath = vim.fn.fnamemodify(node.absolute_path, ":.")
-						local feature = relpath:match("^%.specs/([^/]+)$")
-						if feature then
-							local path = vim.fn.getcwd() .. "/.target_feature"
-							local f = io.open(path, "w")
-							if f then
-								f:write(feature .. "\n")
-								f:close()
-							end
-						end
 					else
 						local relpath = vim.fn.fnamemodify(node.absolute_path, ":.")
 						vim.fn.setreg('"', relpath)
