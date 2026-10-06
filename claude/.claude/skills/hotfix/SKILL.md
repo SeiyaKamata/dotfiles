@@ -3,7 +3,7 @@ name: hotfix
 description: 調査済みのバグ報告を受け、本番tagからreleaseブランチとworkブランチを切って修正し、release宛・main宛の2つのPRを作成する。
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git *), Bash(gh *), Bash(mkworktree *), Bash(mkdir *), Bash(ln *), Bash(date *), Skill
-argument-hint: "<feature> [tag]"
+argument-hint: "[tag]"
 ---
 
 # hotfix スキル
@@ -11,7 +11,7 @@ argument-hint: "<feature> [tag]"
 ## 役割
 調査済みのバグを本番環境で動いている tag に当てる。
 tag から release ブランチと work ブランチを切り、症状を止める最小限の修正を実装して、本番へ当てる release 宛と同じ修正を取り込む main 宛の 2 つの draft PR を作る。
-原因調査は行わず、`.specs/<feature>/bug-report.md` に原因が絞り込まれていることを前提にする。
+原因調査は行わず、`.specs/bug-report.md` に原因が絞り込まれていることを前提にする。
 
 ## 判断が割れる点の扱い
 本番への修正なので人が起動し、起動後は途中で承認を取らずに進める。
@@ -59,13 +59,12 @@ tag が `^(.+)_p([0-9]+)$` にマッチすれば base はキャプチャ 1、n �
 ## 進め方
 
 ### Step 1: 引数の確認
-- `$ARGUMENTS[0]` が無ければ「使い方: /hotfix <feature> [tag]」を表示して終了
-- `$ARGUMENTS[1]` があれば対象 tag の候補にする
+- `$ARGUMENTS[0]` があれば対象 tag の候補にする
 
 ### Step 2: バグ報告確認
 
-`.specs/<feature>/bug-report.md` を読み、症状・再現手順・疑わしい箇所・想定する修正範囲・回帰テストの観点を控える。
-存在しない、または「再現可否: 再現できず」なら Step 10 の中断カードで `/bughunt <feature>` を案内する。
+`.specs/bug-report.md` を読み、症状・再現手順・疑わしい箇所・想定する修正範囲・回帰テストの観点を控える。
+存在しない、または「再現可否: 再現できず」なら Step 10 の中断カードで `/bughunt` を案内する。
 
 ### Step 3: hotfix 専用 worktree の確認と作成
 
@@ -73,17 +72,16 @@ main repo は bare repo で、すべての worktree は何らかの作業中と�
 Bash の作業ディレクトリは呼び出しごとにプロジェクトルートへ戻り、`/commit` も Read / Edit もこのセッションの worktree で動くので、別の worktree を対象に作業は続けられない。
 worktree を作ったらこのセッションでは進めず、その worktree で開いたセッションに引き継ぐ。
 
-`git rev-parse --show-toplevel` のパス末尾が `-hotfix-<feature>` なら専用 worktree に立っているので Step 4 へ。
-それ以外なら専用 worktree を作り、`.specs/<feature>` を symlink で共有してから、`$dest` で `claude` を起動して `/hotfix <feature> <tag>` を再実行するよう Step 10 の中断カードで案内する。
+`git rev-parse --show-toplevel` のパス末尾が `-hotfix` なら専用 worktree に立っているので Step 4 へ。
+それ以外なら専用 worktree を作り、`bug-report.md` をその worktree の `.specs/` へコピーしてから、`$dest` で `claude` を起動して `/hotfix <tag>` を再実行するよう Step 10 の中断カードで案内する。
 
 ```
 bare_repo=$(git rev-parse --git-common-dir)
-dest=$(mkworktree "$bare_repo" "$(basename "$bare_repo")-$(date +%Y%m%d)-hotfix-<feature>")
-mkdir -p "$dest/.specs"
-ln -s "$(git rev-parse --show-toplevel)/.specs/<feature>" "$dest/.specs/<feature>"
+dest=$(mkworktree "$bare_repo" "$(basename "$bare_repo")-$(date +%Y%m%d)-hotfix")
+cp .specs/bug-report.md "$dest/.specs/bug-report.md"
 ```
 
-`.specs/` は gitignore 配下で worktree 間で共有されないため、symlink で `bug-report.md` の実体を 1 箇所に保つ。
+`.specs` は worktree ごとに別のディレクトリを指すので、専用 worktree には `bug-report.md` を持ち込む。
 
 ### Step 4: 対象 tag の確認
 
@@ -111,7 +109,7 @@ work ブランチに立った状態で `bug-report.md` の疑わしい箇所を 
 |---|---|
 | 該当箇所が同じ内容で存在する | Step 7 へ |
 | 存在するが差分がある | 差分を人に提示し、想定する修正範囲が通用するかを確認してから Step 7 へ |
-| パス・関数ごと存在しない | 調査ベースがずれているので、work ブランチに立ったまま `/bughunt <feature>` を回し直すよう Step 10 の中断カードで案内する |
+| パス・関数ごと存在しない | 調査ベースがずれているので、work ブランチに立ったまま `/bughunt` を回し直すよう Step 10 の中断カードで案内する |
 
 ### Step 7: 実装
 

@@ -3,7 +3,7 @@ name: orch
 description: 開発パイプライン全体を管理する。新規開発や機能追加の指示を受けたら使う。
 disable-model-invocation: true
 allowed-tools: Read, Edit, Bash(git *), Bash(gh *), Skill, Agent
-argument-hint: "<feature> [<stage>]"
+argument-hint: "[<stage>]"
 ---
 
 # オーケストレーター
@@ -28,26 +28,26 @@ argument-hint: "<feature> [<stage>]"
 判断で埋めた点は成果物本文に注記が残らずカードにしか現れないので、次のレビューまで保持して工程別レビュアーへのプロンプトに含め、停止点の報告にも含める。
 
 ## 工程レジストリ
-開始工程を `/orch <feature> [<stage>]` で指定でき、指定工程より前は実行しない。
+開始工程を `/orch [<stage>]` で指定でき、指定工程より前は実行しない。
 `/fix` `/sync` は自己修正ループの内部工程なので、開始工程には指定できない。
 
 | 開始工程 | 開始 Step | 起動コマンド |
 |---|---|---|
-| `spec` | Step 3 | `/spec <feature>` |
-| `plan` | Step 4 | `/plan <feature>` |
-| `scenarios` | Step 4 の `/scenarios` 起動から | `/scenarios <feature>` |
-| `impl` | Step 5 | `/impl <feature>` |
-| `test` | Step 6 | `/test <feature>` |
-| `review` | Step 7 | `/review <feature>` |
-| `qa` | Step 8 | `/qa <feature>` |
+| `spec` | Step 3 | `/spec` |
+| `plan` | Step 4 | `/plan` |
+| `scenarios` | Step 4 の `/scenarios` 起動から | `/scenarios` |
+| `impl` | Step 5 | `/impl` |
+| `test` | Step 6 | `/test` |
+| `review` | Step 7 | `/review` |
+| `qa` | Step 8 | `/qa` |
 | `commit` | Step 9 | `/commit` |
-| `land` | Step 10 | `/land <feature>` |
-| `watch-ci` | Step 11 | `/watch-ci <feature>` |
-| `triage-comments` | Step 12 | `/triage-comments <feature>` |
+| `land` | Step 10 | `/land` |
+| `watch-ci` | Step 11 | `/watch-ci` |
+| `triage-comments` | Step 12 | `/triage-comments` |
 
 前提成果物は事前チェックせず、開始工程をそのまま起動する。
 不足していれば起動した skill 自身が検知して案内するので、案内された工程を実行してから元の開始工程を再実行し、それでも中断すれば報告して停止する。
-対象ブランチ・対象 PR の解決も起動先の skill 自身が `<feature>` から行い、orch は先回りして用意しない。
+対象ブランチ・対象 PR の解決も起動先の skill 自身が 行い、orch は先回りして用意しない。
 
 ## 妥当性検証ループ
 `/spec` `/plan` は完了後、orch が対象工程のレビュアーを起動して成果物を検証し、NG ならその工程を再起動して直させる。
@@ -83,9 +83,8 @@ loop:
 ## 進め方
 
 ### Step 1: 引数の確認
-- 引数が 0 個なら「使い方: /orch <feature> [<stage>]」を表示して終了
-- 第 1 引数を feature、第 2 引数を開始工程にする。無ければ `spec`
-- 第 2 引数が工程レジストリの 11 語と完全一致しなければ同じ使い方を表示して終了
+- 第 1 引数を開始工程にする。無ければ `spec`
+- 第 1 引数が工程レジストリの 11 語と完全一致しなければ「使い方: /orch [<stage>]」を表示して終了
 
 ### Step 2: ディスパッチ
 
@@ -101,12 +100,13 @@ loop:
 
 ### Step 4: `/plan`
 
-「妥当性検証ループ」で確定したら `/scenarios <feature>` で `qa.md` を作り、完了したら `/impl` へ。
+「妥当性検証ループ」で確定したら `/scenarios` で `qa.md` を作り、完了したら `/impl` へ。
 開始工程が `scenarios` のときは `/plan` を実行せず、ここの `/scenarios` 起動から始める。
 
 ### Step 5: `/impl`
 
-実装ブランチ `<feature>` 1 本の上で全タスクを実装する。
+実装ブランチ 1 本の上で全タスクを実装する。
+実装ブランチ名は `.specs/requirements.md` の frontmatter の `branch_name` があればそれ、無ければ `git rev-parse --show-toplevel` のディレクトリ名にする。
 
 ### Step 6: `/test`
 
@@ -126,7 +126,7 @@ qa は commit より前に置き、実装が作業ツリーにあるうちに fe
 
 ### `/fix`
 
-`/test` FAIL・`/qa` FAIL・`/watch-ci` 赤・設計起因以外の `/review` NG・`/bughunt` 完了のとき、呼び出し元のカードに従って `/fix <feature>` を起動する。
+`/test` FAIL・`/qa` FAIL・`/watch-ci` 赤・設計起因以外の `/review` NG・`/bughunt` 完了のとき、呼び出し元のカードに従って `/fix` を起動する。
 対象確認は `fix/SKILL.md` の Step 2 に従う。
 
 完了後:
@@ -147,19 +147,19 @@ PR 本文の `@coderabbitai ignore` で自動レビューは走らないので�
 
 PR の CI green を待つ。
 - green → Step 12 へ
-- 赤 → `/fix <feature>` → `/commit` → `/sync <feature>` → `/watch-ci` に戻る
+- 赤 → `/fix` → `/commit` → `/sync` → `/watch-ci` に戻る
   - `/sync` は `comment-report.md` に未チェックの項目が無ければ push だけして戻る
 
 完了後: `ci-report.md` の `count` が 3 以上なら報告して停止。
 
 ### Step 12: コメント対応
 
-`/triage-comments <feature>` を実行し、`comment-report.md` の各項目の承認欄を orch 自身が埋める。
+`/triage-comments` を実行し、`comment-report.md` の各項目の承認欄を orch 自身が埋める。
 - 提示された「提案」をそのまま採用する
 - 裏取りが `未検証` のまま、または分類の確信が持てないと明記された件は `保留` にする
   - `/sync` が保留の返信と issues.md 記録を行うので、拾うかは人が issues.md で判断する
 
-承認欄を埋めたら `/fix <feature>` で `対応する` の項目を修正し、`/commit` → `/sync <feature>` で push・返信・issues.md 記録まで行う。
+承認欄を埋めたら `/fix` で `対応する` の項目を修正し、`/commit` → `/sync` で push・返信・issues.md 記録まで行う。
 続けて orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って再レビューを発火し、`/watch-ci` に戻る。
 
 このループは最大 2 巡。
@@ -183,7 +183,7 @@ Ready for review への切替と merge は人が判断する。
 
 ```markdown
 ### パイプライン完走
-<feature 名と到達状態を 1 行>
+<到達状態を 1 行>
 - <開始工程を指定して起動したなら `開始工程: /plan` の形で>
 - <保持していた要確認>
 
@@ -198,10 +198,10 @@ Ready for review への切替と merge は人が判断する。
 実装中に仕様・設計・タスクの変更が必要になったら、変更が生じた工程から再入し、OK の前進チェーンを辿り直す。
 どのスキルが変更の必要性に気づいた場合でも、`/orch` 駆動かどうかに関わらず同じ基準で再入先を決める。
 
-- 要件が変わる → `/spec <feature>` → `/plan` → `/scenarios` → 実装へ
-- 設計だけ変わる → `/plan <feature>` → `/scenarios` → 実装へ
-- タスクだけ変わる → `/plan <feature>` → 実装へ
-- QA シナリオだけ変わる → `/scenarios <feature>` → 実装へ
+- 要件が変わる → `/spec` → `/plan` → `/scenarios` → 実装へ
+- 設計だけ変わる → `/plan` → `/scenarios` → 実装へ
+- タスクだけ変わる → `/plan` → 実装へ
+- QA シナリオだけ変わる → `/scenarios` → 実装へ
 
 各スキルは再入時に上流 doc との整合を自分で再チェックし、ズレがあれば差分だけを直す。
 

@@ -1,15 +1,15 @@
 ---
 name: aws-logs
-description: awscli で CloudWatch Logs を調査し、結果を .specs/<feature>/log-report.md に記録する。AWS 上のエラー原因の追跡・ログ横断・件数集計を頼まれたら使う。
+description: awscli で CloudWatch Logs を調査し、結果を .specs/log-report.md に記録する。AWS 上のエラー原因の追跡・ログ横断・件数集計を頼まれたら使う。
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Grep, Bash(aws logs describe-log-groups *), Bash(aws logs describe-log-streams *), Bash(aws logs tail *), Bash(aws logs filter-log-events *), Bash(aws logs get-log-events *), Bash(aws logs start-query *), Bash(aws logs get-query-results *), Bash(aws sts get-caller-identity *), Bash(aws configure list-profiles), Bash(date *), Bash(grep *), Bash(rg *), Bash(jq *), Bash(wc *), Bash(head *), Bash(tail *), Bash(sort *), Bash(uniq *), Bash(mkdir *)
-argument-hint: "<feature> [調べたいこと]"
+argument-hint: "[調べたいこと]"
 ---
 
 # AWS ログ調査スキル
 
 ## 役割
-awscli で CloudWatch Logs を調べ、「ログに何が出ているか」を `.specs/<feature>/log-report.md` に記録する。
+awscli で CloudWatch Logs を調べ、「ログに何が出ているか」を `.specs/log-report.md` に記録する。
 対象は `filter-log-events` と Logs Insights だけで、ALB/S3 アクセスログ・CloudTrail・ECS のタスク状態は範囲外。
 コードは直さず、ログに出ていない因果も書かない。原因の確定は別工程が担う。
 
@@ -62,9 +62,8 @@ awscli で CloudWatch Logs を調べ、「ログに何が出ているか」を `
 
 ### Step 1: 入力の確認
 
-- `$ARGUMENTS[0]` が無ければ「使い方: /aws-logs <feature> [調べたいこと]」を表示して終了
 - 調べたいことは `$ARGUMENTS` の残りか対話で受ける。症状・エラー文言・時間帯・リクエスト ID
-- `.specs/<feature>/bug-report.md` があれば症状と時間帯の起点として読む
+- `.specs/bug-report.md` があれば症状と時間帯の起点として読む
 
 ### Step 2: プロファイルの確定
 
@@ -85,7 +84,7 @@ aws sts get-caller-identity --profile <p> --no-cli-pager
 ```
 認証が切れています。ログインしてから再実行してください:
   aws sso login --profile <p>
-  復帰: /aws-logs <feature>
+  復帰: /aws-logs
 ```
 
 ### Step 4: ロググループの確定
@@ -175,7 +174,7 @@ Step 6〜9 は広く浅くから絞って深くの順に進み、空振りした
 
 ### Step 10: 記録
 
-「log-report.md のフォーマット」で `.specs/<feature>/log-report.md` に書き出す。
+「log-report.md のフォーマット」で `.specs/log-report.md` に書き出す。
 
 ### Step 11: 出力
 
@@ -186,14 +185,14 @@ Step 6〜9 は広く浅くから絞って深くの順に進み、空振りした
 ### ログ調査完了
 <何を調べて何が分かったかを 1 行>
 
-生成物: `.specs/<feature>/log-report.md`
+生成物: `.specs/log-report.md`
 
 ### 要確認
 - <ログからは確定できなかった点・空振りした条件>
 
 ### 次の一手
-- 原因を特定する: `/bughunt <feature>`
-- 窓を変えて再調査: `/aws-logs <feature> [条件]`
+- 原因を特定する: `/bughunt`
+- 窓を変えて再調査: `/aws-logs [条件]`
 ```
 
 要確認は無ければブロックごと省略する。

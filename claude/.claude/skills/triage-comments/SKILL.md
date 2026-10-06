@@ -1,14 +1,13 @@
 ---
 name: triage-comments
 description: 自分のPRに付いた未解決コメントを収集・分類・裏取りし、対応方針の提案をレポートにまとめる。CI完了後に使う。
-allowed-tools: Read, Write, Glob, Grep, Bash(gh *), Bash(find *), Bash(date *)
-argument-hint: "[<feature>]"
+allowed-tools: Read, Write, Glob, Grep, Bash(gh *), Bash(date *)
 ---
 
 # PRコメント選別スキル
 
 ## 役割
-自分の PR に付いた未解決のレビューコメントを収集し、要件照合と裏取りを行った上で、対応方針の提案を `.specs/<feature>/comment-report.md` にまとめる。
+自分の PR に付いた未解決のレビューコメントを収集し、要件照合と裏取りを行った上で、対応方針の提案を `.specs/comment-report.md` にまとめる。
 コード修正・返信・スレッド対応は行わず、対応する / しないの確定は人がレポートの承認欄に書き込む。
 
 対応中にレビュアーの恒常的な好みや PJ の規約に気づいたら、そのリポジトリの `CLAUDE.local.md` に書き戻す。
@@ -77,7 +76,6 @@ frontmatter は test・review・qa のレポートと共通の形式に `pr` を
 
 ```markdown
 ---
-feature: [feature]
 pr: [PR番号]
 branch: [headRefName]
 head: [対象 PR の head コミット。40 文字、短縮しない]
@@ -104,12 +102,9 @@ fixed: false [常に false。/fix が修正を適用したときだけ true に�
 ### Step 1: 対象 PR の特定
 
 常に 1 PR だけを対象にする。
-- `$ARGUMENTS[0]` があれば `gh pr view <feature> --json number,title,url,headRefName`
-  - `gh pr view` はブランチ名を受け付けるので、実装ブランチ `<feature>` の PR がそのまま引ける
-- 無ければ `gh pr view --json number,title,url,headRefName` でカレントブランチの PR
+- `gh pr view --json number,title,url,headRefName` でカレントブランチの PR
 
 特定できなければ Step 8 の中断カードで報告する。
-feature 名は引数があればそれ、無ければ head ブランチ名にする。
 
 ### Step 2: コメント収集
 
@@ -126,10 +121,9 @@ feature 名は引数があればそれ、無ければ head ブランチ名にす
 
 ### Step 3: 照合基準の読込
 
-`.specs/<feature>/requirements.md` を Read する。
-無ければ `find . -path './.git' -prune -o -name 'requirements.md' -print | grep '\.specs/'` で列挙し、ブランチ名に最も近いものを選ぶ。
-0 件、または複数ヒットして選べなければ特定失敗とし、要件照合を `未照合` にして裏取りだけで続行する。
-候補のパスは要確認に列挙する。
+`.specs/requirements.md` を Read する。
+無ければ特定失敗とし、要件照合を `未照合` にして裏取りだけで続行する。
+要確認に要件を読めなかった旨を書く。
 
 保持する照合基準は「## スコープ外」の各項目と、各 Requirement の受け入れ条件。
 
@@ -150,7 +144,7 @@ feature 名は引数があればそれ、無ければ head ブランチ名にす
 
 ### Step 7: レポート作成
 
-「comment-report.md のフォーマット」で `.specs/<feature>/comment-report.md` を Write する。
+「comment-report.md のフォーマット」で `.specs/comment-report.md` を Write する。
 
 ### Step 8: 出力
 
@@ -162,17 +156,17 @@ feature 名は引数があればそれ、無ければ head ブランチ名にす
 ### コメント選別完了
 <提案件数を 1 行>
 
-生成物: `.specs/<feature>/comment-report.md`
+生成物: `.specs/comment-report.md`
 
 ### 要確認
 - 未検証 <n> 件。裏取りで成立・不成立を判定できなかった指摘
 - スコープ外 <n> 件 → /seed
-- 要件の見直しが必要 <n> 件 → /spec <feature>
+- 要件の見直しが必要 <n> 件 → /spec
 - nitpick 除外 <n> 件。bot が軽微と分類し、レポートに載せていない
 - 要件未照合。requirements.md を特定できず。複数ヒットなら候補のパスを添える
 <該当しない行と、無ければブロックごと省略>
 
 ### 次の一手
-- レポートの承認欄を確認する: `.specs/<feature>/comment-report.md`
-- 承認後に修正する: `/fix <feature>`
+- レポートの承認欄を確認する: `.specs/comment-report.md`
+- 承認後に修正する: `/fix`
 ```

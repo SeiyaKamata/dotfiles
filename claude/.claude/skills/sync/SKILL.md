@@ -1,14 +1,13 @@
 ---
 name: sync
 description: 既存PRに積んだコミットをpushする。comment-report.mdがあれば続けてPRコメントへの返信とissues.md記録も行う。CI赤修正・コメント対応の修正後に使う。
-argument-hint: "[<feature>]"
 allowed-tools: Bash(git *), Bash(gh *), Read, Write, Edit
 ---
 
 # 既存PR更新スキル
 
 ## 役割
-既に PR を持つブランチに積んだコミットをリモートへ push し、`.specs/<feature>/comment-report.md` があれば承認済み項目への返信と `issues.md` への記録まで行う。
+既に PR を持つブランチに積んだコミットをリモートへ push し、`.specs/comment-report.md` があれば承認済み項目への返信と `issues.md` への記録まで行う。
 返信は必ず push の後に行う。先に返信するとリモートのコードが古いまま「直しました」と伝えることになり、直っていないと指摘され直す。
 新しい PR は作らず、コードも直さず、スレッドの解決済み化もしない。
 
@@ -49,7 +48,6 @@ CURRENT=$(git branch --show-current)
 gh pr view --json number,url,headRefName
 ```
 
-feature 名は引数があればそれ、無ければ `CURRENT` にする。
 PR が無ければ Step 7 の中断カードで報告して終了する。
 
 ### Step 2: push
@@ -63,7 +61,7 @@ git push
 
 ### Step 3: comment-report.md の読込
 
-`.specs/<feature>/comment-report.md` を読む。
+`.specs/comment-report.md` を読む。
 無い、または `[ ]` の項目が 1 つも無ければ Step 7 へ進む。
 `[ ]` の項目だけを承認欄で振り分ける。
 
@@ -94,7 +92,7 @@ gh pr comment <PR番号> --body "<返信内容>"
 
 ### Step 5: issues 記録
 
-「対応しない」と「保留」の項目が 1 件以上あれば、「issues.md のフォーマット」で `.specs/<feature>/issues.md` に追記する。
+「対応しない」と「保留」の項目が 1 件以上あれば、「issues.md のフォーマット」で `.specs/issues.md` に追記する。
 要件側を直すべきと判断した矛盾、スコープ外の指摘も記録対象に含める。
 
 ### Step 6: comment-report.md のチェック
@@ -105,7 +103,7 @@ gh pr comment <PR番号> --body "<返信内容>"
 ### Step 7: 出力
 
 次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
-中断時は見出しを `### 更新中断` にし、1 行目に中断理由を書き、次の一手は PR が無ければ `/land <feature>`、push が拒否されたなら状況の確認後に `/sync` を再実行する旨にする。
+中断時は見出しを `### 更新中断` にし、1 行目に中断理由を書き、次の一手は PR が無ければ `/land`、push が拒否されたなら状況の確認後に `/sync` を再実行する旨にする。
 
 ```markdown
 ### 更新完了
@@ -113,7 +111,7 @@ gh pr comment <PR番号> --body "<返信内容>"
 - <対応件数・非対応件数・保留件数を 1 行。comment-report.md を処理していなければ省略>
 
 生成物: <対象 PR の URL>
-<issues.md に追記していれば>`.specs/<feature>/issues.md`
+<issues.md に追記していれば>`.specs/issues.md`
 
 ### 要確認
 - 承認待ち <n> 件。comment-report.md の承認欄が空欄

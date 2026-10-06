@@ -1,14 +1,14 @@
 ---
 name: watch-ci
 description: PRのCIを監視し、完了後に結果に応じて分岐対応する。push後やPR作成後に使う。
-argument-hint: "[PR番号 | <feature>]"
+argument-hint: "[PR番号]"
 allowed-tools: Read, Write, Bash(gh *), Bash(git *), Bash(date *), Agent
 ---
 
 # CI監視スキル
 
 ## 役割
-PR の CI が完了するまで監視し、green / 赤を判定して `.specs/<feature>/ci-report.md` に記録する。
+PR の CI が完了するまで監視し、green / 赤を判定して `.specs/ci-report.md` に記録する。
 赤ならログを取得して要点に畳み、ログ本体はメインコンテキストにもカードにも載せない。
 Ready for review への切り替えは行わず、draft のまま完了とする。
 Ready for review はレビュアーに通知が飛ぶ外向きの操作で、取り消しても通知は戻らないので人が明示的に実行する。
@@ -23,7 +23,6 @@ frontmatter は test・review・qa のレポートと共通の形式にする。
 
 ```markdown
 ---
-feature: [feature]
 branch: [対象 PR の head ブランチ]
 head: [gh pr view <PR番号> --json headRefOid --jq .headRefOid で取った 40 文字。短縮しない]
 ran_at: [書き出し時点の時刻。date +"%Y-%m-%dT%H:%M:%S%z" で取得]
@@ -31,7 +30,7 @@ fixed: false [常に false。/fix が修正を適用したときだけ true に�
 count: [赤の連続回数。今回が赤かつ既存レポートの branch が同じで判定も赤なら既存値 +1、それ以外は 1]
 ---
 
-# CI結果: [feature]
+# CI結果
 
 ## サマリ
 - PR: #[番号] [URL]
@@ -47,12 +46,9 @@ count: [赤の連続回数。今回が赤かつ既存レポートの branch が�
 ### Step 1: 対象 PR の特定
 
 - `$ARGUMENTS` が数字のみ → その PR 番号 1 本
-- `$ARGUMENTS` が数字以外の文字列 → feature 名
-- 省略 → カレントブランチ名を feature 名にする
+- 省略 → カレントブランチの PR
 
-feature 名が求まったら `gh pr list --head "<feature>" --json number,url,isDraft,headRefName,state --jq '.[]'` で PR を 1 本特定する。
-
-feature 名が求まらなければ `gh pr view` でカレントブランチの PR を使い、レポートは書かずに要確認に出す。
+省略時は `gh pr list --head "$(git branch --show-current)" --json number,url,isDraft,headRefName,state --jq '.[]'` で PR を 1 本特定する。
 PR が見つからなければ、カレントブランチが push されているか・PR が作成済みかを確認し、Step 5 の中断カードで `/land` を案内する。
 
 ### Step 2: CI の監視と判定
@@ -80,7 +76,7 @@ gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusi
 
 ### Step 4: レポートの書き出し
 
-feature 名が求まっているときだけ、既存の `ci-report.md` があれば `branch`・判定・`count` を読み、「ci-report.md のフォーマット」で `.specs/<feature>/ci-report.md` に上書きする。
+既存の `ci-report.md` があれば `branch`・判定・`count` を読み、「ci-report.md のフォーマット」で `.specs/ci-report.md` に上書きする。
 
 ### Step 5: 出力
 
@@ -93,14 +89,13 @@ feature 名が求まっているときだけ、既存の `ci-report.md` があ�
 
 生成物:
 - <対象 PR の URL>
-- `.specs/<feature>/ci-report.md`
+- `.specs/ci-report.md`
 
 ### 要確認
 - <SKIPPED 扱いにしたジョブ、再実行で結果が変わったジョブなど、判定に影響しうる点>
-- <feature 名が求まらずレポートを書けなかったならその旨>
 <無ければこのブロックを省略>
 
 ### 次の一手
 - コメントに対応する: `/triage-comments`
-  <green で未解決コメントなしなら `- Ready for review / merge を判断する` に、赤なら `- 失敗を直す: /fix <feature>` に差し替える>
+  <green で未解決コメントなしなら `- Ready for review / merge を判断する` に、赤なら `- 失敗を直す: /fix` に差し替える>
 ```
