@@ -2,14 +2,14 @@
 name: notion-import
 description: Notion のタスクページから下書きrequirements.mdを作る。Notion のチケット URL を渡されたら spec の前に使う。
 disable-model-invocation: true
-allowed-tools: Write, Glob, mcp__claude_ai_Notion__*
+allowed-tools: Write, mcp__claude_ai_Notion__*
 argument-hint: "<notion-url>"
 ---
 
 # Notion 取り込みスキル
 
 ## 役割
-Notion のタスクページを 1 回読み、`.specs/<feature>/requirements.md` を `status: draft` で作る。
+Notion のタスクページを 1 回読み、`.specs/requirements.md` を `status: draft` で作る。
 EARS 要件化はせず、Notion に受け入れ条件や実装手順が書かれていても案として残すだけにする。
 
 ## 判断が割れる点の扱い
@@ -26,7 +26,6 @@ Notion の要点を落とさず要約し、長文の丸写しはしない。
 ---
 status: draft
 repo: [Notion に対象リポジトリの記載があれば bare repo のディレクトリ名。無ければ空文字で /spec が確定する]
-epic: ""
 notion_url: [取り込み元ページの URL]
 pr_title: ["[<Task ID>] <タイトル>" の形。Task ID が無ければ空文字]
 branch_name: [Branch Name プロパティの値。記録のみで、無ければ空文字]
@@ -47,7 +46,7 @@ branch_name: [Branch Name プロパティの値。記録のみで、無ければ
 [外せない条件、やってほしくないこと、既存仕様との整合など]
 
 ## 拾い方
-この下書きは未着手。`/spec <feature>` を実行して requirements 詳細化から始める。
+この下書きは未着手。`/spec` を実行して requirements 詳細化から始める。
 ```
 
 ## 進め方
@@ -61,26 +60,22 @@ branch_name: [Branch Name プロパティの値。記録のみで、無ければ
 本文が「詳細は子ページ参照」のように別ページへ委ねている場合だけ 1 階層辿り、本文中の一般リンクは辿らない。
 
 連携が使えない、権限が無いなどで読めなければ、貼り付けで続けるかをユーザーに確認する。
-了承と本文が得られれば続行し、得られなければ Step 5 の中断カードで報告する。
+了承と本文が得られれば続行し、得られなければ Step 4 の中断カードで報告する。
 
-### Step 3: feature 名の確定
+### Step 3: 書き出し
 
-ページタイトルから kebab-case で生成し、`Glob(".specs/*")` で同名があれば区別がつく別名にする。
+Step 2 の内容を「requirements.md のフォーマット」で `.specs/requirements.md` に書く。
 
-### Step 4: 書き出し
-
-Step 2 の内容を「requirements.md のフォーマット」で `.specs/<feature>/requirements.md` に書く。
-
-### Step 5: 出力
+### Step 4: 出力
 
 次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
 中断時は見出しを `### Notion 取り込み中断` にし、1 行目に中断理由を書き、生成物の行を省き、次の一手は復帰に必要な操作だけにする。
 
 ```markdown
 ### Notion 取り込み完了
-<どのチケットを何の feature として取り込んだかを 1 行>
+<どのチケットを取り込んだかを 1 行>
 
-生成物: `.specs/<feature>/requirements.md`
+生成物: `.specs/requirements.md`
 
 ### 要確認
 - <Notion に無くて空にした項目>
@@ -88,5 +83,5 @@ Step 2 の内容を「requirements.md のフォーマット」で `.specs/<featu
 <無ければこのブロックを省略>
 
 ### 次の一手
-- 要件に落とす: `/spec <feature>`
+- 要件に落とす: `/spec`
 ```

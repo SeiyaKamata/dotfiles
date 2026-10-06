@@ -1,8 +1,7 @@
 ---
 name: spec
-description: ユーザーから機能要望を受け取り、feature名を決めて要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または既存requirements.mdの詳細化・修正で使う。
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git rev-parse *)
-argument-hint: "[feature]"
+description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または既存requirements.mdの詳細化・修正で使う。
+allowed-tools: Read, Write, Edit, Bash(git rev-parse *)
 ---
 
 # 要件策定スキル
@@ -10,7 +9,7 @@ argument-hint: "[feature]"
 ## 役割
 ユーザーの要望から EARS 形式の要件ドキュメントを作る。
 「何を作るか」だけを扱い、技術的な実装方法を含む「どう作るか」は書かない。
-`status: confirmed` の確定稿を書くのは `/spec` だけで、feature 名の決定・衝突チェックも自分で行う。
+`status: confirmed` の確定稿を書くのは `/spec` だけだけ。
 
 ## 判断が割れる点の扱い
 途中でユーザーに質問もスコープ承認もしない。
@@ -72,7 +71,6 @@ Requirement 番号は主体の節をまたいで連番にする。
 ---
 status: confirmed
 repo: [この feature を実装するリポジトリ。bare repo のディレクトリ名]
-epic: [feature が epic に属するなら epic 名。無ければ空文字]
 notion_url: [下書きにあれば引き継ぐ。無ければ空文字]
 pr_title: [下書きにあれば引き継ぐ。無ければ空文字]
 branch_name: [下書きにあれば引き継ぐ。無ければ空文字]
@@ -116,18 +114,13 @@ branch_name: [下書きにあれば引き継ぐ。無ければ空文字]
 
 ## 進め方
 
-### Step 1: feature 名の確定と開始 Step の判定
+### Step 1: 開始 Step の判定
 
-- `$ARGUMENTS[0]` があれば kebab-case・3〜5 語程度に正規化し、feature 名の候補にする
-- 無ければ会話文脈の要望から同じ制約で候補を生成する
-- 引数も要望も無ければ「使い方: /spec [feature]」を表示して終了
-- `.specs/epics/*.md` の `## feature 一覧` に候補と同名の feature があれば、その `epic.md` を要望の材料として読み、frontmatter の `epic` に epic 名を書く
-  - epic の目的・完了条件・順序の根拠を踏まえて要件化し、他の feature の担当範囲を取り込まない
-  - epic に `## 契約` があれば、この feature が出す側か受ける側かに応じて、その形を受け入れ条件に写す
-- frontmatter の `repo` は、epic に属するなら epic.md の `Repo` 列から、そうでなければ今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename から採る
+- `.specs/requirements.md` が無く、会話文脈にも要望が無ければ「使い方: /spec <要望>」を表示して終了
+- frontmatter の `repo` は、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename から採る
 
-`.specs/<候補>/requirements.md` の有無と frontmatter の `status`、変更要望で分岐する:
-- **無い**: 新規。`Glob(".specs/*")` で紛らわしい既存 feature 名があれば、末尾に連番か区別できる語を足した別名にし、Step 2 から書き起こす
+`.specs/requirements.md` の有無と frontmatter の `status`、変更要望で分岐する:
+- **無い**: 新規。Step 2 から書き起こす
 - **有る + `status: draft`**: 下書き。本文を要望の材料として使い、Step 2 から詳細化する
 - **有る + `status: confirmed` + 変更要望あり**: 該当箇所だけを直し、要望に無い不備は気づいても直さない
   - 境界に関わる要望なら Step 2 から、そうでなければ Step 3 から
@@ -148,7 +141,7 @@ in-scope の項目**だけ**を Requirement に起こす。
 
 ### Step 4: 書き出し
 
-Step 2〜3 の内容を「requirements.md のフォーマット」で `.specs/<feature>/requirements.md` に書く。
+Step 2〜3 の内容を「requirements.md のフォーマット」で `.specs/requirements.md` に書く。
 
 ### Step 5: 点検
 
@@ -157,18 +150,18 @@ Step 2〜3 の内容を「requirements.md のフォーマット」で `.specs/<f
 ### Step 6: 出力
 
 次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
-中断時は見出しを `### 要件定義中断` にし、1 行目に中断理由と `requirements.md` が未確定である旨を書き、次の一手は `/spec <feature>` だけにする。
+中断時は見出しを `### 要件定義中断` にし、1 行目に中断理由と `requirements.md` が未確定である旨を書き、次の一手は `/spec` だけにする。
 
 ```markdown
 ### 要件定義完了
 <何を要件化したかを 1 行>
 
-生成物: `.specs/<feature>/requirements.md`
+生成物: `.specs/requirements.md`
 
 ### 要確認
 <件数>件。無ければこのブロックを省略
 
 ### 次の一手
-- 実装計画に進む: `/plan <feature>`
-- 要件を直す: `/spec <feature>`
+- 実装計画に進む: `/plan`
+- 要件を直す: `/spec`
 ```

@@ -3,14 +3,13 @@ name: notion-export
 description: 実装結果、実装方針・PR URL・QA結果、を Notion の元タスクページに追記する。PRが揃って結果をNotionに報告するとき使う。
 disable-model-invocation: true
 allowed-tools: Read, Glob, Bash(git *), Bash(gh *), Bash(test *), Bash(date *), mcp__claude_ai_Notion__*
-argument-hint: "<feature>"
 ---
 
 # Notion 報告スキル
 
 ## 役割
-feature の実装結果を `.specs/<feature>/` の成果物と `gh` から集め、元の Notion タスクページの先頭に項目ごとの独立セクションとして追記する。
-追記は人が読む報告であって仕様の正本ではなく、正本は `.specs/<feature>/` と PR に残る。
+実装結果を `.specs/` の成果物と `gh` から集め、元の Notion タスクページの先頭に項目ごとの独立セクションとして追記する。
+追記は人が読む報告であって仕様の正本ではなく、正本は `.specs/` と PR に残る。
 既存セクションの書き換え・削除はしない。
 
 ## 判断が割れる点の扱い
@@ -39,30 +38,31 @@ feature の実装結果を `.specs/<feature>/` の成果物と `gh` から集め
 材料が乏しくても見出しは必ず作り、中身に「未実施」「該当なし」と書いて欠落が人に伝わるようにする。
 
 ```markdown
-## <日付メンション> QA結果: <feature>
+## <日付メンション> QA結果: <機能名>
 - 判定: <PASS / FAIL / 未実施>
 - <FAIL ならシナリオ ID と原因を 3 行以内。PASS なら省略>
 
-## <日付メンション> PR: <feature>
+## <日付メンション> PR: <機能名>
 - <PR タイトルをそのまま。draft なら末尾に (draft)>: <URL>
 
-## <日付メンション> 実装方針: <feature>
+## <日付メンション> 実装方針: <機能名>
 <requirements の目的と plan の要点を 5 行以内。PR が複数あれば「PR1: … / PR2: …」の 1 行を添える>
 ```
 
 ## 進め方
 
 ### Step 1: 引数の確認
-- `$ARGUMENTS[0]` が無いか `.specs/<feature>/` が無ければ「使い方: /notion-export <feature>」を表示して終了
+- `.specs/requirements.md` が無ければ「`.specs/requirements.md` が無いため追記できない」と表示して終了
 
 ### Step 2: 書き戻し先 URL の解決
 
-`.specs/<feature>/requirements.md` の frontmatter `notion_url` を読む。
+`.specs/requirements.md` の frontmatter `notion_url` を読む。
 無い、または空ならユーザーに Notion ページ URL を聞き、得られなければ Step 6 の中断カードで報告する。
 
 ### Step 3: 材料を集める
 
-- PR: `gh pr list --search "head:<feature>" --state all --json number,title,url,isDraft,headRefName` で列挙する
+- PR: 実装ブランチ名は `branch_name` があればそれ、無ければ worktree のルートのディレクトリ名とする
+  - `gh pr list --search "head:<実装ブランチ名>" --state all --json number,title,url,isDraft,headRefName` で列挙する
   - 0 件なら現在のブランチと `gh pr list --author @me` から補い、それでも無ければ「該当なし」
 - QA 結果: `qa-report.md` の判定とシナリオ。無ければ `qa.md`、それも無ければ「未実施」
 - 実装方針: `requirements.md` の概要と `plan.md` の要点
