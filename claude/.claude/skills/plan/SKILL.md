@@ -1,8 +1,7 @@
 ---
 name: plan
-description: 要件を受け取り技術設計と実装タスクを一つの plan.md にまとめる。.specs/<feature>/requirements.mdが出来上がったら使う。
+description: 要件を受け取り技術設計と実装タスクを一つの plan.md にまとめる。.specs/requirements.mdが出来上がったら使う。
 allowed-tools: Read, Write, Glob, Grep, Bash(git rev-parse *), Bash(git -C *), Bash(mkworktree *), WebSearch
-argument-hint: "<feature>"
 ---
 
 # 実装計画スキル
@@ -28,7 +27,7 @@ argument-hint: "<feature>"
 ### コンポーネントの境界を明確にする
 各コンポーネントについて、責務と触る場所、隣接するコンポーネントの責務に踏み込まない範囲を決める。
 複数のコンポーネントが同じファイル・同じ責務を担当する重なりがあれば、どちらか一方に寄せるか 1 つに統合し、その決定を `### 判断` に書く。
-1 feature は 1 リポジトリに閉じる。別リポジトリの変更が要るなら、それは epic の別 feature か `## 事前セットアップ` の別 PJ 依頼になる。
+1 feature は 1 リポジトリに閉じる。別リポジトリの変更が要るなら、それは `## 事前セットアップ` の別 PJ 依頼になる。
 
 ## タスク分解の原則
 - 粒度: 1 タスクは 1 体の `implementer` に渡せる範囲にする
@@ -160,11 +159,10 @@ impl の完了条件は `## タスク一覧` だけで、人しか実行でき�
 
 ### Step 1: 開始条件の確認とモード判定
 
-- `$ARGUMENTS[0]` が未指定なら「使い方: /plan <feature>」を表示して終了
-- `.specs/<feature>/requirements.md` が無ければ `/spec <feature>` を案内して終了
+- `.specs/requirements.md` が無ければ `/spec` を案内して終了
 - frontmatter の `repo` が今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename と違えば、Step 9 の中断カードで「`<repo>` の worktree で叩く」と案内して終了
 
-`.specs/<feature>/plan.md` の有無で分岐する:
+`.specs/plan.md` の有無で分岐する:
 - **無い**: 新規作成モード。Step 2 へ
 - **有る**: 編集モード。既存 `plan.md` と現在の `requirements.md` を突き合わせ、新要件の未反映・削除された要件の残存のようなズレと変更要望に該当する箇所だけを Step 2〜6 で直す
   - どちらも無ければ Step 2〜8 を飛ばし、Step 9 で「変更なし」と報告して終了
@@ -184,7 +182,7 @@ impl の完了条件は `## タスク一覧` だけで、人しか実行でき�
 
 - **別 PJ の実装状況・挙動**: `requirements.md` に「実装済み」のような記載があれば、その PJ のデフォルトブランチを worktree に展開し、Read / Grep で確認する
   - bare repo は自分の bare repo `git rev-parse --git-common-dir` と同じ親ディレクトリにある `<リポジトリ名>` を採り、`git -C <bare repo> rev-parse --is-bare-repository` が `true` でなければ確認を諦めて `### 判断` に推測として書く
-  - `git -C <bare repo> fetch origin` で最新化してから `dest=$(mkworktree <bare repo> <リポジトリ名>-<feature>)` で切る。同名の worktree が既にあればそれを使う
+  - `git -C <bare repo> fetch origin` で最新化してから `dest=$(mkworktree <bare repo> <リポジトリ名>-<今の worktree のディレクトリ名>)` で切る。同名の worktree が既にあればそれを使う
   - 依頼元の作業ツリーは remote に載っているとは限らないので、デフォルトブランチのコードを正とする
   - 食い違いは該当するタスクの細部に書き、`requirements.md` 側の修正要否を `### ずれ` に出す
 - **環境変数・設定値の導入**: ローカル・各デプロイ環境の投入先ファイルを実リポジトリで特定してから設計する
@@ -218,7 +216,7 @@ impl の完了条件は `## タスク一覧` だけで、人しか実行でき�
 
 ### Step 7: 書き出し
 
-Step 2〜6 の内容を「plan.md のフォーマット」で `.specs/<feature>/plan.md` に書く。
+Step 2〜6 の内容を「plan.md のフォーマット」で `.specs/plan.md` に書く。
 編集モードでは上書きする。
 
 ### Step 8: 点検
@@ -232,15 +230,15 @@ Step 2〜6 の内容を「plan.md のフォーマット」で `.specs/<feature>/
 ### Step 9: 出力
 
 次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
-中断時は見出しを `### 実装計画中断` にし、1 行目に中断理由を書き、書き出し前なら生成物の行を省き、次の一手は `/plan <feature>` と `/spec <feature>` だけにする。
+中断時は見出しを `### 実装計画中断` にし、1 行目に中断理由を書き、書き出し前なら生成物の行を省き、次の一手は `/plan` と `/spec` だけにする。
 
 ```markdown
 ### 実装計画完了
 <何を設計し、何個のタスクに分解したかを 1 行>
 
-生成物: `.specs/<feature>/plan.md`
+生成物: `.specs/plan.md`
 
 ### 次の一手
-- QA シナリオを作る: `/scenarios <feature>`
-- 計画を直す: `/plan <feature>`
+- QA シナリオを作る: `/scenarios`
+- 計画を直す: `/plan`
 ```

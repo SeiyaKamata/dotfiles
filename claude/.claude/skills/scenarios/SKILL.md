@@ -2,13 +2,12 @@
 name: scenarios
 description: 受け入れ条件からQAシナリオを導出しqa.mdに書き出す。/planの後、/implの前に使う。
 allowed-tools: Read, Write, Edit, Glob, Grep
-argument-hint: "<feature>"
 ---
 
 # QAシナリオ生成スキル
 
 ## 役割
-`requirements.md` の受け入れ条件から `/qa` が実行する QA シナリオを導出し、`.specs/<feature>/qa.md` に書き出す。
+`requirements.md` の受け入れ条件から `/qa` が実行する QA シナリオを導出し、`.specs/qa.md` に書き出す。
 シナリオは検証できる環境ごとに振り分け、受け入れ条件の全網羅は目的にしない。
 
 ## 判断が割れる点の扱い
@@ -68,11 +67,10 @@ UI に一切現れないものだけを次の 2 つに分ける。
 
 ### Step 1: 入力の確認と開始 Step の判定
 
-- `$ARGUMENTS[0]` が無ければ「使い方: /scenarios <feature>」を表示して終了
-- `.specs/<feature>/requirements.md` を読む。無ければ Step 6 の中断カードで報告して終了
-- `.specs/<feature>/plan.md` があれば読む
+- `.specs/requirements.md` を読む。無ければ Step 6 の中断カードで報告して終了
+- `.specs/plan.md` があれば読む
 
-`.specs/<feature>/qa.md` の有無で分岐する:
+`.specs/qa.md` の有無で分岐する:
 - **無い**: 新規作成。Step 2 から書き起こす
 - **有る**: 編集。現在の `requirements.md` / `plan.md` と突き合わせ、シナリオの無い受け入れ条件・削除された要件のシナリオの残存のようなズレと変更要望に該当する箇所だけを Step 2〜3 で直す
   - どちらも無ければ Step 2〜5 を飛ばし、Step 6 で「変更なし」と報告して終了
@@ -91,7 +89,7 @@ UI に一切現れないものだけを次の 2 つに分ける。
 
 ### Step 4: 書き出し
 
-Step 3 の内容を「qa.md のフォーマット」で `.specs/<feature>/qa.md` に書く。
+Step 3 の内容を「qa.md のフォーマット」で `.specs/qa.md` に書く。
 編集では上書きする。
 
 ### Step 5: 点検
@@ -104,18 +102,18 @@ Step 3 の内容を「qa.md のフォーマット」で `.specs/<feature>/qa.md`
 ### Step 6: 出力
 
 次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
-中断時は見出しを `### QAシナリオ生成中断` にし、1 行目に中断理由を書き、生成物の行は書き出し前なら省き、次の一手は `/spec <feature>` と `/scenarios <feature>` だけにする。
+中断時は見出しを `### QAシナリオ生成中断` にし、1 行目に中断理由を書き、生成物の行は書き出し前なら省き、次の一手は `/spec` と `/scenarios` だけにする。
 
 ```markdown
 ### QAシナリオ生成完了
 <ローカル・デプロイ環境・対象外の件数を 1 行>
 
-生成物: `.specs/<feature>/qa.md`
+生成物: `.specs/qa.md`
 
 ### 要確認
 <件数>件。無ければこのブロックを省略
 
 ### 次の一手
-- 実装に進む: `/impl <feature>`
-- シナリオを直す: `/scenarios <feature>`
+- 実装に進む: `/impl`
+- シナリオを直す: `/scenarios`
 ```
