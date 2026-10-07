@@ -24,7 +24,11 @@ path="${sel##*$'\t'}"
 # 名前を変えたい場合は作成後に git worktree move で手動リネームする。
 case "$path" in
   "$HOME"/Develop/*/repos/*)
-    path=$("$(dirname "$0")/mkworktree" "$path") || exit 1
+    feature=$( { printf '%s\n' 新規; command find "$HOME"/Develop/.specs -mindepth 1 -maxdepth 1 -type d ! -name '.*' -exec basename {} \; | sort; } \
+      | fzf --prompt="feature> ") || exit 0
+    [ -n "$feature" ] || exit 0
+    [ "$feature" = 新規 ] && feature=""
+    path=$("$(dirname "$0")/mkworktree" "$path" "" "$feature") || exit 1
     ;;
 esac
 
