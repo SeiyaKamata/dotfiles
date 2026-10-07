@@ -46,10 +46,9 @@ ws_id=$(herdr worktree list --cwd "$path" 2>/dev/null \
 feature_dir=""
 if [ "$keep_feature" -eq 0 ] && [ -e "$path/.specs" ]; then
   feature_dir="$(cd "$path/.specs" && pwd -P)"
-  case "$feature_dir" in
-    "$HOME"/Develop/.specs/*) ;;
-    *) feature_dir="" ;;
-  esac
+  if [ "$(dirname "$feature_dir")" != "$HOME/Develop/.specs" ] || [[ "$(basename "$feature_dir")" == .* ]]; then
+    feature_dir=""
+  fi
 fi
 
 # 他の worktree が同じ feature を指していたら残す。
@@ -64,9 +63,6 @@ if [ -n "$feature_dir" ]; then
 fi
 
 git -C "$path" worktree remove "${force[@]}" "$path"
-
-# 開いていなくても削除自体は上で完了しているので失敗は無視してよい。
-[ -z "$ws_id" ] || herdr workspace close "$ws_id" >/dev/null 2>&1 || true
 
 echo "削除しました: $path"
 
@@ -83,3 +79,7 @@ if [ -n "$feature_dir" ]; then
     echo "feature を退避しました: $archived"
   fi
 fi
+
+# 実行元の pane ごと閉じる場合があるので、他の処理を終えた最後に置く。
+# 開いていなくても削除自体は完了しているので失敗は無視してよい。
+[ -z "$ws_id" ] || herdr workspace close "$ws_id" >/dev/null 2>&1 || true
