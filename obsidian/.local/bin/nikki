@@ -25,10 +25,11 @@ run_sync() {
   fi
 }
 
-# pull first so we edit on top of the latest version from other devices
-run_sync
-
 mkdir -p "$(dirname "$file")"
+
+# pull before creating today's file so it is not created from the template on two devices;
+# appending to an existing file is left to the merge on the final sync
+[ -f "$file" ] || run_sync
 
 if [ ! -f "$file" ]; then
   sed "s/{{date}}/$today/g" "$NOTE_VAULT/_templates/Daily.md" > "$file"
