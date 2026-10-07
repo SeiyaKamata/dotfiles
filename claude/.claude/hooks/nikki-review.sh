@@ -39,7 +39,7 @@ result=$(claude -p "$prompt" \
   2>/dev/null < /dev/null)
 
 if [ -n "$result" ] && [ "$result" != "NONE" ]; then
-  nikki -n "$result" >/dev/null 2>&1
+  nikki "$result" >/dev/null 2>&1
 fi
 
 exit 0
