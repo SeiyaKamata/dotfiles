@@ -37,9 +37,9 @@ fi
 if [ $# -eq 0 ]; then
   ${EDITOR:-vim} "$file"
 else
-  entry="- $(date +%H:%M) $*"
-  awk -v entry="$entry" '
-    !inserted && /^---$/ { print entry; inserted = 1 }
+  entry="- $(date +%H:%M) $(printf '%s' "$*" | tr '\r\n' '  ')"
+  ENTRY="$entry" awk '
+    !inserted && /^---$/ { print ENVIRON["ENTRY"]; inserted = 1 }
     { print }
   ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 fi
