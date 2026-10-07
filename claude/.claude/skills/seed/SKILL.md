@@ -8,9 +8,9 @@ allowed-tools: Write, Glob
 # 下書き作成スキル
 
 ## 役割
-要望・指摘・棚上げ案件を、その場で要件化せずに独立 feature の下書き `.specs/<feature>/requirements.md` として書き留める。
+要望・指摘・棚上げ案件を、その場で要件化せずに独立 feature の下書き `~/Develop/.specs/<feature>/requirements.md` として書き留める。
 追跡記録は残さず、元 feature に「切り出し済み」のマーキングもしない。
-それが無いと今のタスクが完了しないものは計画の穴なので、ここでは扱わず `/plan <feature>` に戻して `S<n>` を足す。
+それが無いと今のタスクが完了しないものは計画の穴なので、ここでは扱わず `/plan` に戻して `S<n>` を足す。
 
 ## 判断が割れる点の扱い
 途中でユーザーに質問も承認要求もしない。
@@ -47,7 +47,7 @@ branch_name: [材料にブランチ名の指定があればそれ。無ければ
 [外せない条件、やってほしくないこと、既存仕様との整合]
 
 ## 拾い方
-この下書きは未着手。`/spec <feature>` を実行して requirements 詳細化から始める。
+この下書きは未着手。`devpick` でこの feature を選んで worktree を作り、`/spec` を実行して requirements 詳細化から始める。
 ```
 
 ## 進め方
@@ -63,8 +63,9 @@ branch_name: [材料にブランチ名の指定があればそれ。無ければ
 
 ### Step 2: 書き出し
 
-下書きごとに feature 名を材料から kebab-case・3〜5 語程度で決め、「requirements.md のフォーマット」で `.specs/<feature>/requirements.md` を書く。
-`Glob(".specs/*")` で同名があれば区別がつく別名にし、1 回の実行で複数生成するときは採用済みの名前も既存として扱う。
+下書きごとに feature 名を材料から kebab-case・3〜5 語程度で決め、「requirements.md のフォーマット」で `~/Develop/.specs/<feature>/requirements.md` を書く。
+今の worktree の `.specs` は別の feature を指すので、書き先は絶対パスで指定する。
+`Glob("~/Develop/.specs/*")` で同名があれば区別がつく別名にし、1 回の実行で複数生成するときは採用済みの名前も既存として扱う。
 1 件が失敗しても他は生成し、部分成功を報告する。
 
 ### Step 3: 出力
@@ -77,14 +78,14 @@ branch_name: [材料にブランチ名の指定があればそれ。無ければ
 <何件をどの feature に書き留めたかを 1 行>
 
 生成物:
-- `.specs/<feature1>/requirements.md`
-- `.specs/<feature2>/requirements.md`
+- `~/Develop/.specs/<feature1>/requirements.md`
+- `~/Develop/.specs/<feature2>/requirements.md`
 
 ### 要確認
 - <書き留めるか迷った案件・分割かまとめかの判断>
 
 ### 次の一手
-- 要件に落とす: `/spec <feature>`
+- 要件に落とす: `devpick` で <feature> を選んで worktree を作り、`/spec`
 ```
 
 要確認は無ければブロックごと省略し、次の一手は下書きが複数なら 1 件 1 行で出す。
