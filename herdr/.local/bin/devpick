@@ -10,7 +10,12 @@ list_features() {
 # repos 側と worktrees 側を find の時点で分けて、bare repo への git 呼び出しを避ける。
 # repos 配下で .git を持つものは dotfiles のように作業ツリーそのものを使う repo。
 list_spaces() {
-  local path kind branch
+  local path kind branch org
+  for path in "$HOME"/Develop/*/repos; do
+    [ -d "$path" ] || continue
+    org="${path%/repos}"
+    printf '%s/repos\t%s\t%s\n' "${org##*/}" '(dir)' "$path"
+  done
   command find "$HOME"/Develop/*/repos -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null \
     | while IFS= read -r path; do
         if is_main_repo "$path"; then kind='(main)'; else kind='(bare)'; fi
