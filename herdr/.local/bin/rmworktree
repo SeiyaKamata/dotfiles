@@ -101,7 +101,7 @@ main() {
     fi
   fi
 
-  git -C "$path" worktree remove "${force[@]}" "$path"
+  git -C "$path" worktree remove ${force[@]+"${force[@]}"} "$path"
   echo "削除しました: $path"
 
   [ -z "$feature" ] || dispose_feature "$feature"
