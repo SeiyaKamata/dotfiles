@@ -1,53 +1,75 @@
 #!/bin/bash
 
 # fzf の reload から呼ばれる。{} を含むコマンドは fzf が置換してしまうため、リスト生成はここに閉じる。
-if [ "${1:-}" = --list ]; then
-  q="${2:-}"
+list_features() {
+  local q="${1:-}"
   if [ -z "$q" ]; then printf 'new\t新規作成\n'; else printf 'new\t「%s」で新規作成\n' "$q"; fi
   command find "$HOME"/Develop/.specs -mindepth 1 -maxdepth 1 -type d ! -name '.*' -exec basename {} \; | sort | sed 's/^/feat\t/'
-  exit 0
-fi
+}
 
-# repos 配下は必ず bare repo。git を呼ばずパスだけで判定できるので、
-# repos 側と worktrees 側を find の時点で分けて、bare repo への git 呼び出しを避ける。
-sel=$( { command find "$HOME"/Develop/*/repos -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null \
-           | while IFS= read -r path; do printf '%s\t%s\t%s\n' "${path##*/}" '(bare)' "$path"; done
-         command find "$HOME"/Develop/*/worktrees -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null \
-           | while IFS= read -r path; do
-               branch=$(git -C "$path" branch --show-current 2>/dev/null)
-               printf '%s\t%s\t%s\n' "${path##*/}" "${branch:--}" "$path"
-             done
-       } \
-  | sort \
-  | awk -F'\t' '{ name[NR]=$1; branch[NR]=$2; path[NR]=$3; if (length($1) > w) w = length($1) }
-                END { for (i = 1; i <= NR; i++) printf "%-" w "s\t%s\t%s\n", name[i], branch[i], path[i] }' \
-  | fzf --prompt="space> " --delimiter='\t' --with-nth=1,2 --nth=1)
-# 末尾フィールド(絶対パス)だけを取り出す。branch 名にタブは含まれないので
-# 最後のタブより後ろを取れば安全に path が取れる。
-[ -n "$sel" ] || exit 0
-path="${sel##*$'\t'}"
+# repos 配下は必ず bare repo。repos 側と worktrees 側を find の時点で分けて、bare repo への git 呼び出しを避ける。
+list_spaces() {
+  local path branch
+  command find "$HOME"/Develop/*/repos -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null \
+    | while IFS= read -r path; do
+        printf '%s\t%s\t%s\n' "${path##*/}" '(bare)' "$path"
+      done
+  command find "$HOME"/Develop/*/worktrees -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null \
+    | while IFS= read -r path; do
+        branch=$(git -C "$path" branch --show-current 2>/dev/null)
+        printf '%s\t%s\t%s\n' "${path##*/}" "${branch:--}" "$path"
+      done
+}
 
-# repos 配下は bare repo。そのままでは作業できないので mkworktree に渡し、
+pick_space() {
+  local sel
+  sel=$(list_spaces \
+    | sort \
+    | awk -F'\t' '{ name[NR]=$1; branch[NR]=$2; path[NR]=$3; if (length($1) > w) w = length($1) }
+                  END { for (i = 1; i <= NR; i++) printf "%-" w "s\t%s\t%s\n", name[i], branch[i], path[i] }' \
+    | fzf --prompt="space> " --delimiter='\t' --with-nth=1,2 --nth=1)
+  [ -n "$sel" ] || return 1
+  printf '%s\n' "${sel##*$'\t'}"
+}
+
+# 選んだ feature 名を出力する。新規作成なら .specs 配下にディレクトリも作る。何も選ばなければ空を出力する。
+# 戻り値は、中断が 1、入力不正が 2。
+pick_feature() {
+  local out query sel feature=""
+  out=$(list_features "" \
+    | fzf --prompt="feature> " --no-sort --print-query --delimiter='\t' --with-nth=2 \
+        --bind "change:reload:'$0' --list {q}") || return 1
+  { IFS= read -r query; IFS= read -r sel; } <<<"$out"
+  if [ "${sel%%$'\t'*}" = feat ]; then
+    feature="${sel#*$'\t'}"
+  elif [ -n "$query" ]; then
+    case "$query" in */*) echo "feature 名に / は使えません: $query" >&2; return 2 ;; esac
+    feature="$query"
+    mkdir -p "$HOME/Develop/.specs/$feature"
+  fi
+  printf '%s\n' "$feature"
+}
+
+# bare repo はそのままでは作業できないので mkworktree に渡し、
 # worktrees 配下へ機械的命名で新規 worktree を作らせてその path を採用する。
 # 名前を変えたい場合は作成後に git worktree move で手動リネームする。
-case "$path" in
-  "$HOME"/Develop/*/repos/*)
-    out=$("$0" --list "" \
-      | fzf --prompt="feature> " --no-sort --print-query --delimiter='\t' --with-nth=2 \
-          --bind "change:reload:'$0' --list {q}") || exit 0
-    query=$(sed -n 1p <<<"$out")
-    sel=$(sed -n 2p <<<"$out")
-    kind="${sel%%$'\t'*}"
-    feature=""
-    if [ "$kind" = feat ]; then
-      feature="${sel#*$'\t'}"
-    elif [ -n "$query" ]; then
-      case "$query" in */*) echo "feature 名に / は使えません: $query" >&2; exit 1 ;; esac
-      feature="$query"
-      mkdir -p "$HOME/Develop/.specs/$feature"
-    fi
-    path=$("$(dirname "$0")/mkworktree" "$path" "" "$feature") || exit 1
-    ;;
-esac
+main() {
+  local path feature rc
+  path=$(pick_space) || exit 0
 
-[ -n "$path" ] && printf '%s\n' "$path"
+  case "$path" in
+    "$HOME"/Develop/*/repos/*)
+      feature=$(pick_feature); rc=$?
+      case $rc in 0) ;; 1) exit 0 ;; *) exit 1 ;; esac
+      path=$("$(dirname "$0")/mkworktree" "$path" "" "$feature") || exit 1
+      ;;
+  esac
+
+  [ -n "$path" ] && printf '%s\n' "$path"
+}
+
+if [ "${1:-}" = --list ]; then
+  list_features "${2:-}"
+else
+  main
+fi
