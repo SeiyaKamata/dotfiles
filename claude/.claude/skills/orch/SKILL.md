@@ -57,7 +57,7 @@ argument-hint: "[<stage>]"
 
 | 工程 | レビュアー | 上流成果物 | レビュー対象 |
 |---|---|---|---|
-| `/spec` | `spec-reviewer` | 起動時の要望テキスト + 既存の `requirements.md`(あれば) | `requirements.md` |
+| `/spec` | `spec-reviewer` | 起動時の要望テキスト + `seed.md`(あれば) + 既存の `requirements.md`(あれば) | `requirements.md` |
 | `/plan` | `plan-reviewer` | `requirements.md` | `plan.md` |
 
 ```

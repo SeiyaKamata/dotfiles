@@ -1,6 +1,6 @@
 ---
 name: seed
-description: 要望・指摘・棚上げ案件から、独立 feature の下書き requirements.md を作る。詳細化はせず、後で /spec が拾う。思いついた変更を書き留めたいとき、/review 等でスコープ外の指摘が出たとき、投げなくても今のタスクが完了する棚上げ案件があるときに使う。
+description: 要望・指摘・棚上げ案件から、独立 feature の下書き seed.md を作る。詳細化はせず、後で /spec が拾う。思いついた変更を書き留めたいとき、/review 等でスコープ外の指摘が出たとき、投げなくても今のタスクが完了する棚上げ案件があるときに使う。
 argument-hint: "[要望や指摘の本文]"
 allowed-tools: Write, Glob
 ---
@@ -8,7 +8,7 @@ allowed-tools: Write, Glob
 # 下書き作成スキル
 
 ## 役割
-要望・指摘・棚上げ案件を、その場で要件化せずに独立 feature の下書き `~/Develop/.specs/<feature>/requirements.md` として書き留める。
+要望・指摘・棚上げ案件を、その場で要件化せずに独立 feature の下書き `~/Develop/.specs/<feature>/seed.md` として書き留める。
 追跡記録は残さず、元 feature に「切り出し済み」のマーキングもしない。
 それが無いと今のタスクが完了しないものは計画の穴なので、ここでは扱わず `/plan` に戻して `S<n>` を足す。
 
@@ -17,15 +17,14 @@ allowed-tools: Write, Glob
 どれを下書きにするか・分割かまとめか・feature 名は、会話の文脈と引数の本文から自分で確定し、完了カードで事後報告する。
 材料に無い情報は下書きに「TODO: /spec で詳細化」と書き、質問で埋めない。
 
-## requirements.md のフォーマット
+## seed.md のフォーマット
 
 既知の情報だけを書き、EARS 形式の受け入れ条件は書かない。
-詳細化は `/spec` が読んだときに行い、そこで `status: confirmed` に引き上げる。
+詳細化は `/spec` が読んだときに行い、`requirements.md` として確定させる。
 frontmatter のキーは `/spec` の確定稿と同じ並びにし、`/spec` がそのまま引き継ぐ。
 
 ```markdown
 ---
-status: draft
 repo: [実装するリポジトリが分かっていれば bare repo のディレクトリ名。無ければ空文字で /spec が確定する]
 notion_url: [材料に Notion のページがあればその URL。無ければ空文字]
 pr_title: [材料に PR タイトルの指定があればそれ。無ければ空文字]
@@ -63,7 +62,7 @@ branch_name: [材料にブランチ名の指定があればそれ。無ければ
 
 ### Step 2: 書き出し
 
-下書きごとに feature 名を材料から kebab-case・3〜5 語程度で決め、「requirements.md のフォーマット」で `~/Develop/.specs/<feature>/requirements.md` を書く。
+下書きごとに feature 名を材料から kebab-case・3〜5 語程度で決め、「seed.md のフォーマット」で `~/Develop/.specs/<feature>/seed.md` を書く。
 今の worktree の `.specs` は別の feature を指すので、書き先は絶対パスで指定する。
 `Glob("~/Develop/.specs/*")` で同名があれば区別がつく別名にし、1 回の実行で複数生成するときは採用済みの名前も既存として扱う。
 1 件が失敗しても他は生成し、部分成功を報告する。
@@ -78,8 +77,8 @@ branch_name: [材料にブランチ名の指定があればそれ。無ければ
 <何件をどの feature に書き留めたかを 1 行>
 
 生成物:
-- `~/Develop/.specs/<feature1>/requirements.md`
-- `~/Develop/.specs/<feature2>/requirements.md`
+- `~/Develop/.specs/<feature1>/seed.md`
+- `~/Develop/.specs/<feature2>/seed.md`
 
 ### 要確認
 - <書き留めるか迷った案件・分割かまとめかの判断>

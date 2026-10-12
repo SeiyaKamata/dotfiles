@@ -1,6 +1,6 @@
 ---
 name: spec
-description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのrequirements.mdの詳細化で使う。確定済みのrequirements.mdがあるときは、要件定義の進め方と現状の要件を文脈に載せ、直しを会話で行えるようにする。
+description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのseed.mdの詳細化で使う。確定済みのrequirements.mdがあるときは、要件定義の進め方と現状の要件を文脈に載せ、直しを会話で行えるようにする。
 allowed-tools: Read, Write, Edit, Bash(git rev-parse *)
 ---
 
@@ -9,7 +9,7 @@ allowed-tools: Read, Write, Edit, Bash(git rev-parse *)
 ## 役割
 ユーザーの要望から EARS 形式の要件ドキュメントを作る。
 「何を作るか」だけを扱い、技術的な実装方法を含む「どう作るか」は書かない。
-`status: confirmed` への引き上げは `/spec` だけが行う。
+`requirements.md` を新規に書くのは `/spec` だけが行う。
 確定後の直しはこのスキルの外で行い、このスキルの規則に従う。
 
 ## 判断が割れる点の扱い
@@ -70,7 +70,6 @@ Requirement 番号は主体の節をまたいで連番にする。
 
 ```markdown
 ---
-status: confirmed
 repo: [この feature を実装するリポジトリ。bare repo のディレクトリ名]
 notion_url: [下書きにあれば引き継ぐ。無ければ空文字]
 pr_title: [下書きにあれば引き継ぐ。無ければ空文字]
@@ -117,14 +116,14 @@ branch_name: [下書きにあれば引き継ぐ。無ければ空文字]
 
 ### Step 1: 開始 Step の判定
 
-- `.specs/requirements.md` が無く、会話文脈にも要望が無ければ「使い方: /spec <要望>」を表示して終了
+- `.specs/requirements.md` も `.specs/seed.md` も無く、会話文脈にも要望が無ければ「使い方: /spec <要望>」を表示して終了
 - frontmatter の `repo` は、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename から採る
 
-`.specs/requirements.md` の有無と frontmatter の `status` で分岐する:
-- **無い**: 新規。Step 2 から書き起こす
-- **有る + `status: draft`**: 下書き。本文を要望の材料として使い、Step 2 から詳細化する
-- **有る + `status: confirmed`**: `requirements.md` を読み、Step 2〜5 を飛ばして Step 6 で読み込み完了を報告し、書き換えずに終了する
+`.specs/requirements.md` と `.specs/seed.md` の有無で分岐する:
+- **`requirements.md` が有る**: 読み、Step 2〜5 を飛ばして Step 6 で読み込み完了を報告し、書き換えずに終了する
   - 以降の直しは、「受け入れ条件の書き方」と「requirements.md のフォーマット」に従い、直したら Step 5 の点検をする
+- **`requirements.md` が無く `seed.md` が有る**: 下書き。本文を要望の材料として使い、Step 2 から詳細化する
+- **どちらも無い**: 新規。Step 2 から書き起こす
 
 ### Step 2: スコープ境界
 
@@ -151,7 +150,7 @@ Step 2〜3 の内容を「requirements.md のフォーマット」で `.specs/re
 
 次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
 中断時は見出しを `### 要件定義中断` にし、1 行目に中断理由と `requirements.md` が未確定である旨を書き、次の一手は `/spec` だけにする。
-`status: confirmed` を読み込んだときは見出しを `### 要件読み込み完了` にし、1 行目に直したい点を伝えれば反映する旨を書き、生成物と要確認のブロックを省き、次の一手は `/plan` だけにする。
+既存の `requirements.md` を読み込んだときは見出しを `### 要件読み込み完了` にし、1 行目に直したい点を伝えれば反映する旨を書き、生成物と要確認のブロックを省き、次の一手は `/plan` だけにする。
 
 ```markdown
 ### 要件定義完了
