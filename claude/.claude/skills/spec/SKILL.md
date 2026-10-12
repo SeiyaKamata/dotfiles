@@ -1,6 +1,6 @@
 ---
 name: spec
-description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または既存requirements.mdの詳細化・修正で使う。
+description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのrequirements.mdの詳細化で使う。確定済みのrequirements.mdがあるときは、要件定義の進め方と現状の要件を文脈に載せ、直しを会話で行えるようにする。
 allowed-tools: Read, Write, Edit, Bash(git rev-parse *)
 ---
 
@@ -9,7 +9,8 @@ allowed-tools: Read, Write, Edit, Bash(git rev-parse *)
 ## 役割
 ユーザーの要望から EARS 形式の要件ドキュメントを作る。
 「何を作るか」だけを扱い、技術的な実装方法を含む「どう作るか」は書かない。
-`status: confirmed` の確定稿を書くのは `/spec` だけだけ。
+`status: confirmed` への引き上げは `/spec` だけが行う。
+確定後の直しはこのスキルの外で行い、このスキルの規則に従う。
 
 ## 判断が割れる点の扱い
 途中でユーザーに質問もスコープ承認もしない。
@@ -119,12 +120,11 @@ branch_name: [下書きにあれば引き継ぐ。無ければ空文字]
 - `.specs/requirements.md` が無く、会話文脈にも要望が無ければ「使い方: /spec <要望>」を表示して終了
 - frontmatter の `repo` は、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename から採る
 
-`.specs/requirements.md` の有無と frontmatter の `status`、変更要望で分岐する:
+`.specs/requirements.md` の有無と frontmatter の `status` で分岐する:
 - **無い**: 新規。Step 2 から書き起こす
 - **有る + `status: draft`**: 下書き。本文を要望の材料として使い、Step 2 から詳細化する
-- **有る + `status: confirmed` + 変更要望あり**: 該当箇所だけを直し、要望に無い不備は気づいても直さない
-  - 境界に関わる要望なら Step 2 から、そうでなければ Step 3 から
-- **有る + `status: confirmed` + 変更要望なし**: Step 2〜5 を飛ばし、Step 6 で「変更なし」と報告して終了
+- **有る + `status: confirmed`**: `requirements.md` を読み、Step 2〜5 を飛ばして Step 6 で読み込み完了を報告し、書き換えずに終了する
+  - 以降の直しは、「受け入れ条件の書き方」と「requirements.md のフォーマット」に従い、直したら Step 5 の点検をする
 
 ### Step 2: スコープ境界
 
@@ -151,6 +151,7 @@ Step 2〜3 の内容を「requirements.md のフォーマット」で `.specs/re
 
 次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
 中断時は見出しを `### 要件定義中断` にし、1 行目に中断理由と `requirements.md` が未確定である旨を書き、次の一手は `/spec` だけにする。
+`status: confirmed` を読み込んだときは見出しを `### 要件読み込み完了` にし、1 行目に直したい点を伝えれば反映する旨を書き、生成物と要確認のブロックを省き、次の一手は `/plan` だけにする。
 
 ```markdown
 ### 要件定義完了
@@ -163,5 +164,5 @@ Step 2〜3 の内容を「requirements.md のフォーマット」で `.specs/re
 
 ### 次の一手
 - 実装計画に進む: `/plan`
-- 要件を直す: `/spec`
+- 要件を直す: 直したい点を伝える
 ```
