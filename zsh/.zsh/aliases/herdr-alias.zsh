@@ -1,6 +1,6 @@
 # herdr 連携用エイリアス
 
-# claude agent に完了通知を送る。
+# claude agent に「直前までのコマンドの実行が完了した」旨を送る。
 # 第 1 引数で送り先を指定できる。
 #   - pane_id: ":p" を含む値はそのまま送り先にする
 #   - tab の label: 同じ herdr space のその tab にいる claude agent に送る
@@ -52,5 +52,15 @@ Done() {
     target="$targets"
   fi
 
-  herdr agent prompt "$target" "done" >/dev/null
+  local cmd
+  cmd="${history[$HISTCMD]}"
+  cmd="${cmd#"${cmd%%[![:space:]]*}"}"
+  cmd="${cmd% && Done*}"
+
+  local message="コマンドの実行が完了しました"
+  if [ -n "$cmd" ]; then
+    message="「${cmd}」の実行が完了しました"
+  fi
+
+  herdr agent prompt "$target" "$message" >/dev/null
 }
