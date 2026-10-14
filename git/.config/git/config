@@ -7,6 +7,7 @@
     untrackedCache = true
 [init]
     defaultBranch = main
+	templateDir = /Users/kamata_seiya/.git-template
 [pull]
     rebase = false
 [merge]
