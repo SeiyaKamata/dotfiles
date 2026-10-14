@@ -75,6 +75,11 @@
             "command": "bash ~/.claude/hooks/nikki-review.sh",
             "timeout": 120,
             "async": true
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/herdr-workspace-label.sh",
+            "timeout": 10
           }
         ]
       }
