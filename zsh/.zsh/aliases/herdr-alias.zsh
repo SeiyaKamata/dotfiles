@@ -1,14 +1,17 @@
 # herdr 連携用エイリアス
 
-# claude agent に「直前までのコマンドの実行が完了した」旨を送る。
+# claude agent に「直前のコマンドの実行が完了した、または失敗した」旨を送る。
+# 失敗を拾うため && ではなく ; で連結する。
 # 第 1 引数で送り先を指定できる。
 #   - pane_id: ":p" を含む値はそのまま送り先にする
 #   - tab の label: 同じ herdr space のその tab にいる claude agent に送る
 #   - 省略: 同じ herdr space の claude agent を自動判定する
-# 例: npm install && Done
-# 例: npm install && Done review
-# 例: npm install && Done wA3:p1
+# 例: npm install; Done
+# 例: npm install; Done review
+# 例: npm install; Done wA3:p1
 Done() {
+  local rc=$?
+
   if [ "${HERDR_ENV:-}" != 1 ]; then
     echo "Done: herdr 管理下のペインでのみ使えます" >&2
     return 1
@@ -55,11 +58,17 @@ Done() {
   local cmd
   cmd="${history[$HISTCMD]}"
   cmd="${cmd#"${cmd%%[![:space:]]*}"}"
-  cmd="${cmd% && Done*}"
+  cmd="${cmd%; Done*}"
+  cmd="${cmd%"${cmd##*[![:space:]]}"}"
 
-  local message="コマンドの実行が完了しました"
+  local subject="コマンド"
   if [ -n "$cmd" ]; then
-    message="「${cmd}」の実行が完了しました"
+    subject="「${cmd}」"
+  fi
+
+  local message="${subject}の実行が完了しました"
+  if [ "$rc" -ne 0 ]; then
+    message="${subject}の実行が失敗しました。終了コードは ${rc} です"
   fi
 
   herdr agent prompt "$target" "$message" >/dev/null
