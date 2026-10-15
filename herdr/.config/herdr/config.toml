@@ -3,7 +3,7 @@ onboarding = false
 # 対応関係: tmux window → herdr space（作業単位） / tmux pane → herdr tab
 
 [theme]
-name = "tokyo-night"                # tmux 20-style.conf と同系の Tokyo Night
+name = "vesper"
 
 [terminal]
 default_shell = "/bin/zsh"          # tmux: set-option -g default-shell /bin/zsh
