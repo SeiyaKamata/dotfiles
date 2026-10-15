@@ -63,7 +63,8 @@
       "Bash(git push *--force*)",
       "Bash(git push * -f *)"
     ],
-    "defaultMode": "auto"
+    "defaultMode": "auto",
+    "additionalDirectories": ["/Users/kamata_seiya/Develop/.specs"]
   },
   "model": "sonnet",
   "hooks": {
