@@ -45,13 +45,6 @@ HEAD の状態で分岐する:
 - `<branch>` ブランチが既にある → checkout して前回の実装を再開する
 - detached HEAD → `git checkout -b <branch>` で今の HEAD から切る
   - worktree はデフォルトブランチの先端に detached で作られているので、これが起点になる
-- ブランチ上 → デフォルトブランチを最新化し、その先端から切る
-
-```
-DEFAULT=$(git default-branch)
-git fetch origin "+refs/heads/${DEFAULT}:refs/heads/${DEFAULT}"
-git checkout -b <branch> "$DEFAULT"
-```
 
 ### Step 4: 配布対象の決定
 

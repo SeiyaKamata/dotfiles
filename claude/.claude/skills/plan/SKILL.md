@@ -197,7 +197,7 @@ impl の完了条件は `## タスク一覧` だけで、人しか実行でき�
 
 - **別 PJ の実装状況・挙動**: `requirements.md` に「実装済み」のような記載があれば、その PJ のデフォルトブランチを worktree に展開し、Read / Grep で確認する
   - bare repo は自分の bare repo `git rev-parse --git-common-dir` と同じ親ディレクトリにある `<リポジトリ名>` を採り、`git -C <bare repo> rev-parse --is-bare-repository` が `true` でなければ確認を諦めて `### 判断` に推測として書く
-  - `git -C <bare repo> fetch origin` で最新化してから `dest=$(mkworktree <bare repo> <リポジトリ名>-<今の worktree のディレクトリ名>)` で切る。同名の worktree が既にあればそれを使う
+  - `dest=$(mkworktree <bare repo> <リポジトリ名>-<今の worktree のディレクトリ名>)` で切る。同名の worktree が既にあればそれを使う
   - 依頼元の作業ツリーは remote に載っているとは限らないので、デフォルトブランチのコードを正とする
   - 食い違いは該当するタスクの細部に書き、`requirements.md` 側の修正要否を `### ずれ` に出す
 - **環境変数・設定値の導入**: ローカル・各デプロイ環境の投入先ファイルを実リポジトリで特定してから設計する
