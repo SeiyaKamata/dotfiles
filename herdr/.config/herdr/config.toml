@@ -68,3 +68,8 @@ command = '''dir=$(devpick); [ -n "$dir" ] && herdr workspace create --cwd "$dir
 width = "70%"
 height = "60%"
 
+
+[[keys.command]]
+key = "prefix+p"
+type = "shell"
+command = "gh pr view --web"
