@@ -73,7 +73,7 @@ allowed-tools: Read, Glob, Bash(git *), Bash(gh *), mcp__claude_ai_Notion__*
 
 - `.specs/` の成果物を読む
 - 実装結果を報告するときは、PR も集める
-  - 実装ブランチ名は `branch_name` があればそれ、無ければ worktree のルートのディレクトリ名とする
+  - 実装ブランチ名は `branch_name` とする
   - `gh pr list --search "head:<実装ブランチ名>" --state all --json number,title,url,isDraft,headRefName` で列挙する
   - 0 件なら現在のブランチと `gh pr list --author @me` から補い、それでも無ければ「該当なし」
 

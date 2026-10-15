@@ -55,7 +55,7 @@ count: [非 PASS の連続回数]
 - `.specs/qa.md` が無ければ Step 8 の中断カードで報告して終了
 
 カレントブランチが実装ブランチ `<branch>` でなければ `git switch <branch>` を試みる。
-実装ブランチ名 `<branch>` は `.specs/requirements.md` の frontmatter の `branch_name` があればそれ、無ければ `git rev-parse --show-toplevel` のディレクトリ名にする。
+実装ブランチ名 `<branch>` は `.specs/requirements.md` の frontmatter の `branch_name` にする。
 - switch できた → そのまま続行
 - `<branch>` が存在しない → 現在のブランチをそのまま採用する
 - 未コミットの変更があって switch できない → Step 8 の中断カードで報告する。stash などの作業ツリー操作はしない

@@ -112,7 +112,7 @@ loop:
 ### Step 5: `/impl`
 
 実装ブランチ 1 本の上で全タスクを実装する。
-実装ブランチ名は `.specs/requirements.md` の frontmatter の `branch_name` があればそれ、無ければ `git rev-parse --show-toplevel` のディレクトリ名にする。
+実装ブランチ名は `.specs/requirements.md` の frontmatter の `branch_name` にする。
 
 ### Step 6: `/test`
 

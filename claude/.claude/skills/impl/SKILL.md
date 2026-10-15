@@ -40,7 +40,7 @@ argument-hint: "[task-numbers]"
 ### Step 3: 実装ブランチの確定
 実装ブランチ `<branch>` 1 本の上で全タスクを実装する。
 実装を隔離しておけば、途中で捨てる・作り直すのが安全になる。
-実装ブランチ名 `<branch>` は `.specs/requirements.md` の frontmatter の `branch_name` があればそれ、無ければ `git rev-parse --show-toplevel` のディレクトリ名にする。
+実装ブランチ名 `<branch>` は `.specs/requirements.md` の frontmatter の `branch_name` にする。
 HEAD の状態で分岐する:
 - `<branch>` ブランチが既にある → checkout して前回の実装を再開する
 - detached HEAD → `git checkout -b <branch>` で今の HEAD から切る

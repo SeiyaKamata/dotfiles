@@ -58,7 +58,7 @@ DEFAULT=$(git default-branch)
 CURRENT=$(git branch --show-current)
 ```
 
-実装ブランチ名は `.specs/requirements.md` の frontmatter の `branch_name` があればそれ、無ければ `git rev-parse --show-toplevel` のディレクトリ名にする。
+実装ブランチ名は `.specs/requirements.md` の frontmatter の `branch_name` にする。
 `CURRENT` が実装ブランチ名と一致しなければ `git switch <実装ブランチ名>` し、存在しなければ実装ブランチが無い旨を Step 5 の中断カードで報告する。
 
 `CURRENT` がデフォルトブランチと同じなら、コミット内容から命名したブランチを `git checkout -b` で作ってから進む。

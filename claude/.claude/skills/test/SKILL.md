@@ -44,7 +44,7 @@ count: [FAIL の連続回数。今回が FAIL かつ既存レポートも FAIL �
 ### Step 1: 対象確定
 
 カレントブランチが実装ブランチ `<branch>` でなければ `git switch <branch>` を試みる。
-実装ブランチ名 `<branch>` は `.specs/requirements.md` の frontmatter の `branch_name` があればそれ、無ければ `git rev-parse --show-toplevel` のディレクトリ名にする。
+実装ブランチ名 `<branch>` は `.specs/requirements.md` の frontmatter の `branch_name` にする。
 - switch できた → そのまま続行
 - `<branch>` が存在しない → 現在のブランチをそのまま採用する
   - PR を作らない運用で直接コミットしているとみなす
