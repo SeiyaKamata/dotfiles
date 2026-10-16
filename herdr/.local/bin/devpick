@@ -4,7 +4,15 @@
 list_features() {
   local q="${1:-}"
   if [ -z "$q" ]; then printf 'new\t新規作成\n'; else printf 'new\t「%s」で新規作成\n' "$q"; fi
-  command find "$HOME"/Develop/.specs -mindepth 1 -maxdepth 1 -type d ! -name '.*' -exec basename {} \; | sort | sed 's/^/feat\t/'
+  command find "$HOME"/Develop/.specs -mindepth 1 -maxdepth 1 -type d ! -name '.*' -exec basename {} \; | sort \
+    | awk 'NR==FNR { linked[$0]; next } !($0 in linked)' <(linked_features) - \
+    | sed 's/^/feat\t/'
+}
+
+# worktree の .specs symlink が指す feature は紐づき済みなので、選択肢から外すために集める。
+linked_features() {
+  command find "$HOME"/Develop/*/worktrees -mindepth 2 -maxdepth 2 -name .specs -type l -exec readlink {} \; 2>/dev/null \
+    | sed 's|.*/||'
 }
 
 # repos 側と worktrees 側を find の時点で分けて、bare repo への git 呼び出しを避ける。
