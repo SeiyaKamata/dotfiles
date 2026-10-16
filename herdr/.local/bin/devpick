@@ -61,11 +61,10 @@ pick_feature() {
   printf '%s\n' "$feature"
 }
 
-# bare repo はそのままでは作業できないので mkworktree に渡し、
-# worktrees 配下へ機械的命名で新規 worktree を作らせてその path を採用する。
-# 名前を変えたい場合は作成後に git worktree move で手動リネームする。
+# bare repo はそのままでは作業できないので mkworktree に渡し、新規 worktree を作らせてその path を採用する。
+# worktree 名は feature 名と揃える。同名の worktree が既にあるときだけ mkworktree の機械的命名に任せる。
 main() {
-  local path feature rc
+  local path feature rc name wt_root
   path=$(pick_space) || exit 0
 
   case "$path" in
@@ -73,7 +72,10 @@ main() {
       if ! is_main_repo "$path"; then
         feature=$(pick_feature); rc=$?
         case $rc in 0) ;; 1) exit 0 ;; *) exit 1 ;; esac
-        path=$("$(dirname "$0")/mkworktree" "$path" "" "$feature") || exit 1
+        name=""
+        wt_root="$(dirname "$(dirname "$path")")/worktrees"
+        if [ -n "$feature" ] && [ ! -e "$wt_root/$feature" ]; then name="$feature"; fi
+        path=$("$(dirname "$0")/mkworktree" "$path" "$name" "$feature") || exit 1
       fi
       ;;
   esac
