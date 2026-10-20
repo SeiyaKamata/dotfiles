@@ -20,15 +20,11 @@ esac
 
 [ -n "${HERDR_WORKSPACE_ID:-}" ] || exit 0
 
-# 状態ごとに色を変えるため、状態名のトークンを分ける。色は config.toml 側でトークンごとに指定する。
-args=()
-for state in qa selfreview review; do
-  if [ "$state" = "$name" ]; then
-    args+=(--token "stage_$state=$mark")
-  else
-    args+=(--clear-token "stage_$state")
-  fi
-done
+if [ -n "$mark" ]; then
+  args=(--token "stage=$mark")
+else
+  args=(--clear-token stage)
+fi
 
 # サイドバーの spaces 欄は space の値、agents 欄は pane の値を参照する。両方に書かないとどちらかに出ない。
 herdr workspace report-metadata "$HERDR_WORKSPACE_ID" --source stage "${args[@]}" >/dev/null
