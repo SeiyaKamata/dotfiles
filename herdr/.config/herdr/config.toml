@@ -79,3 +79,10 @@ height = "60%"
 key = "prefix+p"
 type = "shell"
 command = "gh pr view --web"
+
+[[keys.command]]
+key = "prefix+s"
+type = "popup"
+command = "stagepick"
+width = "30%"
+height = "20%"
