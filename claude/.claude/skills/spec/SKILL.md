@@ -1,7 +1,7 @@
 ---
 name: spec
 description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのseed.mdの詳細化で使う。確定済みのrequirements.mdがあるときは、要件定義の進め方と現状の要件を文脈に載せ、直しを会話で行えるようにする。
-allowed-tools: Read, Write, Edit, Bash(git rev-parse *)
+allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(stage *)
 ---
 
 # 要件策定スキル
@@ -113,6 +113,8 @@ branch_name: [下書きにあれば引き継ぐ。無ければ feature 名と要
 ```
 
 ## 進め方
+
+最初に `stage spec` を実行する。
 
 ### Step 1: 開始 Step の判定
 

@@ -2,7 +2,7 @@
 name: watch-ci
 description: PRのCIを監視し、完了後に結果に応じて分岐対応する。push後やPR作成後に使う。
 argument-hint: "[PR番号]"
-allowed-tools: Read, Write, Bash(gh *), Bash(git *), Bash(date *), Agent
+allowed-tools: Read, Write, Bash(gh *), Bash(git *), Bash(date *), Bash(stage *), Agent
 ---
 
 # CI監視スキル
@@ -42,6 +42,8 @@ count: [赤の連続回数。今回が赤かつ既存レポートの branch が�
 ```
 
 ## 進め方
+
+最初に `stage pr` を実行する。
 
 ### Step 1: 対象 PR の特定
 

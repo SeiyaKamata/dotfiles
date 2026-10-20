@@ -1,7 +1,7 @@
 ---
 name: land
 description: コミット済みの変更を新しいdraft PRとして立ち上げる。commit完了後に使う。デフォルトブランチへ直接取り込む運用の repo では使わない。
-allowed-tools: Bash(git *), Bash(gh *), Read
+allowed-tools: Bash(git *), Bash(gh *), Bash(stage *), Read
 ---
 
 # 新規PR着地スキル
@@ -45,6 +45,8 @@ push の拒否は自動解決せず、中断カードで人に委ねる。
   - escape すると backslash がそのまま渡って表示が崩れる
 
 ## 進め方
+
+最初に `stage pr` を実行する。
 
 ### Step 1: 未コミットの変更確認
 

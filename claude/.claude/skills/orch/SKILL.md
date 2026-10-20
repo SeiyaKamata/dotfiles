@@ -2,7 +2,7 @@
 name: orch
 description: 開発パイプライン全体を管理する。新規開発や機能追加の指示を受けたら使う。
 disable-model-invocation: true
-allowed-tools: Read, Edit, Bash(git *), Bash(gh *), Skill, Agent
+allowed-tools: Read, Edit, Bash(git *), Bash(gh *), Bash(stage *), Skill, Agent
 argument-hint: "[<stage>]"
 ---
 
@@ -182,6 +182,7 @@ PR の CI green を待つ。
 
 ### Step 14: 停止点
 
+パイプラインを完走して終了するときは、カードを出す前に `stage done` を実行する。
 次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
 Ready for review への切替と merge は人が判断する。
 「停止条件」に当たって完走できずに終了するときは見出しを `### パイプライン中断` にし、1 行目に停止理由を書き、作成済みの PR があれば生成物の行を残し、次の一手は復帰の判断先にする。

@@ -1,7 +1,7 @@
 ---
 name: plan
 description: 要件を受け取り技術設計と実装タスクを一つの plan.md にまとめる。.specs/requirements.mdが出来上がったら使う。plan.mdが既にあるときは、設計の判断基準と書き方と現状の計画を文脈に載せ、直しを会話で行えるようにする。
-allowed-tools: Read, Write, Glob, Grep, Bash(git rev-parse *), Bash(git -C *), Bash(mkworktree *), WebSearch
+allowed-tools: Read, Write, Glob, Grep, Bash(git rev-parse *), Bash(git -C *), Bash(mkworktree *), Bash(stage *), WebSearch
 ---
 
 # 実装計画スキル
@@ -172,6 +172,8 @@ impl の完了条件は `## タスク一覧` だけで、人しか実行でき�
 ```
 
 ## 進め方
+
+最初に `stage plan` を実行する。
 
 ### Step 1: 開始条件の確認と分岐
 

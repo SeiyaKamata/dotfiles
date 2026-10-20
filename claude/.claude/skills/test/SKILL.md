@@ -41,6 +41,8 @@ count: [FAIL の連続回数。今回が FAIL かつ既存レポートも FAIL �
 
 ## 進め方
 
+最初に `stage test` を実行する。
+
 ### Step 1: 対象確定
 
 カレントブランチが実装ブランチ `<branch>` でなければ `git switch <branch>` を試みる。
