@@ -1,7 +1,7 @@
 ---
 name: sync
 description: 既存PRに積んだコミットをpushする。comment-report.mdがあれば続けてPRコメントへの返信とissues.md記録も行う。CI赤修正・コメント対応の修正後に使う。
-allowed-tools: Bash(git *), Bash(gh *), Bash(stage *), Read, Write, Edit
+allowed-tools: Bash(git *), Bash(gh *), Read, Write, Edit
 ---
 
 # 既存PR更新スキル
@@ -40,8 +40,6 @@ allowed-tools: Bash(git *), Bash(gh *), Bash(stage *), Read, Write, Edit
 ```
 
 ## 進め方
-
-最初に `stage pr` を実行する。
 
 ### Step 1: 対象ブランチと PR の特定
 

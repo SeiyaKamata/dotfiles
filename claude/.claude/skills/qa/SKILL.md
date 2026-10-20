@@ -1,7 +1,7 @@
 ---
 name: qa
 description: コードレビュー後にブラウザで動作確認する最終受け入れゲート。/review の後に使う。
-allowed-tools: Read, Write, Edit, Bash(git *), Bash(chworktree *), Bash(date *), Bash(stage *), Agent
+allowed-tools: Read, Write, Edit, Bash(git *), Bash(chworktree *), Bash(date *), Agent
 disallowed-tools: mcp__playwright__*
 ---
 
@@ -49,8 +49,6 @@ count: [非 PASS の連続回数]
 ```
 
 ## 進め方
-
-最初に `stage qa` を実行する。
 
 ### Step 1: 対象の確定
 

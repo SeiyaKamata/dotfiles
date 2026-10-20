@@ -1,7 +1,7 @@
 ---
 name: review
 description: 実装を受け取りコードレビューを行う。test PASS 後に使う。
-allowed-tools: Read, Write, Glob, Grep, Bash(git *), Bash(date *), Bash(stage *), Agent
+allowed-tools: Read, Write, Glob, Grep, Bash(git *), Bash(date *), Agent
 ---
 
 # レビュースキル
@@ -50,8 +50,6 @@ count: [NG の連続回数。今回が NG かつ既存レポートも NG なら�
 ```
 
 ## 進め方
-
-最初に `stage review` を実行する。
 
 ### Step 1: 対象確定
 

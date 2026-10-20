@@ -24,8 +24,6 @@ argument-hint: "[task-numbers]"
 
 ## 進め方
 
-最初に `stage impl` を実行する。
-
 ### Step 1: 引数の確認
 - `$ARGUMENTS[0]` に `1,2` の形でタスク番号があれば手動モードにし、指定タスクだけを実装する
 - `.specs/requirements.md` の frontmatter の `repo` の列挙に、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename が含まれなければ、Step 7 の中断カードで「`repo` のいずれかの worktree で叩く」と案内して終了
