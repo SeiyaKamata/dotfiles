@@ -1,16 +1,24 @@
 #!/bin/bash
-# fzf で待ち状態を選んで stage に渡す。herdr の popup から呼ぶ。
+# 1 文字のキーで待ち状態を選んで stage に渡す。herdr の popup から呼ぶ。
 set -euo pipefail
 
 # popup には呼び出し元の space と pane が HERDR_ACTIVE_ 付きの変数で渡り、stage が読む名前では来ない。
 export HERDR_WORKSPACE_ID="${HERDR_ACTIVE_WORKSPACE_ID:-}"
 export HERDR_PANE_ID="${HERDR_ACTIVE_PANE_ID:-}"
 
-choice=$(printf '%s\t%s\n' \
-  qa 'QA 待ち' \
-  selfreview 'セルフレビュー待ち' \
-  review 'レビュー待ち' \
-  clear '表示を消す' \
-  | fzf --delimiter=$'\t' --with-nth=2 --reverse --no-info --prompt='stage > ' | cut -f1) || exit 0
+printf ' \033[1;33mn\033[0m  タスクではない\n'
+printf ' \033[1;33ml\033[0m  優先度を下げる\n'
+printf ' \033[1;33mq\033[0m  QA 待ち\n'
+printf ' \033[1;33ms\033[0m  セルフレビュー待ち\n'
+printf ' \033[1;33mr\033[0m  レビュー待ち\n'
+printf ' \033[1;33mc\033[0m  表示を消す\n'
 
-[ -n "$choice" ] && stage "$choice"
+read -rsn1 key
+case "$key" in
+  n) stage misc ;;
+  l) stage low ;;
+  q) stage qa ;;
+  s) stage selfreview ;;
+  r) stage review ;;
+  c) stage clear ;;
+esac
