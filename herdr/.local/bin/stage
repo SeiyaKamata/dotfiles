@@ -1,21 +1,16 @@
 #!/bin/bash
-# 実行元の herdr space に工程の記号を表示する。skill からは工程名だけを渡して呼ぶ。
-# 工程名と記号の対応はここだけが持つ。記号を変えるときはこのファイルだけ直す。
+# 実行元の herdr space に、AI の状態からは分からない待ち状態の記号を表示する。AI の稼働状態は herdr が示すのでここでは扱わない。
+# 状態名と記号の対応はここだけが持つ。記号を変えるときはこのファイルだけ直す。
 # herdr の外で呼ばれても成功で終わる。skill を herdr 以外の端末でも止めないため。
 set -euo pipefail
 
-usage="usage: stage <spec|plan|impl|test|review|qa|pr|done|clear>"
+usage="usage: stage <qa|selfreview|review|clear>"
 name="${1:?$usage}"
 
 case "$name" in
-  spec) mark=S ;;
-  plan) mark=P ;;
-  impl) mark=I ;;
-  test) mark=T ;;
-  review) mark=R ;;
   qa) mark=Q ;;
-  pr) mark=G ;;
-  done) mark=C ;;
+  selfreview) mark=S ;;
+  review) mark=R ;;
   clear) mark="" ;;
   *)
     echo "$usage" >&2
@@ -25,12 +20,16 @@ esac
 
 [ -n "${HERDR_WORKSPACE_ID:-}" ] || exit 0
 
-if [ -n "$mark" ]; then
-  token=(--token "stage=$mark")
-else
-  token=(--clear-token stage)
-fi
+# 状態ごとに色を変えるため、状態名のトークンを分ける。色は config.toml 側でトークンごとに指定する。
+args=()
+for state in qa selfreview review; do
+  if [ "$state" = "$name" ]; then
+    args+=(--token "stage_$state=$mark")
+  else
+    args+=(--clear-token "stage_$state")
+  fi
+done
 
 # サイドバーの spaces 欄は space の値、agents 欄は pane の値を参照する。両方に書かないとどちらかに出ない。
-herdr workspace report-metadata "$HERDR_WORKSPACE_ID" --source stage "${token[@]}" >/dev/null
-herdr pane report-metadata "$HERDR_PANE_ID" --source stage "${token[@]}" >/dev/null
+herdr workspace report-metadata "$HERDR_WORKSPACE_ID" --source stage "${args[@]}" >/dev/null
+herdr pane report-metadata "$HERDR_PANE_ID" --source stage "${args[@]}" >/dev/null
