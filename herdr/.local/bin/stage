@@ -1,0 +1,36 @@
+#!/bin/bash
+# 実行元の herdr space に工程の記号を表示する。skill からは工程名だけを渡して呼ぶ。
+# 工程名と記号の対応はここだけが持つ。記号を変えるときはこのファイルだけ直す。
+# herdr の外で呼ばれても成功で終わる。skill を herdr 以外の端末でも止めないため。
+set -euo pipefail
+
+usage="usage: stage <spec|plan|impl|test|review|qa|pr|done|clear>"
+name="${1:?$usage}"
+
+case "$name" in
+  spec) mark=S ;;
+  plan) mark=P ;;
+  impl) mark=I ;;
+  test) mark=T ;;
+  review) mark=R ;;
+  qa) mark=Q ;;
+  pr) mark=G ;;
+  done) mark=C ;;
+  clear) mark="" ;;
+  *)
+    echo "$usage" >&2
+    exit 1
+    ;;
+esac
+
+[ -n "${HERDR_WORKSPACE_ID:-}" ] || exit 0
+
+if [ -n "$mark" ]; then
+  token=(--token "stage=$mark")
+else
+  token=(--clear-token stage)
+fi
+
+# サイドバーの spaces 欄は space の値、agents 欄は pane の値を参照する。両方に書かないとどちらかに出ない。
+herdr workspace report-metadata "$HERDR_WORKSPACE_ID" --source stage "${token[@]}" >/dev/null
+herdr pane report-metadata "$HERDR_PANE_ID" --source stage "${token[@]}" >/dev/null
