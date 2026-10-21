@@ -4,12 +4,14 @@
 # herdr の外で呼ばれても成功で終わる。skill を herdr 以外の端末でも止めないため。
 set -euo pipefail
 
-usage="usage: stage <misc|low|qa|selfreview|review|clear>"
+usage="usage: stage <misc|low|pause|complete|qa|selfreview|review|clear>"
 name="${1:?$usage}"
 
 case "$name" in
   misc) mark=$'\xef\x83\xb6' ;;
   low) mark=$'\xef\x84\x83' ;;
+  pause) mark=$'\xef\x81\x8c' ;;
+  complete) mark=$'\xef\x81\x98' ;;
   qa) mark=$'\xef\x81\x8c \xef\x8b\x90' ;;
   selfreview) mark=$'\xef\x81\x8c \xef\x81\xae' ;;
   review) mark=$'\xef\x81\x8c \xef\x81\xb5' ;;
