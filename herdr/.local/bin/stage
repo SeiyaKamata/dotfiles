@@ -8,11 +8,11 @@ usage="usage: stage <misc|low|qa|selfreview|review|clear>"
 name="${1:?$usage}"
 
 case "$name" in
-  misc) mark="·" ;;
-  low) mark="▼" ;;
-  qa) mark="STG QA" ;;
-  selfreview) mark="SELF RV" ;;
-  review) mark="RV" ;;
+  misc) mark=$'\xef\x83\xb6' ;;
+  low) mark=$'\xef\x84\x83' ;;
+  qa) mark=$'\xef\x81\x8c \xef\x8b\x90' ;;
+  selfreview) mark=$'\xef\x81\x8c \xef\x81\xae' ;;
+  review) mark=$'\xef\x81\x8c \xef\x81\xb5' ;;
   clear) mark="" ;;
   *)
     echo "$usage" >&2
