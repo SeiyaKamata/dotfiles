@@ -53,10 +53,10 @@ hide_tab_bar_when_single_tab = true # 1 tab の space ではタブバーを隠�
 show_agent_labels_on_pane_borders = true # タブバーを隠す運用のため、ペイン境界に agent 名を出して見分ける
 
 [ui.sidebar.spaces]
-rows = [["state_icon", { token = "$stage", fg = "#f38ba8", bold = true }, "workspace"], ["branch", "git_status"]]
+rows = [["state_icon", { token = "$stage", fg = "#f38ba8", bold = true }, "workspace"]]
 
 [ui.sidebar.agents]
-rows = [["state_icon", { token = "$stage", fg = "#f38ba8", bold = true }, "workspace", "tab"], ["agent"]]
+rows = [[{ token = "state_icon", dim = false }, { token = "$stage", fg = "#f38ba8", bold = true, dim = false }, "workspace", "tab"], ["agent"]]
 
 [ui.toast]
 delivery = "herdr"                  # herdr 画面内トーストで表示（外側端末の通知対応に依存しない）
