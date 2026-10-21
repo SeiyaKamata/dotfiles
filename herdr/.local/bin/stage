@@ -11,8 +11,8 @@ case "$name" in
   misc) mark="·" ;;
   low) mark="▼" ;;
   qa) mark="STG QA" ;;
-  selfreview) mark=S ;;
-  review) mark=R ;;
+  selfreview) mark="SELF RV" ;;
+  review) mark="RV" ;;
   clear) mark="" ;;
   *)
     echo "$usage" >&2
