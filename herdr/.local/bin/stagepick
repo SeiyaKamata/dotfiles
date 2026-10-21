@@ -6,14 +6,25 @@ set -euo pipefail
 export HERDR_WORKSPACE_ID="${HERDR_ACTIVE_WORKSPACE_ID:-}"
 export HERDR_PANE_ID="${HERDR_ACTIVE_PANE_ID:-}"
 
-printf ' \033[1;33mn\033[0m  タスクではない\n'
-printf ' \033[1;33ml\033[0m  優先度を下げる\n'
-printf ' \033[1;33mp\033[0m  一時停止\n'
-printf ' \033[1;33md\033[0m  完了\n'
-printf ' \033[1;33mq\033[0m  QA 待ち\n'
-printf ' \033[1;33ms\033[0m  セルフレビュー待ち\n'
-printf ' \033[1;33mr\033[0m  レビュー待ち\n'
-printf ' \033[1;33mc\033[0m  表示を消す\n'
+chip=$'\033[1;38;2;0;0;0;48;2;250;179;135m'
+dim=$'\033[48;2;38;38;38m'
+off=$'\033[0m'
+
+row() {
+  local mark
+  mark=$(stage "$2" --print)
+  printf '  %s %s %s\033[8G\033[38;2;243;139;168m%s%s\033[14G%s\n' "$chip" "$1" "$off" "$mark" "$off" "$3"
+}
+
+row s selfreview セルフレビュー待ち
+row r review レビュー待ち
+row q qa 'QA 待ち'
+row d complete 完了
+row p pause 一時停止
+row l low 優先度を下げる
+row n misc タスクではない
+row c clear 表示を消す
+printf '\n  %s esc cancel %s' "$dim" "$off"
 
 read -rsn1 key
 case "$key" in
