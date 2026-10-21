@@ -4,7 +4,7 @@
 # herdr の外で呼ばれても成功で終わる。skill を herdr 以外の端末でも止めないため。
 set -euo pipefail
 
-usage="usage: stage <misc|low|pause|complete|qa|selfreview|review|clear>"
+usage="usage: stage <misc|low|pause|complete|qa|selfreview|review|clear> [--print]"
 name="${1:?$usage}"
 
 case "$name" in
@@ -21,6 +21,11 @@ case "$name" in
     exit 1
     ;;
 esac
+
+if [ "${2:-}" = "--print" ]; then
+  printf '%s\n' "$mark"
+  exit 0
+fi
 
 [ -n "${HERDR_WORKSPACE_ID:-}" ] || exit 0
 
