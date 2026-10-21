@@ -8,9 +8,9 @@ usage="usage: stage <misc|low|qa|selfreview|review|clear>"
 name="${1:?$usage}"
 
 case "$name" in
-  misc) mark="◇" ;;
-  low) mark="↓" ;;
-  qa) mark=Q ;;
+  misc) mark="·" ;;
+  low) mark="▼" ;;
+  qa) mark="STG QA" ;;
   selfreview) mark=S ;;
   review) mark=R ;;
   clear) mark="" ;;
