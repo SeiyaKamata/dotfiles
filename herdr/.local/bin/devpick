@@ -4,6 +4,7 @@
 list_features() {
   local q="${1:-}"
   if [ -z "$q" ]; then printf 'new\t新規作成\n'; else printf 'new\t「%s」で新規作成\n' "$q"; fi
+  printf 'none\tfeature を紐付けない\n'
   command find "$HOME"/Develop/.specs -mindepth 1 -maxdepth 1 -type d ! -name '.*' -exec basename {} \; | sort \
     | awk 'NR==FNR { linked[$0]; next } !($0 in linked)' <(linked_features) - \
     | sed 's/^/feat\t/'
@@ -51,7 +52,7 @@ pick_space() {
   printf '%s\n' "${sel##*$'\t'}"
 }
 
-# 選んだ feature 名を出力する。新規作成なら .specs 配下にディレクトリも作る。何も選ばなければ空を出力する。
+# 選んだ feature 名を出力する。紐付けないときは - を出力する。新規作成なら .specs 配下にディレクトリも作る。何も選ばなければ空を出力する。
 # 戻り値は、中断が 1、入力不正が 2。
 pick_feature() {
   local out query sel feature=""
@@ -59,7 +60,9 @@ pick_feature() {
     | fzf --prompt="feature> " --no-sort --print-query --delimiter='\t' --with-nth=2 \
         --bind "change:reload:'$0' --list {q}") || return 1
   { IFS= read -r query; IFS= read -r sel; } <<<"$out"
-  if [ "${sel%%$'\t'*}" = feat ]; then
+  if [ "${sel%%$'\t'*}" = none ]; then
+    feature=-
+  elif [ "${sel%%$'\t'*}" = feat ]; then
     feature="${sel#*$'\t'}"
   elif [ -n "$query" ]; then
     case "$query" in */*) echo "feature 名に / は使えません: $query" >&2; return 2 ;; esac
@@ -82,7 +85,7 @@ main() {
         case $rc in 0) ;; 1) exit 0 ;; *) exit 1 ;; esac
         name=""
         wt_root="$(dirname "$(dirname "$path")")/worktrees"
-        if [ -n "$feature" ] && [ ! -e "$wt_root/$feature" ]; then name="$feature"; fi
+        if [ -n "$feature" ] && [ "$feature" != - ] && [ ! -e "$wt_root/$feature" ]; then name="$feature"; fi
         path=$("$(dirname "$0")/mkworktree" "$path" "$name" "$feature") || exit 1
       fi
       ;;
