@@ -36,7 +36,7 @@ td.status { font-weight: 700; white-space: nowrap; }
 figure { margin: 0; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--chip); }
 figure img { display: block; width: 100%; border-radius: 4px; }
 figcaption { margin-top: 8px; font-size: 14px; }
-ul { padding-left: 20px; }
+ul, ol { padding-left: 20px; }
 """
 
 APPROVAL_STATES = {"": "承認待ち", "対応する": "対応中", "対応しない": "対応なし", "保留": "保留"}
@@ -91,12 +91,9 @@ def header(title, data, with_verdict=True):
     if with_verdict:
         verdict = data["verdict"]
         chip = f'<span class="verdict {status_class(verdict)}">{esc(verdict)}</span>'
-    return [
-        f"<h1>{esc(title)}</h1>",
-        '<p class="meta">'
-        f"{chip}"
-        f"{esc(data.get('branch', ''))} @ {esc(str(data.get('head', ''))[:7])} / {esc(data.get('ran_at', ''))}</p>",
-    ]
+    where = f"{data.get('branch', '')} @ {str(data.get('head', ''))[:7]}" if data.get("branch") or data.get("head") else ""
+    meta = " / ".join(esc(v) for v in (where, data.get("ran_at", "")) if v)
+    return [f"<h1>{esc(title)}</h1>", f'<p class="meta">{chip}{meta}</p>']
 
 
 def table(columns, rows):
@@ -119,6 +116,10 @@ def td(value):
 
 def td_status(value):
     return f'<td class="status {status_class(value)}">{esc(value)}</td>'
+
+
+def numbered(items):
+    return "<ol>" + "".join(f"<li>{esc(i)}</li>" for i in items) + "</ol>"
 
 
 def bullets(items):
@@ -255,18 +256,47 @@ def render_comments(data):
     return title, parts
 
 
+def render_bug(data):
+    title = f"バグ報告: {data.get('feature', '')}"
+    parts = header(title, data, with_verdict=False)
+    parts.append(
+        "<h2>サマリ</h2>"
+        + bullets(
+            [
+                f"症状: {data['symptom']}",
+                f"再現可否: {data['reproducible']}",
+                f"期待する挙動: {data.get('expected', '')}",
+                f"実際の挙動: {data.get('actual', '')}",
+            ]
+        )
+    )
+    if data.get("steps"):
+        parts.append("<h2>再現手順</h2>" + numbered(data["steps"]))
+    if data.get("suspects"):
+        parts.append(
+            "<h2>疑わしい箇所</h2>"
+            + table(["場所", "なぜ疑わしいか"], [[td(x["location"]), td(x.get("reason", ""))] for x in data["suspects"]])
+        )
+    if data.get("fix_scope"):
+        parts.append("<h2>想定する修正範囲</h2>" + bullets(data["fix_scope"]))
+    if data.get("regression_checks"):
+        parts.append("<h2>回帰テストの観点</h2>" + bullets(data["regression_checks"]))
+    return title, parts
+
+
 KINDS = {
     "qa-report": render_qa,
     "test-report": render_test,
     "review": render_review,
     "ci-report": render_ci,
     "comment-report": render_comments,
+    "bug-report": render_bug,
 }
 
 
 def main():
     if len(sys.argv) != 2:
-        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report>.jsonc")
+        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report>.jsonc")
     src = Path(sys.argv[1])
     if src.stem not in KINDS:
         sys.exit(f"未対応のレポートです: {src.name}")

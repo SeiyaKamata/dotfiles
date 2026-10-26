@@ -63,7 +63,7 @@ awscli で CloudWatch Logs を調べ、「ログに何が出ているか」を `
 ### Step 1: 入力の確認
 
 - 調べたいことは `$ARGUMENTS` の残りか対話で受ける。症状・エラー文言・時間帯・リクエスト ID
-- `.specs/bug-report.md` があれば症状と時間帯の起点として読む
+- `.specs/bug-report.jsonc` があれば症状と時間帯の起点として読む
 
 ### Step 2: プロファイルの確定
 
