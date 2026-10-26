@@ -17,7 +17,7 @@ allowed-tools: Read, Write, Edit, Bash
 誤ったコマンドの PASS は最も危険な嘘になる。
 
 ## test-report.md のフォーマット
-frontmatter は review・qa のレポートと共通の形式にする。
+frontmatter は review のレポートと共通の形式にする。
 
 ```markdown
 ---

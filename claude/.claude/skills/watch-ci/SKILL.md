@@ -19,7 +19,7 @@ CI の完了を待って結果を完了カードで報告し、途中でユー�
 修正はここでは行わず、赤の内訳をレポートに書いて `/fix` に渡す。
 
 ## ci-report.md のフォーマット
-frontmatter は test・review・qa のレポートと共通の形式にする。
+frontmatter は test・review のレポートと共通の形式にする。
 
 ```markdown
 ---

@@ -21,43 +21,43 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 環境は落ちている前提で始め、開始時点の状態に関係なく検証が終わったら常に `chworktree stop` で片付ける。
 「自分が起動した分だけ停止する」判定は追跡を一度誤ると環境が残るので採らず、`chworktree stop` は未起動でも安全なので無条件に呼ぶ。
 
-## qa-report.md のフォーマット
+## qa-report.jsonc のフォーマット
 
 `/fix` が読む失敗の内訳と、人が読む HTML の元データを兼ねる。
-毎回 `.specs/qa-report.md` に上書きし、同じ内容から `.specs/qa-report.html` を生成する。
+毎回 `.specs/qa-report.jsonc` に上書きし、同じ内容から `.specs/qa-report.html` を生成する。
 `count` は非 PASS の連続回数で、今回も前回も非 PASS なら前回値 +1、それ以外は 1 にする。
 `fixed` は常に `false` を書き、`true` にするのは `/fix` だけ。
+末尾カンマは書かない。
 
-`## シナリオ結果` は全シナリオを 1 行ずつ並べ、HTML 生成がこの表を読むので列の順を変えない。
-原因に `|` を入れない。
-スクリーンショットは `.specs/img/qa-Q<n>.png` に固定名で置き、表には `.specs/` からの相対パスで書く。
+`scenarios` は全シナリオを 1 件ずつ並べる。
+スクリーンショットは `.specs/img/qa-Q<n>.png` に固定名で置き、`screenshot` には `.specs/` からの相対パスで書く。
+サマリの件数は HTML 生成が `scenarios` から数えるので書かない。
 
-```markdown
----
-branch: [カレントブランチ。取得不能時は none]
-head: [git rev-parse HEAD。取得不能時は none]
-ran_at: [書き出し時点の時刻。date +"%Y-%m-%dT%H:%M:%S%z" で取得]
-fixed: false
-count: [非 PASS の連続回数]
----
-
-# QA結果: [機能名]
-
-## サマリ
-- 判定: [PASS / FAIL / BLOCKED。BLOCKED は環境を起動できないか到達できず検証未実施]
-- シナリオ数 / pass / fail: [N / N / N]
-
-## シナリオ結果
-
-| Q | タイトル | 判定 | 原因 | スクリーンショット |
-|---|---|---|---|---|
-| Q[n] | [タイトル] | [pass / fail] | [fail のときだけ原因 1 行] | img/qa-Q[n].png |
-
-## 失敗シナリオ
-[FAIL のときだけ。無ければ節ごと省略]
-- Q[n] [タイトル]: [原因]
-  - _Requirements: [N]_
+```jsonc
+{
+  "feature": "[機能名]",
+  "branch": "[カレントブランチ。取得不能時は none]",
+  "head": "[git rev-parse HEAD。取得不能時は none]",
+  "ran_at": "[書き出し時点の時刻。date +\"%Y-%m-%dT%H:%M:%S%z\" で取得]",
+  "fixed": false,
+  "count": 1, // 今回が初回の非 PASS なら 1。前回も非 PASS なら前回値 +1
+  "verdict": "[PASS / FAIL / BLOCKED。BLOCKED は環境を起動できないか到達できず検証未実施]",
+  "scenarios": [
+    {
+      "id": "Q1",
+      "title": "[タイトル]",
+      "result": "[pass / fail]",
+      "cause": "[fail のときだけ原因 1 行。pass は空文字]",
+      "screenshot": "img/qa-Q1.png",
+      "requirements": [1]
+    }
+  ]
+}
 ```
+
+`requirements` は `qa.md` のシナリオが持つ要件番号で、`fail` のシナリオだけ書く。
+`screenshot` は全シナリオに書く。
+`BLOCKED` のときとローカルシナリオが 0 件のときは、`scenarios` を空配列にする。
 
 ## 進め方
 
@@ -118,11 +118,11 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
 ### Step 6: 書き出し
 
 - 結果で `.specs/qa.md` の `## ローカルQAシナリオ` のチェックを更新する。pass は `[x]`、fail は `[ ]` のまま
-- 既存の `qa-report.md` があれば上書き前に前回の判定と `count` を読む
+- 既存の `qa-report.jsonc` があれば上書き前に前回の判定と `count` を読む
 - `mkdir -p .specs/img` のあと、委譲先が返したスクリーンショットを `cp <返ってきたパス> .specs/img/qa-Q<n>.png` で全シナリオ分コピーする
   - 委譲先は Playwright の書き込み制限を受けない保存先に書くので、`.specs/` へはこちらがコピーする
-- 「qa-report.md のフォーマット」で `.specs/qa-report.md` を書き出す
-- `python3 ~/.claude/skills/qa/render-report.py .specs/qa-report.md` で `.specs/qa-report.html` を生成する
+- 「qa-report.jsonc のフォーマット」で `.specs/qa-report.jsonc` を書き出す
+- `python3 ~/.claude/skills/_report/render.py .specs/qa-report.jsonc` で `.specs/qa-report.html` を生成する
 
 ### Step 7: 環境停止
 
@@ -145,7 +145,7 @@ FAIL の原因調査で環境が要るなら `/fix` 側で起動し直す。
 
 生成物:
 - `.specs/qa.md`
-- `.specs/qa-report.md`
+- `.specs/qa-report.jsonc`
 - `.specs/qa-report.html`
 
 ### 要確認

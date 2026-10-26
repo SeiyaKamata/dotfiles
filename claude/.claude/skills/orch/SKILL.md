@@ -128,7 +128,7 @@ loop:
 
 qa は commit より前に置き、実装が作業ツリーにあるうちに feature 全体の受け入れを確認する。
 
-完了後: `qa-report.md` の `count` が 2 以上なら報告して停止。
+完了後: `qa-report.jsonc` の `count` が 2 以上なら報告して停止。
 
 ### `/fix`
 
