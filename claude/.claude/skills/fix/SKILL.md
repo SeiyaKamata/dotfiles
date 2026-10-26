@@ -20,14 +20,14 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ## 起点レポート
 `fixed` は常にレポート側が `false` で書き、修正を適用して失敗が消えたことを確認した `/fix` だけが `true` に書き換える。
 それ以外のフィールドと判定内容は更新しない。
-`qa-report.jsonc` と `test-report.jsonc` と `review.jsonc` は frontmatter ではなく、`"fixed": false` の部分だけを `"fixed": true` に置換する。行末のコメントには触れない。
+`qa-report.jsonc` と `test-report.jsonc` と `review.jsonc` と `ci-report.jsonc` は frontmatter ではなく、`"fixed": false` の部分だけを `"fixed": true` に置換する。行末のコメントには触れない。
 
 | レポート | 生成元 | 再現手段 | 修正後の次の一手 |
 |---|---|---|---|
 | `test-report.jsonc` | `/test` | 失敗したテストだけを絞り込んで実行する。コマンドは `CLAUDE.local.md` の `## テスト` 節を優先し、無ければビルド設定ファイルから検出する | `/test` |
 | `bug-report.md` | `/bughunt` | 再現手順の欄を実行する | `/test` |
 | `qa-report.jsonc` | `/qa` | 失敗したシナリオに対応するテストやコマンドを手元で実行する。ブラウザ操作はしない | `/test` |
-| `ci-report.md` | `/watch-ci` | 失敗したジョブのコマンドを手元で実行する。CI 固有の環境でしか再現しなければ最も近いコマンドを使う | `/watch-ci` |
+| `ci-report.jsonc` | `/watch-ci` | 失敗したジョブのコマンドを手元で実行する。CI 固有の環境でしか再現しなければ最も近いコマンドを使う | `/watch-ci` |
 | `review.jsonc` | `/review` | 成立と判定された指摘の箇所を読み、指摘された事象が現状のコードにあることを確認する。対応するテストがあれば実行する | `/test` |
 | `comment-report.md` | `/triage-comments` | 承認欄が `対応する` の `[ ]` 項目だけを対象に、`review.jsonc` と同じ手順で確認する。`[x]` は対応済み、承認欄が空・`対応しない`・`保留` の項目は要確認に回す | `/sync` |
 

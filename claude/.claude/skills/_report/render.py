@@ -101,6 +101,10 @@ def table(columns, rows):
     return f"<table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
 
 
+def link(url, text):
+    return f'<a href="{esc(url)}">{esc(text)}</a>' if url else esc(text)
+
+
 def td(value):
     return f"<td>{esc(value)}</td>"
 
@@ -191,19 +195,40 @@ def render_review(data):
     return "レビュー結果", parts
 
 
+def render_ci(data):
+    parts = header("CI結果", data)
+    pr = data.get("pr", {})
+    parts.append(
+        "<h2>サマリ</h2><ul>"
+        f'<li>PR: {link(pr.get("url", ""), "#" + str(pr.get("number", "")))}</li>'
+        f"<li>判定: {esc(data.get('verdict', ''))}</li></ul>"
+    )
+    jobs = data.get("failed_jobs", [])
+    if jobs:
+        rows = [
+            [td(j["name"]), td(j.get("step", "")), td(j.get("error", "")), f'<td>{link(j.get("link", ""), "ログ") if j.get("link") else ""}</td>']
+            for j in jobs
+        ]
+        parts.append("<h2>失敗ジョブ</h2>" + table(["ジョブ", "失敗ステップ", "エラー", "リンク"], rows))
+    return "CI結果", parts
+
+
 KINDS = {
     "qa-report": render_qa,
     "test-report": render_test,
     "review": render_review,
+    "ci-report": render_ci,
 }
 
 
 def main():
     if len(sys.argv) != 2:
-        sys.exit("使い方: render.py <qa-report|test-report|review>.jsonc")
+        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report>.jsonc")
     src = Path(sys.argv[1])
     if src.stem not in KINDS:
         sys.exit(f"未対応のレポートです: {src.name}")
+    out = src.with_suffix(".html")
+    out.unlink(missing_ok=True)
     try:
         data = json.loads(strip_comments(src.read_text(encoding="utf-8")))
     except (IndexError, ValueError) as e:
@@ -218,7 +243,6 @@ def main():
         f"<title>{esc(title)}</title>\n<style>{CSS}</style>\n</head>\n"
         f"<body>\n<main>\n{''.join(parts)}\n</main>\n</body>\n</html>\n"
     )
-    out = src.with_suffix(".html")
     out.write_text(page, encoding="utf-8")
     print(out)
 

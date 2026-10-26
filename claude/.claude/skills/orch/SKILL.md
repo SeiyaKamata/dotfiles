@@ -156,7 +156,7 @@ PR の CI green を待つ。
 - 赤 → `/fix` → `/commit` → `/sync` → `/watch-ci` に戻る
   - `/sync` は `comment-report.md` に未チェックの項目が無ければ push だけして戻る
 
-完了後: `ci-report.md` の `count` が 3 以上なら報告して停止。
+完了後: `ci-report.jsonc` の `count` が 3 以上なら報告して停止。
 
 ### Step 12: コメント対応
 

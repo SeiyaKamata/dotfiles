@@ -2,13 +2,13 @@
 name: watch-ci
 description: PRのCIを監視し、完了後に結果に応じて分岐対応する。push後やPR作成後に使う。
 argument-hint: "[PR番号]"
-allowed-tools: Read, Write, Bash(gh *), Bash(git *), Bash(date *), Agent
+allowed-tools: Read, Write, Bash(gh *), Bash(git *), Bash(date *), Bash(python3 ~/.claude/skills/_report/render.py *), Agent
 ---
 
 # CI監視スキル
 
 ## 役割
-PR の CI が完了するまで監視し、green / 赤を判定して `.specs/ci-report.md` に記録する。
+PR の CI が完了するまで監視し、green / 赤を判定して `.specs/ci-report.jsonc` に記録する。
 赤ならログを取得して要点に畳み、ログ本体はメインコンテキストにもカードにも載せない。
 Ready for review への切り替えは行わず、draft のまま完了とする。
 Ready for review はレビュアーに通知が飛ぶ外向きの操作で、取り消しても通知は戻らないので人が明示的に実行する。
@@ -18,26 +18,30 @@ CI の完了を待って結果を完了カードで報告し、途中でユー�
 `gh pr checks --watch` がタイムアウトしたときだけ、再実行するかを人に確認する。
 修正はここでは行わず、赤の内訳をレポートに書いて `/fix` に渡す。
 
-## ci-report.md のフォーマット
+## ci-report.jsonc のフォーマット
+`/fix` が読む失敗の内訳と、人が読む HTML の元データを兼ねる。
+毎回 `.specs/ci-report.jsonc` に上書きし、同じ内容から `.specs/ci-report.html` を生成する。
+末尾カンマは書かない。
+文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 
-```markdown
----
-branch: [対象 PR の head ブランチ]
-head: [gh pr view <PR番号> --json headRefOid --jq .headRefOid で取った 40 文字。短縮しない]
-ran_at: [書き出し時点の時刻。date +"%Y-%m-%dT%H:%M:%S%z" で取得]
-fixed: false [常に false。/fix が修正を適用したときだけ true に書き換える]
-count: [赤の連続回数。今回が赤かつ既存レポートの branch が同じで判定も赤なら既存値 +1、それ以外は 1]
----
-
-# CI結果
-
-## サマリ
-- PR: #[番号] [URL]
-- 判定: [green / 赤]
-
-## 失敗ジョブ
-[赤のときだけ。green なら節ごと省略]
-- [ジョブ名]: [失敗ステップ]。[主要なエラーメッセージ 1〜2 行] — [ジョブの link]
+```jsonc
+{
+  "branch": "[対象 PR の head ブランチ]",
+  "head": "[gh pr view <PR番号> --json headRefOid --jq .headRefOid で取った 40 文字。短縮しない]",
+  "ran_at": "[書き出し時点の時刻。date +\"%Y-%m-%dT%H:%M:%S%z\" で取得]",
+  "fixed": false, // 常に false。/fix が修正を適用したときだけ true に書き換える
+  "count": 1, // 赤の連続回数。今回が赤かつ既存レポートの branch が同じで判定も赤なら既存値 +1、それ以外は 1
+  "verdict": "[green / 赤]",
+  "pr": { "number": 0, "url": "[PR の URL]" },
+  "failed_jobs": [
+    {
+      "name": "[ジョブ名]",
+      "step": "[失敗ステップ]",
+      "error": "[主要なエラーメッセージ 1〜2 行]",
+      "link": "[ジョブの link]"
+    }
+  ] // 赤のときだけ並べる。green は空配列
+}
 ```
 
 ## 進め方
@@ -75,7 +79,9 @@ gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusi
 
 ### Step 4: レポートの書き出し
 
-既存の `ci-report.md` があれば `branch`・判定・`count` を読み、「ci-report.md のフォーマット」で `.specs/ci-report.md` に上書きする。
+既存の `ci-report.jsonc` があれば `branch`・判定・`count` を読み、「ci-report.jsonc のフォーマット」で `.specs/ci-report.jsonc` に上書きする。
+続けて `python3 ~/.claude/skills/_report/render.py .specs/ci-report.jsonc` で `.specs/ci-report.html` を生成する。
+生成に失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
 
 ### Step 5: 出力
 
@@ -88,7 +94,8 @@ gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusi
 
 生成物:
 - <対象 PR の URL>
-- `.specs/ci-report.md`
+- `.specs/ci-report.jsonc`
+- `.specs/ci-report.html`
 
 ### 要確認
 - <SKIPPED 扱いにしたジョブ、再実行で結果が変わったジョブなど、判定に影響しうる点>

@@ -95,7 +95,7 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 
 既存の `review.jsonc` があれば判定と `count` を読み、「review.jsonc のフォーマット」で `.specs/review.jsonc` に上書きする。
 続けて `python3 ~/.claude/skills/_report/render.py .specs/review.jsonc` で `.specs/review.html` を生成する。
-生成に失敗したら `.jsonc` は残し、古い `.html` があれば削除し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
+生成に失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
 指摘の一覧はここに寄せ、ターミナルには列挙しない。
 
 ### Step 6: 出力
