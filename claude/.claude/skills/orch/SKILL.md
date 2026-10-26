@@ -116,7 +116,7 @@ loop:
 
 ### Step 6: `/test`
 
-完了後: `test-report.md` の `count` が 3 以上なら報告して停止。
+完了後: `test-report.jsonc` の `count` が 3 以上なら報告して停止。
 
 ### Step 7: `/review`
 

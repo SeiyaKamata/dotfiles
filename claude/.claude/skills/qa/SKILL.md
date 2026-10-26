@@ -123,6 +123,7 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
   - 委譲先は Playwright の書き込み制限を受けない保存先に書くので、`.specs/` へはこちらがコピーする
 - 「qa-report.jsonc のフォーマット」で `.specs/qa-report.jsonc` を書き出す
 - `python3 ~/.claude/skills/_report/render.py .specs/qa-report.jsonc` で `.specs/qa-report.html` を生成する
+  - 生成に失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる
 
 ### Step 7: 環境停止
 

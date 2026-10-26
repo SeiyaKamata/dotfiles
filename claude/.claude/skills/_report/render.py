@@ -77,7 +77,7 @@ def strip_comments(text):
 
 
 def status_class(value):
-    v = str(value).lower()
+    v = str(value).strip().lower()
     if v in PASS:
         return "pass"
     if v in FAIL:
@@ -86,7 +86,7 @@ def status_class(value):
 
 
 def header(title, data):
-    verdict = data.get("verdict", "")
+    verdict = data["verdict"]
     return [
         f"<h1>{esc(title)}</h1>",
         '<p class="meta">'
@@ -151,14 +151,35 @@ def render_qa(data):
     return f"QA結果: {data.get('feature', '')}", parts
 
 
+def render_test(data):
+    parts = header("テスト結果", data)
+    parts.append(
+        "<h2>サマリ</h2>"
+        + bullets(
+            [
+                f"実行数: {data['total']}",
+                f"成功: {data['passed']}",
+                f"失敗: {data['failed']}",
+            ]
+        )
+    )
+    failures = data.get("failures", [])
+    if failures:
+        parts.append(
+            "<h2>失敗したテスト</h2>" + table(["テスト名", "エラー内容"], [[td(f["name"]), td(f.get("error", ""))] for f in failures])
+        )
+    return "テスト結果", parts
+
+
 KINDS = {
     "qa-report": render_qa,
+    "test-report": render_test,
 }
 
 
 def main():
     if len(sys.argv) != 2:
-        sys.exit("使い方: render.py qa-report.jsonc")
+        sys.exit("使い方: render.py <qa-report|test-report>.jsonc")
     src = Path(sys.argv[1])
     if src.stem not in KINDS:
         sys.exit(f"未対応のレポートです: {src.name}")
@@ -166,7 +187,10 @@ def main():
         data = json.loads(strip_comments(src.read_text(encoding="utf-8")))
     except (IndexError, ValueError) as e:
         sys.exit(f"{src.name} を JSON として読めません: {e}")
-    title, parts = KINDS[src.stem](data)
+    try:
+        title, parts = KINDS[src.stem](data)
+    except (KeyError, TypeError, AttributeError) as e:
+        sys.exit(f"{src.name} の項目が足りないか形が違います: {e!r}")
     page = (
         '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'

@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Edit, Bash
 # テストスキル
 
 ## 役割
-実装後にテスト・lint・フォーマットチェックなどの検証を実行し、PASS / FAIL を判定して `.specs/test-report.md` に記録する。
+実装後にテスト・lint・フォーマットチェックなどの検証を実行し、PASS / FAIL を判定して `.specs/test-report.jsonc` に記録する。
 出力は毎回ファイルにリダイレクトし、exit code と失敗行だけを `tail` / `grep` で読む。
 大量のログをメインコンテキストに載せないため。
 
@@ -16,27 +16,26 @@ allowed-tools: Read, Write, Edit, Bash
 テストコマンドを判断できないときは推測で実行せず、Step 5 の中断カードで `CLAUDE.local.md` への記載を促す。
 誤ったコマンドの PASS は最も危険な嘘になる。
 
-## test-report.md のフォーマット
-frontmatter は review のレポートと共通の形式にする。
+## test-report.jsonc のフォーマット
+`/fix` が読む失敗の内訳と、人が読む HTML の元データを兼ねる。
+毎回 `.specs/test-report.jsonc` に上書きし、同じ内容から `.specs/test-report.html` を生成する。
+末尾カンマは書かない。
 
-```markdown
----
-branch: [Step 1 で確定したブランチ。detached なら none]
-head: [Step 1 で確定した HEAD。40 文字、短縮しない]
-ran_at: [書き出し時点の時刻。date +"%Y-%m-%dT%H:%M:%S%z" で取得]
-fixed: false [常に false。/fix が修正を適用したときだけ true に書き換える]
-count: [FAIL の連続回数。今回が FAIL かつ既存レポートも FAIL なら既存値 +1、それ以外は 1]
----
-
-## テスト結果: [PASS / FAIL]
-
-- 実行数: [N]
-- 成功: [N]
-- 失敗: [N]
-
-### 失敗したテスト
-[FAIL のときだけ。PASS なら節ごと省略]
-- [テスト名]: [エラー内容]
+```jsonc
+{
+  "branch": "[Step 1 で確定したブランチ。detached なら none]",
+  "head": "[Step 1 で確定した HEAD。40 文字、短縮しない]",
+  "ran_at": "[書き出し時点の時刻。date +\"%Y-%m-%dT%H:%M:%S%z\" で取得]",
+  "fixed": false, // 常に false。/fix が修正を適用したときだけ true に書き換える
+  "count": 1, // FAIL の連続回数。今回が FAIL かつ既存レポートも FAIL なら既存値 +1、それ以外は 1
+  "verdict": "[PASS / FAIL]",
+  "total": 0,
+  "passed": 0,
+  "failed": 0,
+  "failures": [
+    { "name": "[テスト名]", "error": "[エラー内容]" }
+  ] // FAIL のときだけ並べる。PASS は空配列
+}
 ```
 
 ## 進め方
@@ -76,7 +75,9 @@ tail -n 50 .specs/.test-output.log
 
 ### Step 4: 記録
 
-既存の `test-report.md` があれば判定と `count` を読み、「test-report.md のフォーマット」で `.specs/test-report.md` に上書きする。
+既存の `test-report.jsonc` があれば判定と `count` を読み、「test-report.jsonc のフォーマット」で `.specs/test-report.jsonc` に上書きする。
+続けて `python3 ~/.claude/skills/_report/render.py .specs/test-report.jsonc` で `.specs/test-report.html` を生成する。
+生成に失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
 
 ### Step 5: 出力
 
@@ -88,7 +89,9 @@ tail -n 50 .specs/.test-output.log
 ### テスト実行完了 — <PASS / FAIL>
 <実行数と判定を 1 行>
 
-生成物: `.specs/test-report.md`
+生成物:
+- `.specs/test-report.jsonc`
+- `.specs/test-report.html`
 
 ### 要確認
 - <候補が複数あったテストコマンドの選択、スキップした対象など、判定に影響しうる判断>

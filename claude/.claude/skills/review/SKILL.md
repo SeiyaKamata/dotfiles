@@ -25,7 +25,6 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 | 実装は仕様どおりだが、`requirements.md` / `plan.md` の記述が実コードと食い違っている | OK。食い違いを推奨対応に上流 doc の修正として列挙し、要確認にも出す |
 
 ## review.md のフォーマット
-frontmatter は test のレポートと共通の形式にする。
 
 ```markdown
 ---
