@@ -425,6 +425,57 @@ def render_plan(data):
     return title, parts
 
 
+def as_list(value):
+    if isinstance(value, list):
+        return value
+    return [value] if value not in (None, "") else []
+
+
+def scenario_cards(items):
+    out = ""
+    for x in items:
+        mark = "☑" if x.get("done") else "☐"
+        steps = "".join(f"<li>{esc(t)}</li>" for t in as_list(x.get("steps")))
+        reqs = as_list(x.get("requirements"))
+        meta = f'<p class="task-meta">要件: {esc(", ".join(map(str, reqs)))}</p>' if reqs else ""
+        pre = f"<p>前提: {esc(x['precondition'])}</p>" if x.get("precondition") else ""
+        out += (
+            f"<h4>{mark} {esc(x.get('id', ''))}. {esc(x.get('title', ''))}</h4>"
+            f"{meta}{pre}"
+            f"<ol>{steps}</ol><p>期待: {esc(x.get('expect', ''))}</p>{question_block(x.get('question', ''))}"
+        )
+    return out
+
+
+def render_scenarios(data):
+    title = f"QAシナリオ: {data['feature']}"
+    local = data.get("local", [])
+    deploy = data.get("deploy", [])
+    excluded = data.get("excluded", [])
+    parts = header(title, data, with_verdict=False)
+    parts.append(
+        "<h2>サマリ</h2>"
+        + bullets(
+            [
+                f"ローカル: {sum(1 for x in local if x.get('done'))} / {len(local)} 完了",
+                f"デプロイ環境: {sum(1 for x in deploy if x.get('done'))} / {len(deploy)} 完了",
+                f"自動QA対象外: {len(excluded)} 件",
+            ]
+        )
+    )
+    if local:
+        parts.append("<h2>ローカルQAシナリオ</h2>" + scenario_cards(local))
+    if deploy:
+        parts.append("<h2>デプロイ環境QAシナリオ</h2>" + scenario_cards(deploy))
+    if excluded:
+        items = [
+            f"{x.get('text', '')}（要件: {', '.join(map(str, as_list(x.get('requirements'))))}）検証手段: {x.get('method', '')}"
+            for x in excluded
+        ]
+        parts.append("<h2>自動QA対象外</h2>" + bullets(items))
+    return title, parts
+
+
 KINDS = {
     "qa-report": render_qa,
     "test-report": render_test,
@@ -434,12 +485,13 @@ KINDS = {
     "bug-report": render_bug,
     "requirements": render_requirements,
     "plan": render_plan,
+    "qa": render_scenarios,
 }
 
 
 def main():
     if len(sys.argv) != 2:
-        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report|requirements|plan>.jsonc")
+        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report|requirements|plan|qa>.jsonc")
     src = Path(sys.argv[1])
     if src.stem not in KINDS:
         sys.exit(f"未対応のレポートです: {src.name}")

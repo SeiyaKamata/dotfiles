@@ -106,7 +106,7 @@ loop:
 
 ### Step 4: `/plan`
 
-「妥当性検証ループ」で確定したら `/scenarios` で `qa.md` を作り、完了したら `/impl` へ。
+「妥当性検証ループ」で確定したら `/scenarios` で `qa.jsonc` を作り、完了したら `/impl` へ。
 開始工程が `scenarios` のときは `/plan` を実行せず、ここの `/scenarios` 起動から始める。
 
 ### Step 5: `/impl`

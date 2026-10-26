@@ -56,7 +56,7 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 }
 ```
 
-`requirements` は `qa.md` のシナリオが持つ要件番号で、`fail` のシナリオだけ書く。
+`requirements` は `qa.jsonc` のシナリオが持つ要件番号で、`fail` のシナリオだけ書く。
 `screenshot` は全シナリオに書く。
 `BLOCKED` のときとローカルシナリオが 0 件のときは、`scenarios` を空配列にする。
 
@@ -64,7 +64,7 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 
 ### Step 1: 対象の確定
 
-- `.specs/qa.md` が無ければ Step 8 の中断カードで報告して終了
+- `.specs/qa.jsonc` が無ければ Step 8 の中断カードで報告して終了
 
 カレントブランチが実装ブランチ `<branch>` でなければ `git switch <branch>` を試みる。
 実装ブランチ名 `<branch>` は `.specs/requirements.jsonc` の `branch_name` にする。
@@ -74,7 +74,7 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 - detached HEAD のまま `<branch>` も無い → `branch: none` として続行する
 
 `git rev-parse HEAD` で head を確定する。
-`qa.md` の `## ローカルQAシナリオ` が無いか 0 件なら、ブラウザで検証するものが無いので環境を起動せず、Step 2〜5 と Step 7 を飛ばして Step 6 でシナリオ数 0 の PASS を書き出す。
+`qa.jsonc` の `local` が空なら、ブラウザで検証するものが無いので環境を起動せず、Step 2〜5 と Step 7 を飛ばして Step 6 でシナリオ数 0 の PASS を書き出す。
 
 ### Step 2: 起動プロファイルと稼働状態の確認
 
@@ -108,17 +108,19 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
 
 ### Step 5: シナリオ実行の委譲
 
-`## ローカルQAシナリオ` の全シナリオを 1 回の委譲で `browser-tester` に渡す。
+`local` の全シナリオを 1 回の委譲で `browser-tester` に渡す。
 ブラウザセッションを共有し、自分のコンテキスト消費を抑えるため。
-`## デプロイ環境QAシナリオ` と `## 自動QA対象外` は渡さない。
+`deploy` と `excluded` は渡さない。
 
-渡すのはベース URL、`## ローカルQAシナリオ` のブロックそのまま、git 管理外のスクリーンショット保存先ディレクトリの 3 つ。
+渡すのはベース URL、`local` の配列そのまま、git 管理外のスクリーンショット保存先ディレクトリの 3 つ。
 受け取るのは `Q<n>: pass|fail` と原因 1 行とスクショパスの配列だけ。
 ベース URL に到達できないと返ってきたときはシナリオ未実施なので BLOCKED とし、Step 7 で停止してから Step 8 の中断カードで報告する。再委譲はしない。
 
 ### Step 6: 書き出し
 
-- 結果で `.specs/qa.md` の `## ローカルQAシナリオ` のチェックを更新する。pass は `[x]`、fail は `[ ]` のまま
+- 結果で `.specs/qa.jsonc` の `local` の `done` を更新する。pass のシナリオは `true`、fail のシナリオは `false` にする。
+  - Edit で、`"id": "Q<n>"` の行から `"done"` の行までを old_str にして、1 シナリオずつ置換する。`deploy` の `done` には触れない
+  - 続けて `python3 ~/.claude/skills/_report/render.py .specs/qa.jsonc` で `.specs/qa.html` を作り直す
 - 既存の `qa-report.jsonc` があれば上書き前に前回の判定と `count` を読む
 - `mkdir -p .specs/img` のあと、委譲先が返したスクリーンショットを `cp <返ってきたパス> .specs/img/qa-Q<n>.png` で全シナリオ分コピーする
   - 委譲先は Playwright の書き込み制限を受けない保存先に書くので、`.specs/` へはこちらがコピーする
@@ -146,7 +148,7 @@ FAIL の原因調査で環境が要るなら `/fix` 側で起動し直す。
 <シナリオ数と判定を 1 行>
 
 生成物:
-- `.specs/qa.md`
+- `.specs/qa.jsonc`
 - `.specs/qa-report.jsonc`
 - `.specs/qa-report.html`
 
