@@ -1,5 +1,5 @@
 ---
-name: seed
+name: feature
 description: 要望・指摘・棚上げ案件から、独立 feature の下書き seed.jsonc を作る。詳細化はせず、後で /spec が拾う。思いついた変更を書き留めたいとき、/review 等でスコープ外の指摘が出たとき、投げなくても今のタスクが完了する棚上げ案件があるときに使う。
 argument-hint: "[要望や指摘の本文]"
 allowed-tools: Write, Glob, Bash(python3 ~/.claude/skills/_report/render.py *)
@@ -46,7 +46,7 @@ allowed-tools: Write, Glob, Bash(python3 ~/.claude/skills/_report/render.py *)
 
 - 引数に要望や指摘の本文があれば、それを材料にする
 - 引数が無ければ会話の文脈から、直前に棚上げされた指摘や思いついた変更を材料にする
-- どちらにも材料が無ければ「使い方: /seed [要望や指摘の本文]」を表示して終了
+- どちらにも材料が無ければ「使い方: /feature [要望や指摘の本文]」を表示して終了
 
 複数の案件が混ざっているなら、独立した下書きに分けるか 1 つにまとめるかを確定する。
 根拠が薄いときは案件ごとに分ける側に倒す。まとめて後戻りしにくくなるより、後で `/spec` 側で統合を判断できる方が安全。
