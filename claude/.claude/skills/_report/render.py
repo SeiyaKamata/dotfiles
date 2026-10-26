@@ -16,7 +16,7 @@ CSS = """
   }
 }
 * { box-sizing: border-box; }
-body { margin: 0; padding: 32px 16px 64px; background: var(--bg); color: var(--fg);
+body { margin: 0; padding: 32px clamp(16px, 5vw, 56px) 64px; background: var(--bg); color: var(--fg);
   font: 15px/1.7 -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; }
 main { max-width: 1120px; margin: 0 auto; }
 a { color: var(--accent); }
