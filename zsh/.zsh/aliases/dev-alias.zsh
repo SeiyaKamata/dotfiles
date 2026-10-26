@@ -2,10 +2,9 @@ vis() {
   vim -c "NvimTreeOpen .specs"
 }
 
-# ~/Develop/.specs をローカルだけに公開してブラウザで開く。Ctrl-C で止まる。
+# フォルダの読み取り許可を使うので、Chrome で開く。
 specs() {
-  open http://127.0.0.1:8765/viewer.html
-  python3 -m http.server 8765 --directory ~/Develop/.specs --bind 127.0.0.1
+  open -a "Google Chrome" ~/Develop/.specs/viewer.html
 }
 
 # 引数を渡せばそのままDiffviewOpenに渡す。無ければ作業ツリーの差分を開く。
