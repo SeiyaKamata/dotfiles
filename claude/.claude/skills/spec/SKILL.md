@@ -1,7 +1,7 @@
 ---
 name: spec
 description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのfeature.jsoncの詳細化で使う。requirements.jsoncがあるときは、現状の要件と要確認を提示し、要確認を会話で詰めて書き戻す。
-allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(python3 ~/.claude/skills/_report/render.py *)
+allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(python3 ~/.claude/skills/spec/check.py), Bash(python3 ~/.claude/skills/_report/render.py *)
 ---
 
 # 要件策定スキル
@@ -145,13 +145,13 @@ in-scope の項目**だけ**を Requirement に起こす。
 
 Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs/requirements.jsonc` に書く。
 `repo` は、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename から採る。
-続けて `python3 ~/.claude/skills/_report/render.py .specs/requirements.jsonc` で `.specs/requirements.html` を生成する。
-生成に失敗したら `.jsonc` は残し、Step 6 の提示に失敗の内容を添える。
 
 ### Step 5: 点検
 
-`requirements.jsonc` が「受け入れ条件の書き方」と「requirements.jsonc のフォーマット」を満たしているか見直し、外れていれば直してから Step 6 へ進む。
-既存の `requirements.jsonc` を読み込んだ場合は、本文に紛れた仮定で `question` が空のものを拾い、該当行の `question` に書く。
+`python3 ~/.claude/skills/spec/check.py` を実行する。
+指摘が出たら直して再実行し、`OK` が出るまで繰り返す。
+続けて `python3 ~/.claude/skills/_report/render.py .specs/requirements.jsonc` で `.specs/requirements.html` を生成する。
+生成に失敗したら `.jsonc` は残し、Step 6 の提示に失敗の内容を添える。
 
 ### Step 6: 提示
 
