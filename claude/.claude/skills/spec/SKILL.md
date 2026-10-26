@@ -84,7 +84,7 @@ Requirement 番号は主体の節をまたいで連番にする。
   "notion_url": "[下書き seed.jsonc にあれば引き継ぐ。無ければ空文字]",
   "pr_title": "[下書き seed.jsonc にあれば引き継ぐ。無ければ空文字]",
   "branch_name": "[下書き seed.jsonc にあれば引き継ぐ。無ければ feature 名と要件の内容から、英小文字・数字・ハイフンだけの `<type>/<短い英語の説明>` の形で決める]",
-  "feature": "[機能名]",
+  "feature": "[機能名。日本語の短いタイトル。下書き seed.jsonc に title があれば引き継ぐ。看板の一覧に出る]",
   "overview": "[機能の目的と背景を 2〜3 文で]",
   "open_questions": ["[Requirement 全体に関わるなど、特定の 1 行に紐づかない要確認。無ければ空配列]"],
   "out_of_scope": [
