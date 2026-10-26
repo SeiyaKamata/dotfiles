@@ -1,7 +1,7 @@
 ---
 name: qa
 description: コードレビュー後にブラウザで動作確認する最終受け入れゲート。/review の後に使う。
-allowed-tools: Read, Write, Edit, Bash(git *), Bash(chworktree *), Bash(date *), Agent
+allowed-tools: Read, Write, Edit, Bash(git *), Bash(chworktree *), Bash(date *), Bash(mkdir *), Bash(cp *), Bash(python3 *), Agent
 disallowed-tools: mcp__playwright__*
 ---
 
@@ -23,9 +23,14 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 
 ## qa-report.md のフォーマット
 
-`/fix` が読む失敗の内訳で、毎回 `.specs/qa-report.md` に上書きする。
+`/fix` が読む失敗の内訳と、人が読む HTML の元データを兼ねる。
+毎回 `.specs/qa-report.md` に上書きし、同じ内容から `.specs/qa-report.html` を生成する。
 `count` は非 PASS の連続回数で、今回も前回も非 PASS なら前回値 +1、それ以外は 1 にする。
 `fixed` は常に `false` を書き、`true` にするのは `/fix` だけ。
+
+`## シナリオ結果` は全シナリオを 1 行ずつ並べ、HTML 生成がこの表を読むので列の順を変えない。
+原因に `|` を入れない。
+スクリーンショットは `.specs/img/qa-Q<n>.png` に固定名で置き、表には `.specs/` からの相対パスで書く。
 
 ```markdown
 ---
@@ -42,9 +47,15 @@ count: [非 PASS の連続回数]
 - 判定: [PASS / FAIL / BLOCKED。BLOCKED は環境を起動できないか到達できず検証未実施]
 - シナリオ数 / pass / fail: [N / N / N]
 
+## シナリオ結果
+
+| Q | タイトル | 判定 | 原因 | スクリーンショット |
+|---|---|---|---|---|
+| Q[n] | [タイトル] | [pass / fail] | [fail のときだけ原因 1 行] | img/qa-Q[n].png |
+
 ## 失敗シナリオ
 [FAIL のときだけ。無ければ節ごと省略]
-- Q[n] [タイトル]: [原因]。スクショ: [path]
+- Q[n] [タイトル]: [原因]
   - _Requirements: [N]_
 ```
 
@@ -108,7 +119,10 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
 
 - 結果で `.specs/qa.md` の `## ローカルQAシナリオ` のチェックを更新する。pass は `[x]`、fail は `[ ]` のまま
 - 既存の `qa-report.md` があれば上書き前に前回の判定と `count` を読む
+- `mkdir -p .specs/img` のあと、委譲先が返したスクリーンショットを `cp <返ってきたパス> .specs/img/qa-Q<n>.png` で全シナリオ分コピーする
+  - 委譲先は Playwright の書き込み制限を受けない保存先に書くので、`.specs/` へはこちらがコピーする
 - 「qa-report.md のフォーマット」で `.specs/qa-report.md` を書き出す
+- `python3 ~/.claude/skills/qa/render-report.py .specs/qa-report.md` で `.specs/qa-report.html` を生成する
 
 ### Step 7: 環境停止
 
@@ -132,6 +146,7 @@ FAIL の原因調査で環境が要るなら `/fix` 側で起動し直す。
 生成物:
 - `.specs/qa.md`
 - `.specs/qa-report.md`
+- `.specs/qa-report.html`
 
 ### 要確認
 - <シナリオに書かれておらず判断で補った点> 該当: Q<n>
