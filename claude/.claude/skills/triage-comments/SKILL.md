@@ -101,7 +101,7 @@ author では絞り込まず、人間と CodeRabbit の両方を対象にする�
       "proposal": "[対応する / 対応しない]",
       "reason": "[理由]",
       "approval": "", // 承認欄。未記入は空文字のまま
-      "done": false // 返信または issues.md への記録まで済んだら true
+      "done": false // 返信または issues.jsonc への記録まで済んだら true
     }
   ]
 }
