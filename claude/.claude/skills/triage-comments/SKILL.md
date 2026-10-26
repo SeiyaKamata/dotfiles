@@ -1,13 +1,13 @@
 ---
 name: triage-comments
 description: 自分のPRに付いた未解決コメントを収集・分類・裏取りし、対応方針の提案をレポートにまとめる。CI完了後に使う。
-allowed-tools: Read, Write, Glob, Grep, Bash(gh *), Bash(date *)
+allowed-tools: Read, Write, Glob, Grep, Bash(gh *), Bash(date *), Bash(python3 ~/.claude/skills/_report/render.py *)
 ---
 
 # PRコメント選別スキル
 
 ## 役割
-自分の PR に付いた未解決のレビューコメントを収集し、要件照合と裏取りを行った上で、対応方針の提案を `.specs/comment-report.md` にまとめる。
+自分の PR に付いた未解決のレビューコメントを収集し、要件照合と裏取りを行った上で、対応方針の提案を `.specs/comment-report.jsonc` にまとめる。
 コード修正・返信・スレッド対応は行わず、対応する / しないの確定は人がレポートの承認欄に書き込む。
 
 対応中にレビュアーの恒常的な好みや PJ の規約に気づいたら、そのリポジトリの `CLAUDE.local.md` に書き戻す。
@@ -36,8 +36,8 @@ author では絞り込まず、人間と CodeRabbit の両方を対象にする�
 1. 解決済みスレッド
    - 未解決スレッドを `gh pr view <PR番号> --json reviewThreads --jq '[.reviewThreads[] | select(.isResolved == false) | {path, line, body: .comments[0].body}]'` で取り、`path` + `line` + 本文で突き合わせて解決済みを外す
 2. 選別済み
-   - 既存の `comment-report.md` に載っているコメントを `id` で突き合わせて外す
-   - `[x]` は対応済み、`[ ]` で承認欄が埋まっている項目は下流の処理待ちで、どちらも再提示しない。承認欄が空のまま残っている項目だけ再提示する
+   - 既存の `comment-report.jsonc` に載っているコメントを `id` で突き合わせて外す
+   - `done` が `true` の項目は対応済み、`done` が `false` で `approval` が埋まっている項目は下流の処理待ちで、どちらも再提示しない。`approval` が空のまま残っている項目だけ再提示する
 3. nitpick
    - レビュー bot が軽微・任意と分類した指摘は外し、件数を要確認に出す
    - bot 自身が「対応しなくてよい」と申告しているものにフル手順を回すのは費用に見合わない
@@ -67,34 +67,44 @@ author では絞り込まず、人間と CodeRabbit の両方を対象にする�
 | 要件の意図への回答 | `要件「<要件名>」/ スコープの「<項目を転記>」を根拠に<結論>` |
 | 根拠が見つからない | `要件を確認したが該当する記述が見つからなかった。確認した範囲: <範囲>` |
 
-## comment-report.md のフォーマット
-既存ファイルがあれば既存の項目をチェック状態ごと全部維持し、新規コメントを末尾に追記する。
-項目は削除せず、対応済みは `[x]` のまま履歴として残す。
+## comment-report.jsonc のフォーマット
+`/fix` と `/sync` が読む項目の一覧と、人が読む HTML の元データを兼ねる。
+既存ファイルがあれば読み、`comments` の既存の項目を `done` ごと全部維持して、新規コメントを末尾に追記し、全体を書き出す。
+項目は削除せず、対応済みは `"done": true` のまま履歴として残す。
+末尾カンマは書かない。
+文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 
-frontmatter は `pr` を持ち、`count` は持たない。
+`pr` を持ち、`count` は持たない。
 コメント対応は連続失敗の判定を持たず、ループの上限は呼び出し元が回数で管理する。
 
-```markdown
----
-pr: [PR番号]
-branch: [headRefName]
-head: [対象 PR の head コミット。40 文字、短縮しない]
-ran_at: [書き出し時点の時刻。date +"%Y-%m-%dT%H:%M:%S%z" で取得]
-fixed: false [常に false。/fix が修正を適用したときだけ true に書き換える]
----
+`approval` は人か呼び出し元が `対応する` / `対応しない` / `保留` のいずれかを書く。
+空文字のままだと承認待ちで、次の工程で拾われない。
+会話コメントは `path` を空文字、`line` を `null` にする。
 
-# コメント対応レポート: PR #[PR番号]
-
-未対応 [件数] 件。各項目の「承認」欄に `対応する` / `対応しない` / `保留` のいずれかを記入してください。
-空欄のままだと次の工程で拾われません。
-`[x]` は返信または issues.md への記録まで済んだ項目です。
-
-- [ ] [path]:[line]、投稿者: [author] <!-- comment-id: [id。次回の選別済み除外に使う] -->
-  - コメント: [コメント本文]
-  - 要件照合: [分類]。根拠: [「引用の基準」に従った引用]
-  - 裏取り: [成立 / 不成立 / 未検証 / 対象外]
-  - 提案: [対応する / 対応しない]。理由: [理由]
-  - 承認: [未記入のまま]
+```jsonc
+{
+  "pr": 0,
+  "branch": "[headRefName]",
+  "head": "[対象 PR の head コミット。40 文字、短縮しない]",
+  "ran_at": "[書き出し時点の時刻。date +\"%Y-%m-%dT%H:%M:%S%z\" で取得]",
+  "fixed": false, // 常に false。/fix が修正を適用したときだけ true に書き換える
+  "comments": [
+    {
+      "id": 0, // gh が返す数値の id をそのまま書く。文字列にしない。次回の選別済み除外に使う
+      "path": "[path]",
+      "line": 0,
+      "author": "[author]",
+      "body": "[コメント本文]",
+      "requirement_class": "[要件照合の分類]",
+      "requirement_basis": "[「引用の基準」に従った引用]",
+      "verification": "[成立 / 不成立 / 未検証 / 対象外]",
+      "proposal": "[対応する / 対応しない]",
+      "reason": "[理由]",
+      "approval": "", // 承認欄。未記入は空文字のまま
+      "done": false // 返信または issues.md への記録まで済んだら true
+    }
+  ]
+}
 ```
 
 ## 進め方
@@ -117,7 +127,7 @@ fixed: false [常に false。/fix が修正を適用したときだけ true に�
 - 会話: `gh api repos/{owner}/{repo}/issues/<PR番号>/comments --jq '.[] | {id, user: .user.login, body}'`
 
 「除外基準」で対象を絞り込む。
-対象が 0 件なら Step 3〜6 を飛ばし、Step 8 で未解決コメントが無いことと、既存の `comment-report.md` に残る承認待ちの件数を報告して終了する。
+対象が 0 件なら Step 3〜6 を飛ばし、Step 8 で未解決コメントが無いことと、既存の `comment-report.jsonc` に残る承認待ちの件数を報告して終了する。
 
 ### Step 3: 照合基準の読込
 
@@ -140,11 +150,14 @@ fixed: false [常に false。/fix が修正を適用したときだけ true に�
 ### Step 6: 提案
 
 裏取りが `不成立` なら `対応しない` とし、確認した根拠を添える。
-`未検証` は確認した範囲を記録し、要確認に回す。
+`未検証` は確認した範囲と不明点を `reason` に書き、要確認に回す。
 
 ### Step 7: レポート作成
 
-「comment-report.md のフォーマット」で `.specs/comment-report.md` を Write する。
+「comment-report.jsonc のフォーマット」で `.specs/comment-report.jsonc` を書き出す。
+続けて `python3 ~/.claude/skills/_report/render.py .specs/comment-report.jsonc` で `.specs/comment-report.html` を生成する。
+生成に失敗したら `.jsonc` の構文を直して 1 回だけやり直す。
+それでも失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
 
 ### Step 8: 出力
 
@@ -156,7 +169,9 @@ fixed: false [常に false。/fix が修正を適用したときだけ true に�
 ### コメント選別完了
 <提案件数を 1 行>
 
-生成物: `.specs/comment-report.md`
+生成物:
+- `.specs/comment-report.jsonc`
+- `.specs/comment-report.html`
 
 ### 要確認
 - 未検証 <n> 件。裏取りで成立・不成立を判定できなかった指摘
@@ -167,6 +182,6 @@ fixed: false [常に false。/fix が修正を適用したときだけ true に�
 <該当しない行と、無ければブロックごと省略>
 
 ### 次の一手
-- レポートの承認欄を確認する: `.specs/comment-report.md`
+- レポートを読んで承認する: `.specs/comment-report.html` を読み、承認を伝えて `approval` を書かせる。直接書くときは `.specs/comment-report.jsonc` の `approval` に `対応する` / `対応しない` / `保留` のいずれかを書く
 - 承認後に修正する: `/fix`
 ```

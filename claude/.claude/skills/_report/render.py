@@ -39,6 +39,7 @@ figcaption { margin-top: 8px; font-size: 14px; }
 ul { padding-left: 20px; }
 """
 
+APPROVAL_STATES = {"": "承認待ち", "対応する": "対応中", "対応しない": "対応なし", "保留": "保留"}
 PASS = {"pass", "ok", "green"}
 FAIL = {"fail", "ng", "赤"}
 
@@ -85,12 +86,15 @@ def status_class(value):
     return "blocked"
 
 
-def header(title, data):
-    verdict = data["verdict"]
+def header(title, data, with_verdict=True):
+    chip = ""
+    if with_verdict:
+        verdict = data["verdict"]
+        chip = f'<span class="verdict {status_class(verdict)}">{esc(verdict)}</span>'
     return [
         f"<h1>{esc(title)}</h1>",
         '<p class="meta">'
-        f'<span class="verdict {status_class(verdict)}">{esc(verdict)}</span>'
+        f"{chip}"
         f"{esc(data.get('branch', ''))} @ {esc(str(data.get('head', ''))[:7])} / {esc(data.get('ran_at', ''))}</p>",
     ]
 
@@ -99,6 +103,10 @@ def table(columns, rows):
     head = "".join(f"<th>{esc(c)}</th>" for c in columns)
     body = "".join("<tr>" + "".join(cells) + "</tr>" for cells in rows)
     return f"<table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
+
+
+def join_nonempty(*values):
+    return "。".join(str(v) for v in values if v)
 
 
 def link(url, text):
@@ -213,17 +221,52 @@ def render_ci(data):
     return "CI結果", parts
 
 
+def render_comments(data):
+    comments = data.get("comments", [])
+    open_count = sum(1 for c in comments if not c.get("done"))
+    waiting = sum(1 for c in comments if not c.get("done") and not (c.get("approval") or ""))
+    pr = data.get("pr", "")
+    title = f"コメント対応レポート: PR #{pr}"
+    parts = header(title, data, with_verdict=False)
+    parts.append(
+        "<h2>サマリ</h2>"
+        + bullets([f"未対応: {open_count} 件", f"承認待ち: {waiting} 件", f"全件: {len(comments)} 件"])
+    )
+    rows = []
+    for c in comments:
+        approval = c.get("approval") or ""
+        state = "済" if c.get("done") else APPROVAL_STATES.get(approval, "承認値が不正")
+        rows.append(
+            [
+                f'<td class="status {"pass" if c.get("done") else "blocked"}">{esc(state)}</td>',
+                td(((c.get("path") or "") + (f":{c['line']}" if c.get("line") else "")) or "会話"),
+                td(c.get("author", "")),
+                td(c["body"]),
+                td(join_nonempty(c.get("requirement_class"), c.get("requirement_basis"))),
+                td(c.get("verification", "")),
+                td(join_nonempty(c.get("proposal"), c.get("reason"))),
+                td(c.get("approval", "")),
+            ]
+        )
+    parts.append(
+        "<h2>コメント</h2>"
+        + table(["状態", "場所", "投稿者", "コメント", "要件照合", "裏取り", "提案", "承認"], rows)
+    )
+    return title, parts
+
+
 KINDS = {
     "qa-report": render_qa,
     "test-report": render_test,
     "review": render_review,
     "ci-report": render_ci,
+    "comment-report": render_comments,
 }
 
 
 def main():
     if len(sys.argv) != 2:
-        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report>.jsonc")
+        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report>.jsonc")
     src = Path(sys.argv[1])
     if src.stem not in KINDS:
         sys.exit(f"未対応のレポートです: {src.name}")

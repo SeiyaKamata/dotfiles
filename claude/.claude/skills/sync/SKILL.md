@@ -1,13 +1,13 @@
 ---
 name: sync
-description: 既存PRに積んだコミットをpushする。comment-report.mdがあれば続けてPRコメントへの返信とissues.md記録も行う。CI赤修正・コメント対応の修正後に使う。
-allowed-tools: Bash(git *), Bash(gh *), Read, Write, Edit
+description: 既存PRに積んだコミットをpushする。comment-report.jsoncがあれば続けてPRコメントへの返信とissues.md記録も行う。CI赤修正・コメント対応の修正後に使う。
+allowed-tools: Bash(git *), Bash(gh *), Bash(python3 ~/.claude/skills/_report/render.py *), Read, Write, Edit
 ---
 
 # 既存PR更新スキル
 
 ## 役割
-既に PR を持つブランチに積んだコミットをリモートへ push し、`.specs/comment-report.md` があれば承認済み項目への返信と `issues.md` への記録まで行う。
+既に PR を持つブランチに積んだコミットをリモートへ push し、`.specs/comment-report.jsonc` があれば承認済み項目への返信と `issues.md` への記録まで行う。
 返信は必ず push の後に行う。先に返信するとリモートのコードが古いまま「直しました」と伝えることになり、直っていないと指摘され直す。
 新しい PR は作らず、コードも直さず、スレッドの解決済み化もしない。
 
@@ -59,11 +59,11 @@ git push
 未 push のコミットが無ければ push を飛ばして Step 3 へ進む。
 リモートが先行していて拒否されたら、`git pull --rebase` はせず Step 7 の中断カードで報告して終了する。
 
-### Step 3: comment-report.md の読込
+### Step 3: comment-report.jsonc の読込
 
-`.specs/comment-report.md` を読む。
-無い、または `[ ]` の項目が 1 つも無ければ Step 7 へ進む。
-`[ ]` の項目だけを承認欄で振り分ける。
+`.specs/comment-report.jsonc` を読む。
+無い、または `done` が `false` の項目が 1 つも無ければ Step 7 へ進む。
+`done` が `false` の項目だけを `approval` で振り分ける。
 
 | 承認欄 | 扱い |
 |---|---|
@@ -75,7 +75,7 @@ git push
 ### Step 4: 返信
 
 「返信文言」に従い、対応する / 対応しない / 保留 と確定した項目に返信する。
-`対応する` は修正内容を要点に、`保留` は `comment-report.md` の裏取り欄の確認範囲と不明点を使う。
+`対応する` は修正内容を要点に、`保留` は `comment-report.jsonc` の `reason` に書かれた確認範囲と不明点を使う。
 
 インラインコメントへの返信:
 ```
@@ -95,10 +95,13 @@ gh pr comment <PR番号> --body "<返信内容>"
 「対応しない」と「保留」の項目が 1 件以上あれば、「issues.md のフォーマット」で `.specs/issues.md` に追記する。
 要件側を直すべきと判断した矛盾、スコープ外の指摘も記録対象に含める。
 
-### Step 6: comment-report.md のチェック
+### Step 6: comment-report.jsonc のチェック
 
-返信または issues.md 記録まで済んだ項目の `[ ]` を `[x]` にし、冒頭の未対応件数を `[ ]` の数に更新する。
-承認待ち・未修正・返信失敗の項目は `[ ]` のまま残し、項目は削除しない。
+書き直す直前に `.specs/comment-report.jsonc` を読み直し、返信または issues.md 記録まで済んだ項目の `done` だけを `true` にして書き直す。
+他の項目と他のフィールドは、読み直した内容のまま維持する。Step 3 のあとに人や orch が `approval` を書き換えている場合があるため。
+承認待ち・未修正・返信失敗の項目は `done` を `false` のまま残し、項目は削除しない。
+続けて `python3 ~/.claude/skills/_report/render.py .specs/comment-report.jsonc` で `.specs/comment-report.html` を生成する。
+生成に失敗したら `.jsonc` は残し、要確認に失敗の内容を載せる。
 
 ### Step 7: 出力
 
@@ -107,14 +110,14 @@ gh pr comment <PR番号> --body "<返信内容>"
 
 ```markdown
 ### 更新完了
-<push したコミット数と、comment-report.md を処理したかを 1 行>
-- <対応件数・非対応件数・保留件数を 1 行。comment-report.md を処理していなければ省略>
+<push したコミット数と、comment-report.jsonc を処理したかを 1 行>
+- <対応件数・非対応件数・保留件数を 1 行。comment-report.jsonc を処理していなければ省略>
 
 生成物: <対象 PR の URL>
 <issues.md に追記していれば>`.specs/issues.md`
 
 ### 要確認
-- 承認待ち <n> 件。comment-report.md の承認欄が空欄
+- 承認待ち <n> 件。comment-report.jsonc の `approval` が空欄
 - 未修正 <n> 件。承認欄は `対応する` だが修正が未着手
 - 返信失敗 <n> 件。<特定情報と理由>
 
