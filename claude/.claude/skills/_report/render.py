@@ -46,6 +46,9 @@ h3 { margin: 24px 0 8px; padding-bottom: 2px; border-bottom: 1px dashed var(--ac
 h4 { margin: 16px 0 4px; font-size: 15px; color: var(--accent); }
 ul.lines { list-style: none; padding-left: 0; }
 ul.lines li { margin: 4px 0; }
+pre { padding: 12px; overflow-x: auto; background: var(--chip); border-radius: 6px; }
+code { padding: 0 4px; background: var(--chip); border-radius: 4px; }
+.task-meta { color: var(--muted); font-size: 14px; }
 """
 
 APPROVAL_STATES = {"": "承認待ち", "対応する": "対応中", "対応しない": "対応なし", "保留": "保留"}
@@ -346,6 +349,82 @@ def render_requirements(data):
     return title, parts
 
 
+def decision_list(items):
+    out = ""
+    for x in items:
+        reasons = "".join(f"<li>{esc(r)}</li>" for r in x.get("reasons", []))
+        confirm = f"<li>確認: {esc(x['confirm'])}</li>" if x.get("confirm") else ""
+        out += f"<li><strong>{esc(x['decision'])}</strong><ul>{reasons}{confirm}</ul></li>"
+    return f"<ul>{out}</ul>"
+
+
+def touch_list(items):
+    out = ""
+    for t in items:
+        note = f" {esc(t['note'])}" if t.get("note") else ""
+        symbols = "".join(
+            f'<li><span class="badge">{esc(sym["kind"])}</span><code>{esc(sym["name"])}</code> {esc(sym.get("note", ""))}</li>'
+            for sym in t.get("symbols", [])
+        )
+        nested = f"<ul>{symbols}</ul>" if symbols else ""
+        out += f'<li><span class="badge">{esc(t["kind"])}</span><code>{esc(t["path"])}</code>{note}{nested}</li>'
+    return f"<ul>{out}</ul>"
+
+
+def render_plan(data):
+    title = f"実装計画: {data['feature']}"
+    tasks = data.get("tasks", [])
+    setup = data.get("setup", [])
+    parts = header(title, data, with_verdict=False)
+    parts.append(
+        "<h2>方針</h2>"
+        f"<p>{esc(data.get('summary', ''))}</p>"
+        + bullets(
+            [
+                f"タスク: {sum(1 for t in tasks if t.get('done'))} / {len(tasks)} 完了",
+                f"事前セットアップ: {sum(1 for x in setup if x.get('done'))} / {len(setup)} 完了",
+            ]
+        )
+    )
+    if data.get("decisions"):
+        parts.append("<h3>判断</h3>" + decision_list(data["decisions"]))
+    if data.get("deviations"):
+        parts.append("<h3>ずれ</h3>" + decision_list(data["deviations"]))
+    if setup:
+        rows = [
+            [
+                f'<td class="status {"pass" if x.get("done") else "blocked"}">{"済" if x.get("done") else "未"}</td>',
+                td(x["id"]),
+                td(x["title"]),
+                td(x.get("to", "")),
+                td(x.get("reason", "")),
+            ]
+            for x in setup
+        ]
+        parts.append("<h2>事前セットアップ</h2>" + table(["状態", "ID", "内容", "依頼先", "理由"], rows))
+    parts.append("<h2>タスク一覧</h2>")
+    for t in tasks:
+        mark = "☑" if t.get("done") else "☐"
+        meta = []
+        if t.get("req"):
+            meta.append(esc("Req: " + ", ".join(map(str, t["req"]))))
+        if t.get("depends"):
+            meta.append(esc("Depends: " + ", ".join(map(str, t["depends"]))))
+        if t.get("follows"):
+            meta.append(f"Follows: <code>{esc(t['follows'])}</code>")
+        meta_html = f'<p class="task-meta">{" / ".join(meta)}</p>' if meta else ""
+        parts.append(f"<h3>{mark} Task {esc(t['id'])}: {esc(t['title'])}</h3>{meta_html}")
+        if t.get("touch"):
+            parts.append("<h4>Touch</h4>" + touch_list(t["touch"]))
+        if t.get("goal"):
+            parts.append(f"<p>{esc(t['goal'])}</p>")
+        if t.get("details"):
+            parts.append(bullets(t["details"]))
+    for a in data.get("appendix", []):
+        parts.append(f"<h2>付録: {esc(a['title'])}</h2><pre>{esc(chr(10).join(a.get('lines', [])))}</pre>")
+    return title, parts
+
+
 KINDS = {
     "qa-report": render_qa,
     "test-report": render_test,
@@ -354,12 +433,13 @@ KINDS = {
     "comment-report": render_comments,
     "bug-report": render_bug,
     "requirements": render_requirements,
+    "plan": render_plan,
 }
 
 
 def main():
     if len(sys.argv) != 2:
-        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report|requirements>.jsonc")
+        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report|requirements|plan>.jsonc")
     src = Path(sys.argv[1])
     if src.stem not in KINDS:
         sys.exit(f"未対応のレポートです: {src.name}")
