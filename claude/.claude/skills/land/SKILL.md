@@ -1,7 +1,7 @@
 ---
 name: land
 description: コミット済みの変更を新しいdraft PRとして立ち上げる。commit完了後に使う。デフォルトブランチへ直接取り込む運用の repo では使わない。
-allowed-tools: Bash(git *), Bash(gh *), Read
+allowed-tools: Bash(git *), Bash(gh *), Read, Write
 ---
 
 # 新規PR着地スキル
@@ -44,6 +44,20 @@ push の拒否は自動解決せず、中断カードで人に委ねる。
 - `gh pr create --body` の HEREDOC は `<<'EOF'` の literal mode にし、バッククォートを escape しない
   - escape すると backslash がそのまま渡って表示が崩れる
 
+## feature.jsonc のフォーマット
+feature の一覧画面がカードから PR へ飛ぶための元データ。
+`.specs/feature.jsonc` に書き、既にあれば読み直して `pr` だけを差し替え、他のキーはそのまま残す。
+文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープし、末尾カンマは書かない。
+
+```jsonc
+{
+  "pr": {
+    "number": 123,
+    "url": "[PR の URL。https で始まるもの]"
+  }
+}
+```
+
 ## 進め方
 
 ### Step 1: 未コミットの変更確認
@@ -66,7 +80,7 @@ push を実行するのはこのスキルなので、デフォルトブランチ
 
 ### Step 3: 既存 PR の確認
 
-`gh pr list --head "<対象ブランチ>" --state all --json number,url --jq '.[]'` が空でなければ既に PR があり、`git branch --merged "$DEFAULT"` に含まれていればマージ済みなので、どちらも作らず既存 PR の URL を Step 5 で報告して終了する。
+`gh pr list --head "<対象ブランチ>" --state all --json number,url --jq '.[]'` が空でなければ既に PR があり、`git branch --merged "$DEFAULT"` に含まれていればマージ済みなので、どちらも作らず、既存 PR の番号と URL を `.specs/feature.jsonc` に書いたうえで、URL を Step 5 で報告して終了する。
 
 ### Step 4: draft PR を作る
 
@@ -83,6 +97,7 @@ gh pr create --draft --base "$DEFAULT" --head <対象ブランチ> --title "<タ
 ```
 
 `gh pr create` が「head branch is the same as base branch」で失敗したら、base と head が同じになっていないかを確認する。
+作成できたら、PR の番号と URL を「feature.jsonc のフォーマット」で `.specs/feature.jsonc` に書く。
 
 ### Step 5: 出力
 
