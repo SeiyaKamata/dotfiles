@@ -1,15 +1,15 @@
 ---
 name: aws-logs
-description: awscli で CloudWatch Logs を調査し、結果を .specs/log-report.md に記録する。AWS 上のエラー原因の追跡・ログ横断・件数集計を頼まれたら使う。
+description: awscli で CloudWatch Logs を調査し、結果を .specs/log-report.jsonc に記録する。AWS 上のエラー原因の追跡・ログ横断・件数集計を頼まれたら使う。
 disable-model-invocation: true
-allowed-tools: Read, Write, Edit, Grep, Bash(aws logs describe-log-groups *), Bash(aws logs describe-log-streams *), Bash(aws logs tail *), Bash(aws logs filter-log-events *), Bash(aws logs get-log-events *), Bash(aws logs start-query *), Bash(aws logs get-query-results *), Bash(aws sts get-caller-identity *), Bash(aws configure list-profiles), Bash(date *), Bash(grep *), Bash(rg *), Bash(jq *), Bash(wc *), Bash(head *), Bash(tail *), Bash(sort *), Bash(uniq *), Bash(mkdir *)
+allowed-tools: Read, Write, Edit, Grep, Bash(aws logs describe-log-groups *), Bash(aws logs describe-log-streams *), Bash(aws logs tail *), Bash(aws logs filter-log-events *), Bash(aws logs get-log-events *), Bash(aws logs start-query *), Bash(aws logs get-query-results *), Bash(aws sts get-caller-identity *), Bash(aws configure list-profiles), Bash(date *), Bash(grep *), Bash(rg *), Bash(jq *), Bash(wc *), Bash(head *), Bash(tail *), Bash(sort *), Bash(uniq *), Bash(mkdir *), Bash(python3 ~/.claude/skills/_report/render.py *)
 argument-hint: "[調べたいこと]"
 ---
 
 # AWS ログ調査スキル
 
 ## 役割
-awscli で CloudWatch Logs を調べ、「ログに何が出ているか」を `.specs/log-report.md` に記録する。
+awscli で CloudWatch Logs を調べ、「ログに何が出ているか」を `.specs/log-report.jsonc` に記録する。
 対象は `filter-log-events` と Logs Insights だけで、ALB/S3 アクセスログ・CloudTrail・ECS のタスク状態は範囲外。
 コードは直さず、ログに出ていない因果も書かない。原因の確定は別工程が担う。
 
@@ -28,35 +28,33 @@ awscli で CloudWatch Logs を調べ、「ログに何が出ているか」を `
 | コマンド | `aws logs` の読み取り系のみ。すべての `aws` に `--no-cli-pager` を付ける |
 | 生ログ | 100 行を超えそうならスクラッチパッドにファイルで落として `grep` / `rg` で絞る。`.specs/` にも会話にも全文を貼らない |
 
-## log-report.md のフォーマット
+## log-report.jsonc のフォーマット
 
-既にあればマージ・追記する。
+人が読む HTML の元データを兼ねる。
+`.specs/log-report.jsonc` に書き、同じ内容から `.specs/log-report.html` を生成する。
+既にあれば読み直して各配列にマージ・追記する。
 所見は事実だけを書き、推測と分ける。
 何も見つからなかったときも、窓・パターン・グループの条件と「出なかった」ことを記録し、次の調査で同じ空振りを繰り返さないようにする。
+末尾カンマは書かない。
+文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 
-````markdown
-# ログ調査: [対象]
-
-## 調査条件
-- プロファイル: [name]。Account: [id]、Region: [region]
-- ロググループ: [group]
-- 期間: [JST 表記]。epoch: [from]–[to]
-- 検索: [filter-pattern または Insights クエリ]
-
-## 所見
-- [ログから読み取れた事実]
-
-## 該当ログ、抜粋
+```jsonc
+{
+  "target": "[調査対象]",
+  "ran_at": "[書き出し時点の時刻。date +\"%Y-%m-%dT%H:%M:%S%z\" で取得]",
+  "profile": "[name]",
+  "account": "[id]",
+  "region": "[region]",
+  "log_groups": ["[group]"],
+  "period": "[JST 表記]",
+  "epoch": "[from]–[to]",
+  "query": "[filter-pattern または Insights クエリ]",
+  "findings": ["[ログから読み取れた事実]"],
+  "excerpt": "[代表的な行を数行だけ。改行は \n]",
+  "unknowns": ["[ログに出ていないため確定できない点]"],
+  "next": ["[別のロググループ・別の時間窓・アプリ側で追加すべきログ]"]
+}
 ```
-[代表的な行を数行だけ]
-```
-
-## 読み取れなかったこと
-- [ログに出ていないため確定できない点]
-
-## 次に見るべきもの
-- [別のロググループ・別の時間窓・アプリ側で追加すべきログ]
-````
 
 ## 進め方
 
@@ -174,7 +172,9 @@ Step 6〜9 は広く浅くから絞って深くの順に進み、空振りした
 
 ### Step 10: 記録
 
-「log-report.md のフォーマット」で `.specs/log-report.md` に書き出す。
+「log-report.jsonc のフォーマット」で `.specs/log-report.jsonc` に書き出す。
+続けて `python3 ~/.claude/skills/_report/render.py .specs/log-report.jsonc` で `.specs/log-report.html` を生成する。
+生成に失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
 
 ### Step 11: 出力
 
@@ -185,7 +185,9 @@ Step 6〜9 は広く浅くから絞って深くの順に進み、空振りした
 ### ログ調査完了
 <何を調べて何が分かったかを 1 行>
 
-生成物: `.specs/log-report.md`
+生成物:
+- `.specs/log-report.jsonc`
+- `.specs/log-report.html`
 
 ### 要確認
 - <ログからは確定できなかった点・空振りした条件>

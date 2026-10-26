@@ -518,6 +518,26 @@ def render_issues(data):
     return "残対応", parts
 
 
+def render_logs(data):
+    title = f"ログ調査: {data['target']}"
+    parts = header(title, data, with_verdict=False)
+    cond = [
+        f"プロファイル: {data.get('profile', '')}。Account: {data.get('account', '')}、Region: {data.get('region', '')}",
+        f"ロググループ: {', '.join(as_list(data.get('log_groups', [])))}",
+        f"期間: {data.get('period', '')}。epoch: {data.get('epoch', '')}",
+        f"検索: {data.get('query', '')}",
+    ]
+    parts.append("<h2>調査条件</h2>" + bullets(cond))
+    if data.get("findings"):
+        parts.append("<h2>所見</h2>" + bullets(as_list(data["findings"])))
+    if data.get("excerpt"):
+        parts.append(f"<h2>該当ログ、抜粋</h2><pre>{esc(data['excerpt'])}</pre>")
+    for heading, key in (("読み取れなかったこと", "unknowns"), ("次に見るべきもの", "next")):
+        if data.get(key):
+            parts.append(f"<h2>{heading}</h2>" + bullets(as_list(data[key])))
+    return title, parts
+
+
 KINDS = {
     "qa-report": render_qa,
     "test-report": render_test,
@@ -530,12 +550,13 @@ KINDS = {
     "qa": render_scenarios,
     "seed": render_seed,
     "issues": render_issues,
+    "log-report": render_logs,
 }
 
 
 def main():
     if len(sys.argv) != 2:
-        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report|requirements|plan|qa|seed|issues>.jsonc")
+        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report|requirements|plan|qa|seed|issues|log-report>.jsonc")
     src = Path(sys.argv[1])
     if src.stem not in KINDS:
         sys.exit(f"未対応のレポートです: {src.name}")
