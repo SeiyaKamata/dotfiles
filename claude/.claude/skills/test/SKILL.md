@@ -20,6 +20,7 @@ allowed-tools: Read, Write, Edit, Bash
 `/fix` が読む失敗の内訳と、人が読む HTML の元データを兼ねる。
 毎回 `.specs/test-report.jsonc` に上書きし、同じ内容から `.specs/test-report.html` を生成する。
 末尾カンマは書かない。
+文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 
 ```jsonc
 {
@@ -77,7 +78,7 @@ tail -n 50 .specs/.test-output.log
 
 既存の `test-report.jsonc` があれば判定と `count` を読み、「test-report.jsonc のフォーマット」で `.specs/test-report.jsonc` に上書きする。
 続けて `python3 ~/.claude/skills/_report/render.py .specs/test-report.jsonc` で `.specs/test-report.html` を生成する。
-生成に失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
+生成に失敗したら `.jsonc` は残し、古い `.html` があれば削除し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
 
 ### Step 5: 出力
 

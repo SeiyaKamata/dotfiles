@@ -171,15 +171,36 @@ def render_test(data):
     return "テスト結果", parts
 
 
+def render_review(data):
+    parts = header("レビュー結果", data)
+    spec = data.get("spec_findings", [])
+    if spec:
+        parts.append("<h2>仕様整合性</h2>" + bullets(spec))
+    code = data.get("code_findings", [])
+    if code:
+        parts.append(
+            "<h2>AI コードレビューの指摘</h2>"
+            + table(
+                ["指摘と該当箇所", "重大度", "検証結果"],
+                [[td(c["text"]), td(c.get("severity", "")), td(c.get("verification", ""))] for c in code],
+            )
+        )
+    recs = data.get("recommendations", [])
+    if recs:
+        parts.append("<h2>推奨対応</h2>" + bullets(recs))
+    return "レビュー結果", parts
+
+
 KINDS = {
     "qa-report": render_qa,
     "test-report": render_test,
+    "review": render_review,
 }
 
 
 def main():
     if len(sys.argv) != 2:
-        sys.exit("使い方: render.py <qa-report|test-report>.jsonc")
+        sys.exit("使い方: render.py <qa-report|test-report|review>.jsonc")
     src = Path(sys.argv[1])
     if src.stem not in KINDS:
         sys.exit(f"未対応のレポートです: {src.name}")

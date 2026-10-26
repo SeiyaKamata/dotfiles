@@ -121,7 +121,7 @@ loop:
 ### Step 7: `/review`
 
 完了後:
-- `review.md` の `count` が 3 以上なら報告して停止
+- `review.jsonc` の `count` が 3 以上なら報告して停止
 - OK でも推奨対応に上流 doc の記述修正が挙がっていれば、`/spec`・`/plan` を再実行して記述だけ直す。実装は正しいので実装はやり直さない
 
 ### Step 8: `/qa`

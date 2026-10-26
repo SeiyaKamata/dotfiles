@@ -1,13 +1,13 @@
 ---
 name: review
 description: 実装を受け取りコードレビューを行う。test PASS 後に使う。
-allowed-tools: Read, Write, Glob, Grep, Bash(git *), Bash(date *), Agent
+allowed-tools: Read, Write, Glob, Grep, Bash(git *), Bash(date *), Bash(python3 ~/.claude/skills/_report/render.py *), Agent
 ---
 
 # レビュースキル
 
 ## 役割
-デフォルトブランチとの git 差分を、仕様・設計との整合性とコード品質の観点でレビューし、OK / NG を判定して `.specs/review.md` に記録する。
+デフォルトブランチとの git 差分を、仕様・設計との整合性とコード品質の観点でレビューし、OK / NG を判定して `.specs/review.jsonc` に記録する。
 NG の戻し先は決めず、呼び出し元に委ねる。
 
 ## 判断が割れる点の扱い
@@ -24,28 +24,30 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 | 重大と報告されたが裏取りで不成立だった | NG にしない。理由つきで記録する |
 | 実装は仕様どおりだが、`requirements.md` / `plan.md` の記述が実コードと食い違っている | OK。食い違いを推奨対応に上流 doc の修正として列挙し、要確認にも出す |
 
-## review.md のフォーマット
+## review.jsonc のフォーマット
+`/fix` が読む指摘の内訳と、人が読む HTML の元データを兼ねる。
+毎回 `.specs/review.jsonc` に上書きし、同じ内容から `.specs/review.html` を生成する。
+末尾カンマは書かない。
+文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 
-```markdown
----
-branch: [Step 1 で確定したブランチ。detached なら none]
-head: [Step 1 で確定した HEAD。40 文字、短縮しない]
-ran_at: [書き出し時点の時刻。date +"%Y-%m-%dT%H:%M:%S%z" で取得]
-fixed: false [常に false。/fix が修正を適用したときだけ true に書き換える]
-count: [NG の連続回数。今回が NG かつ既存レポートも NG なら既存値 +1、それ以外は 1]
----
-
-### 判定
-[OK / NG]
-
-### 仕様整合性
-- [指摘内容と該当箇所]
-
-### AI コードレビューの指摘
-- [指摘内容と該当箇所] — [重大度] + 検証結果: [成立 / 不成立。理由 / 未検証]
-
-### 推奨対応
-- [対応方針]
+```jsonc
+{
+  "branch": "[Step 1 で確定したブランチ。detached なら none]",
+  "head": "[Step 1 で確定した HEAD。40 文字、短縮しない]",
+  "ran_at": "[書き出し時点の時刻。date +\"%Y-%m-%dT%H:%M:%S%z\" で取得]",
+  "fixed": false, // 常に false。/fix が修正を適用したときだけ true に書き換える
+  "count": 1, // NG の連続回数。今回が NG かつ既存レポートも NG なら既存値 +1、それ以外は 1
+  "verdict": "[OK / NG]",
+  "spec_findings": ["[指摘内容と該当箇所]"],
+  "code_findings": [
+    {
+      "text": "[指摘内容と該当箇所]",
+      "severity": "[重大度]",
+      "verification": "[成立 / 不成立。理由 / 未検証]"
+    }
+  ],
+  "recommendations": ["[対応方針]"]
+}
 ```
 
 ## 進め方
@@ -91,7 +93,9 @@ count: [NG の連続回数。今回が NG かつ既存レポートも NG なら�
 
 ### Step 5: 書き出し
 
-既存の `review.md` があれば判定と `count` を読み、「review.md のフォーマット」で `.specs/review.md` に上書きする。
+既存の `review.jsonc` があれば判定と `count` を読み、「review.jsonc のフォーマット」で `.specs/review.jsonc` に上書きする。
+続けて `python3 ~/.claude/skills/_report/render.py .specs/review.jsonc` で `.specs/review.html` を生成する。
+生成に失敗したら `.jsonc` は残し、古い `.html` があれば削除し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
 指摘の一覧はここに寄せ、ターミナルには列挙しない。
 
 ### Step 6: 出力
@@ -103,7 +107,9 @@ count: [NG の連続回数。今回が NG かつ既存レポートも NG なら�
 ### レビュー完了 — <OK / NG>
 <判定と対象範囲を 1 行>
 
-生成物: `.specs/review.md`
+生成物:
+- `.specs/review.jsonc`
+- `.specs/review.html`
 
 ### 要確認
 - <未検証の指摘> — 該当: <ファイル:行>

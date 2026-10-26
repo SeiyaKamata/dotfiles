@@ -1,7 +1,7 @@
 ---
 name: qa
 description: コードレビュー後にブラウザで動作確認する最終受け入れゲート。/review の後に使う。
-allowed-tools: Read, Write, Edit, Bash(git *), Bash(chworktree *), Bash(date *), Bash(mkdir *), Bash(cp *), Bash(python3 *), Agent
+allowed-tools: Read, Write, Edit, Bash(git *), Bash(chworktree *), Bash(date *), Bash(mkdir *), Bash(cp *), Bash(python3 ~/.claude/skills/_report/render.py *), Agent
 disallowed-tools: mcp__playwright__*
 ---
 
@@ -28,6 +28,7 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 `count` は非 PASS の連続回数で、今回も前回も非 PASS なら前回値 +1、それ以外は 1 にする。
 `fixed` は常に `false` を書き、`true` にするのは `/fix` だけ。
 末尾カンマは書かない。
+文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 
 `scenarios` は全シナリオを 1 件ずつ並べる。
 スクリーンショットは `.specs/img/qa-Q<n>.png` に固定名で置き、`screenshot` には `.specs/` からの相対パスで書く。
@@ -123,7 +124,7 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
   - 委譲先は Playwright の書き込み制限を受けない保存先に書くので、`.specs/` へはこちらがコピーする
 - 「qa-report.jsonc のフォーマット」で `.specs/qa-report.jsonc` を書き出す
 - `python3 ~/.claude/skills/_report/render.py .specs/qa-report.jsonc` で `.specs/qa-report.html` を生成する
-  - 生成に失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる
+  - 生成に失敗したら `.jsonc` は残し、古い `.html` があれば削除し、生成物から `.html` を省いて要確認に失敗の内容を載せる
 
 ### Step 7: 環境停止
 
