@@ -120,13 +120,13 @@ Requirement 番号は主体の節をまたいで連番にする。
 
 ### Step 1: 開始 Step の判定
 
-- `.specs/requirements.jsonc` も `.specs/feature.jsonc` も無く、会話文脈にも要望が無ければ「使い方: /spec <要望>」を表示して終了
-- `repo` は、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename から採る
+`.specs/requirements.jsonc` と `.specs/feature.jsonc` の有無で分岐する。
 
-`.specs/requirements.jsonc` と `.specs/feature.jsonc` の有無で分岐する:
 - **`requirements.jsonc` が有る**: 読み、Step 2〜4 を飛ばして Step 5 から進める
 - **`requirements.jsonc` が無く `feature.jsonc` が有る**: 雑メモの下書き。`title` `background` `goal` `hints` `constraints` を要望の材料として使い、Step 2 から詳細化する
-- **どちらも無い**: 新規。Step 2 から書き起こす
+- **どちらも無い**
+  - 会話文脈に要望があれば、新規として Step 2 から書き起こす
+  - 要望も無ければ、「使い方: /spec <要望>」を表示して終了する
 
 ### Step 2: スコープ境界
 
@@ -144,6 +144,7 @@ in-scope の項目**だけ**を Requirement に起こす。
 ### Step 4: 書き出し
 
 Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs/requirements.jsonc` に書く。
+`repo` は、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename から採る。
 続けて `python3 ~/.claude/skills/_report/render.py .specs/requirements.jsonc` で `.specs/requirements.html` を生成する。
 生成に失敗したら `.jsonc` は残し、Step 6 の提示に失敗の内容を添える。
 
