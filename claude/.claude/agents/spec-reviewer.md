@@ -40,7 +40,7 @@ orch があなたの指摘を持って、新しい agent に `/spec` を実行�
 
 | 項目 | 内容 |
 |---|---|
-| 上流成果物 | 起動時の要望テキスト本文。あれば `seed.md` の下書きと既存の `requirements.jsonc` も含む |
+| 上流成果物 | 起動時の要望テキスト本文。あれば `seed.jsonc` の下書きと既存の `requirements.jsonc` も含む |
 | レビュー対象 | `requirements.jsonc` |
 | `review_round` | 何巡目か。2 巡目なら前回の指摘が反映されているかも併せて見る |
 

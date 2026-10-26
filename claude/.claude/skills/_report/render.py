@@ -476,6 +476,29 @@ def render_scenarios(data):
     return title, parts
 
 
+def render_seed(data):
+    title = f"下書き: {data['title']}"
+    parts = header(title, data, with_verdict=False)
+    meta = [
+        f"リポジトリ: {data.get('repo', '')}",
+        f"ブランチ: {data.get('branch_name', '')}",
+        f"PR タイトル: {data.get('pr_title', '')}",
+    ]
+    meta = [m for m in meta if not m.endswith(": ")]
+    if meta:
+        parts.append("<h2>概要</h2>" + bullets(meta))
+    if data.get("notion_url"):
+        url = data["notion_url"]
+        parts.append(f"<p>Notion: {link(url, url) if url.startswith('https://') else esc(url)}</p>")
+    for heading, key in (("背景・目的", "background"), ("やりたいこと", "goal")):
+        if data.get(key):
+            parts.append(f"<h2>{heading}</h2><p>{esc(data[key]).replace(chr(10), '<br>')}</p>")
+    for heading, key in (("対象範囲・既知の手がかり", "hints"), ("制約・前提", "constraints")):
+        if data.get(key):
+            parts.append(f"<h2>{heading}</h2>" + bullets(as_list(data[key])))
+    return title, parts
+
+
 KINDS = {
     "qa-report": render_qa,
     "test-report": render_test,
@@ -486,12 +509,13 @@ KINDS = {
     "requirements": render_requirements,
     "plan": render_plan,
     "qa": render_scenarios,
+    "seed": render_seed,
 }
 
 
 def main():
     if len(sys.argv) != 2:
-        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report|requirements|plan|qa>.jsonc")
+        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report|requirements|plan|qa|seed>.jsonc")
     src = Path(sys.argv[1])
     if src.stem not in KINDS:
         sys.exit(f"未対応のレポートです: {src.name}")
