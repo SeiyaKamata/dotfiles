@@ -1,6 +1,6 @@
 ---
 name: spec
-description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのseed.jsoncの詳細化で使う。requirements.jsoncがあるときは、現状の要件と要確認を提示し、要確認を会話で詰めて書き戻す。
+description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのfeature.jsoncの詳細化で使う。requirements.jsoncがあるときは、現状の要件と要確認を提示し、要確認を会話で詰めて書き戻す。
 allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(python3 ~/.claude/skills/_report/render.py *)
 ---
 
@@ -81,10 +81,10 @@ Requirement 番号は主体の節をまたいで連番にする。
 ```jsonc
 {
   "repo": "[この feature を実装するリポジトリ。bare repo のディレクトリ名]",
-  "notion_url": "[下書き seed.jsonc にあれば引き継ぐ。無ければ空文字]",
-  "pr_title": "[下書き seed.jsonc にあれば引き継ぐ。無ければ空文字]",
-  "branch_name": "[下書き seed.jsonc にあれば引き継ぐ。無ければ feature 名と要件の内容から、英小文字・数字・ハイフンだけの `<type>/<短い英語の説明>` の形で決める]",
-  "feature": "[機能名。日本語の短いタイトル。下書き seed.jsonc に title があれば引き継ぐ。看板の一覧に出る]",
+  "notion_url": "[下書き feature.jsonc にあれば引き継ぐ。無ければ空文字]",
+  "pr_title": "[下書き feature.jsonc にあれば引き継ぐ。無ければ空文字]",
+  "branch_name": "[下書き feature.jsonc にあれば引き継ぐ。無ければ feature 名と要件の内容から、英小文字・数字・ハイフンだけの `<type>/<短い英語の説明>` の形で決める]",
+  "feature": "[機能名。日本語の短いタイトル。下書き feature.jsonc に title があれば引き継ぐ。看板の一覧に出る]",
   "overview": "[機能の目的と背景を 2〜3 文で]",
   "open_questions": ["[Requirement 全体に関わるなど、特定の 1 行に紐づかない要確認。無ければ空配列]"],
   "out_of_scope": [
@@ -120,13 +120,12 @@ Requirement 番号は主体の節をまたいで連番にする。
 
 ### Step 1: 開始 Step の判定
 
-- `.specs/requirements.jsonc` も `.specs/seed.jsonc` も `.specs/seed.md` も無く、会話文脈にも要望が無ければ「使い方: /spec <要望>」を表示して終了
+- `.specs/requirements.jsonc` も `.specs/feature.jsonc` も無く、会話文脈にも要望が無ければ「使い方: /spec <要望>」を表示して終了
 - `repo` は、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename から採る
 
-`.specs/requirements.jsonc` と `.specs/seed.jsonc` と `.specs/seed.md` の有無で分岐する:
+`.specs/requirements.jsonc` と `.specs/feature.jsonc` の有無で分岐する:
 - **`requirements.jsonc` が有る**: 読み、Step 2〜4 を飛ばして Step 5 から進める
-- **`requirements.jsonc` が無く `seed.jsonc` が有る**: 下書き。`title` `background` `goal` `hints` `constraints` を要望の材料として使い、Step 2 から詳細化する
-- **`requirements.jsonc` も `seed.jsonc` も無く `seed.md` が有る**: Markdown で書かれた下書き。本文を要望の材料として使い、Step 2 から詳細化する
+- **`requirements.jsonc` が無く `feature.jsonc` が有る**: 雑メモの下書き。`title` `background` `goal` `hints` `constraints` を要望の材料として使い、Step 2 から詳細化する
 - **どちらも無い**: 新規。Step 2 から書き起こす
 
 ### Step 2: スコープ境界

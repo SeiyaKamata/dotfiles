@@ -57,7 +57,7 @@ argument-hint: "[<stage>]"
 
 | 工程 | レビュアー | 上流成果物 | レビュー対象 |
 |---|---|---|---|
-| `/spec` | `spec-reviewer` | 起動時の要望テキスト + `seed.jsonc`(あれば) + 既存の `requirements.jsonc`(あれば) | `requirements.jsonc` |
+| `/spec` | `spec-reviewer` | 起動時の要望テキスト + `feature.jsonc`(あれば) + 既存の `requirements.jsonc`(あれば) | `requirements.jsonc` |
 | `/plan` | `plan-reviewer` | `requirements.jsonc` | `plan.jsonc` |
 
 ```

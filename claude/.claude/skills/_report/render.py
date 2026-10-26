@@ -476,8 +476,8 @@ def render_scenarios(data):
     return title, parts
 
 
-def render_seed(data):
-    title = f"下書き: {data['title']}"
+def render_feature(data):
+    title = f"feature: {data.get('title') or data.get('pr_title') or '無題'}"
     parts = header(title, data, with_verdict=False)
     meta = [
         f"リポジトリ: {data.get('repo', '')}",
@@ -487,6 +487,9 @@ def render_seed(data):
     meta = [m for m in meta if not m.endswith(": ")]
     if meta:
         parts.append("<h2>概要</h2>" + bullets(meta))
+    pr = data.get("pr") or {}
+    if str(pr.get("url", "")).startswith("https://"):
+        parts.append(f"<p>PR: {link(pr['url'], '#' + str(pr.get('number', '')))}</p>")
     if data.get("notion_url"):
         url = data["notion_url"]
         parts.append(f"<p>Notion: {link(url, url) if url.startswith('https://') else esc(url)}</p>")
@@ -548,7 +551,7 @@ KINDS = {
     "requirements": render_requirements,
     "plan": render_plan,
     "qa": render_scenarios,
-    "seed": render_seed,
+    "feature": render_feature,
     "issues": render_issues,
     "log-report": render_logs,
 }
@@ -556,7 +559,7 @@ KINDS = {
 
 def main():
     if len(sys.argv) != 2:
-        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report|requirements|plan|qa|seed|issues|log-report>.jsonc")
+        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report|requirements|plan|qa|feature|issues|log-report>.jsonc")
     src = Path(sys.argv[1])
     if src.stem not in KINDS:
         sys.exit(f"未対応のレポートです: {src.name}")
