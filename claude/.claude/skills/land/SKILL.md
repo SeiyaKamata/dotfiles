@@ -18,7 +18,7 @@ allowed-tools: Bash(git *), Bash(gh *), Read
 push の拒否は自動解決せず、中断カードで人に委ねる。
 
 ## PR のタイトルと本文
-タイトルは固定 prefix `【鎌田QA】` で始め、`<pr_title>` は `.specs/requirements.md` の frontmatter から取る。
+タイトルは固定 prefix `【鎌田QA】` で始め、`<pr_title>` は `.specs/requirements.jsonc` から取る。
 無ければコミットメッセージから主題を作る。
 
 - `【鎌田QA】<pr_title>`
@@ -58,7 +58,7 @@ DEFAULT=$(git default-branch)
 CURRENT=$(git branch --show-current)
 ```
 
-実装ブランチ名は `.specs/requirements.md` の frontmatter の `branch_name` にする。
+実装ブランチ名は `.specs/requirements.jsonc` の `branch_name` にする。
 `CURRENT` が実装ブランチ名と一致しなければ `git switch <実装ブランチ名>` し、存在しなければ実装ブランチが無い旨を Step 5 の中断カードで報告する。
 
 `CURRENT` がデフォルトブランチと同じなら、コミット内容から命名したブランチを `git checkout -b` で作ってから進む。

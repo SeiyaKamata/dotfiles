@@ -1,7 +1,7 @@
 ---
 name: spec
-description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのseed.mdの詳細化で使う。requirements.mdがあるときは、現状の要件と要確認を提示し、要確認を会話で詰めて書き戻す。
-allowed-tools: Read, Write, Edit, Bash(git rev-parse *)
+description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのseed.mdの詳細化で使う。requirements.jsoncがあるときは、現状の要件と要確認を提示し、要確認を会話で詰めて書き戻す。
+allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(python3 ~/.claude/skills/_report/render.py *)
 ---
 
 # 要件策定スキル
@@ -9,12 +9,13 @@ allowed-tools: Read, Write, Edit, Bash(git rev-parse *)
 ## 役割
 ユーザーの要望から EARS 形式の要件ドキュメントを作る。
 「何を作るか」だけを扱い、技術的な実装方法を含む「どう作るか」は書かない。
-`requirements.md` を新規に書くのは `/spec` だけが行う。
+`requirements.jsonc` を新規に書くのは `/spec` だけが行う。
 要確認の議論と、その結果の書き戻しもこのスキルが行う。
 
 ## 判断が割れる点の扱い
 Step 2〜4 では、ユーザーに質問もスコープ承認もしない。
-判断が割れる点は最も素直な解釈を採って進め、採った解釈は該当する行の下に、インデントを下げた `【要確認】<採った解釈と理由>` の行で付記する。
+判断が割れる点は最も素直な解釈を採って進め、採った解釈と理由は該当する行の `question` に書く。
+特定の 1 行に紐づかないものは `open_questions` に書く。
 
 ## 受け入れ条件の書き方
 
@@ -64,64 +65,67 @@ Requirement 番号は主体の節をまたいで連番にする。
 - 例示は書かず、条件を言い切る
 - 「適切に」「必要に応じて」のような曖昧語は避け、テスト可能・検証可能な表現にする
 
-## requirements.md のフォーマット
+## requirements.jsonc のフォーマット
 
 検討経緯・却下した代替案は書かず、決まったことだけを書く。
+後続の skill が読む要件と、人が読む HTML の元データを兼ねる。
+`.specs/requirements.jsonc` に上書きし、同じ内容から `.specs/requirements.html` を生成する。
+末尾カンマは書かない。
+文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 
-```markdown
----
-repo: [この feature を実装するリポジトリ。bare repo のディレクトリ名]
-notion_url: [下書きにあれば引き継ぐ。無ければ空文字]
-pr_title: [下書きにあれば引き継ぐ。無ければ空文字]
-branch_name: [下書きにあれば引き継ぐ。無ければ feature 名と要件の内容から、英小文字・数字・ハイフンだけの `<type>/<短い英語の説明>` の形で決める]
----
+各行の `text` は「受け入れ条件の書き方」の型の記法をそのまま使う。
+`question` は判断で埋めたときだけ採った解釈と理由を書き、無ければ空文字にする。
+スコープ外の項目に、EARS は使わない。
+表は行数にかかわらず `appendix` に置き、スコープ外と受け入れ条件からは「詳細は付録」と 1 行で参照する。
 
-# 要件定義: [機能名]
-
-## 概要
-[機能の目的と背景を2〜3文で]
-
-[Requirement 全体に関わるなど、特定の 1 行に紐づかない要確認があれば `【要確認】<内容>` を 1 行で。無ければ書かない]
-
-## スコープ外
-[項目の行は外すものだけを書く。EARS は使わない。別 feature での扱いなどの補足は理由に畳む]
-
-- [外すもの]
-  - 理由: [なぜ外すか]
-  - 【要確認】[判断で埋めたときだけ。採った解釈]
-
-## 要件
-
-### [主体]
-
-#### Requirement 1: [要件名]
-- [振る舞い]
-- [イベント]とき → [振る舞い]
-  - 【要確認】[判断で埋めたときだけ。採った解釈と理由]
-- 【異常】[トリガー] → [振る舞い]
-
-#### Requirement 2: [要件名]
-...
-
-### [別の主体]
-
-#### Requirement 3: [要件名]
-...
-
-## 付録: [表題]
-[表は行数にかかわらず全部ここに置き、スコープ外節と受け入れ条件からは「詳細は付録」と 1 行で参照する。無ければ節ごと省略]
+```jsonc
+{
+  "repo": "[この feature を実装するリポジトリ。bare repo のディレクトリ名]",
+  "notion_url": "[下書き seed.md の frontmatter にあれば引き継ぐ。無ければ空文字]",
+  "pr_title": "[下書き seed.md の frontmatter にあれば引き継ぐ。無ければ空文字]",
+  "branch_name": "[下書き seed.md の frontmatter にあれば引き継ぐ。無ければ feature 名と要件の内容から、英小文字・数字・ハイフンだけの `<type>/<短い英語の説明>` の形で決める]",
+  "feature": "[機能名]",
+  "overview": "[機能の目的と背景を 2〜3 文で]",
+  "open_questions": ["[Requirement 全体に関わるなど、特定の 1 行に紐づかない要確認。無ければ空配列]"],
+  "out_of_scope": [
+    {
+      "item": "[外すもの]",
+      "reason": "[なぜ外すか。別 feature での扱いなどの補足もここに畳む]",
+      "question": "[判断で埋めたときだけ。採った解釈。無ければ空文字]"
+    }
+  ],
+  "subjects": [
+    {
+      "name": "[主体]",
+      "requirements": [
+        {
+          "id": 1,
+          "title": "[要件名]",
+          "lines": [
+            { "text": "[振る舞い]", "question": "" },
+            { "text": "[イベント]とき → [振る舞い]", "question": "[採った解釈と理由]" },
+            { "text": "【異常】[トリガー] → [振る舞い]", "question": "" }
+          ]
+        }
+      ]
+    }
+  ],
+  "appendix": [
+    { "title": "[表題]", "columns": ["[列名]"], "rows": [["[セル]"]] }
+  ] // 表が無ければ空配列
+}
 ```
 
 ## 進め方
 
 ### Step 1: 開始 Step の判定
 
-- `.specs/requirements.md` も `.specs/seed.md` も無く、会話文脈にも要望が無ければ「使い方: /spec <要望>」を表示して終了
-- frontmatter の `repo` は、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename から採る
+- `.specs/requirements.jsonc` も `.specs/seed.md` も無く、会話文脈にも要望が無ければ「使い方: /spec <要望>」を表示して終了
+- `repo` は、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename から採る
 
-`.specs/requirements.md` と `.specs/seed.md` の有無で分岐する:
-- **`requirements.md` が有る**: 読み、Step 2〜4 を飛ばして Step 5 から進める
-- **`requirements.md` が無く `seed.md` が有る**: 下書き。本文を要望の材料として使い、Step 2 から詳細化する
+`.specs/requirements.jsonc` と `.specs/seed.md` の有無で分岐する:
+- **`requirements.jsonc` が有る**: 読み、Step 2〜4 を飛ばして Step 5 から進める
+- **`requirements.jsonc` が無く `seed.md` が有る**: 下書き。本文を要望の材料として使い、Step 2 から詳細化する
 - **どちらも無い**: 新規。Step 2 から書き起こす
 
 ### Step 2: スコープ境界
@@ -139,12 +143,14 @@ in-scope の項目**だけ**を Requirement に起こす。
 
 ### Step 4: 書き出し
 
-Step 2〜3 の内容を「requirements.md のフォーマット」で `.specs/requirements.md` に書く。
+Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs/requirements.jsonc` に書く。
+続けて `python3 ~/.claude/skills/_report/render.py .specs/requirements.jsonc` で `.specs/requirements.html` を生成する。
+生成に失敗したら `.jsonc` は残し、Step 6 の提示に失敗の内容を添える。
 
 ### Step 5: 点検
 
-`requirements.md` が「受け入れ条件の書き方」と「requirements.md のフォーマット」を満たしているか見直し、外れていれば直してから Step 6 へ進む。
-既存の `requirements.md` を読み込んだ場合は、本文に紛れた仮定で `【要確認】` が付いていないものを拾い、該当行の下に付記する。
+`requirements.jsonc` が「受け入れ条件の書き方」と「requirements.jsonc のフォーマット」を満たしているか見直し、外れていれば直してから Step 6 へ進む。
+既存の `requirements.jsonc` を読み込んだ場合は、本文に紛れた仮定で `question` が空のものを拾い、該当行の `question` に書く。
 
 ### Step 6: 提示
 
@@ -158,15 +164,17 @@ Step 2〜3 の内容を「requirements.md のフォーマット」で `.specs/re
 
 要確認が 1 件以上なら Step 7 へ進む。
 0 件なら「要確認なし。次は `/plan`」の 1 行を添えて終了する。
+生成物は `.specs/requirements.jsonc` と `.specs/requirements.html` で、1 行で示す。
 
-Step 3 で中断したときは、中断理由と `requirements.md` が未確定である旨を 1 行で出して終了する。
+Step 3 で中断したときは、中断理由と `requirements.jsonc` が未確定である旨を 1 行で出して終了する。
 
 ### Step 7: 要確認の議論
 
 要確認を 1 件ずつユーザーに尋ねる。
-決まったら `requirements.md` の該当行を決定内容に直し、その `【要確認】` 行を消す。
-採った解釈のままで決まったときは、`【要確認】` 行だけを消す。
+決まったら `requirements.jsonc` の該当行の `text` を決定内容に直し、その行の `question` を空文字にする。
+採った解釈のままで決まったときは、`question` だけを空文字にする。
 経緯は書かない。
+直したら `python3 ~/.claude/skills/_report/render.py .specs/requirements.jsonc` で HTML を作り直す。
 
 全件が決まったら「要確認なし。次は `/plan`」の 1 行で終了する。
 ユーザーが打ち切ったときは残件数を 1 行で伝えて終了する。

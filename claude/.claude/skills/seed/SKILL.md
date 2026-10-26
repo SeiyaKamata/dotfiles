@@ -20,8 +20,8 @@ allowed-tools: Write, Glob
 ## seed.md のフォーマット
 
 既知の情報だけを書き、EARS 形式の受け入れ条件は書かない。
-詳細化は `/spec` が読んだときに行い、`requirements.md` として確定させる。
-frontmatter のキーは `/spec` の確定稿と同じ並びにし、`/spec` がそのまま引き継ぐ。
+詳細化は `/spec` が読んだときに行い、`requirements.jsonc` として確定させる。
+frontmatter のキーは `/spec` の確定稿のキーと同じにし、`/spec` がそのまま引き継ぐ。
 
 ```markdown
 ---

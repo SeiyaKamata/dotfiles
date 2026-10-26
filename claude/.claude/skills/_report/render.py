@@ -37,6 +37,15 @@ figure { margin: 0; padding: 8px; border: 1px solid var(--line); border-radius: 
 figure img { display: block; width: 100%; border-radius: 4px; }
 figcaption { margin-top: 8px; font-size: 14px; }
 ul, ol { padding-left: 20px; }
+.badge { display: inline-block; margin-right: 8px; padding: 0 8px; border-radius: 4px;
+  background: var(--chip); border: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+.badge.err { color: var(--fail); border-color: var(--fail); }
+.question { margin: 4px 0 4px 16px; padding: 4px 12px; border-left: 4px solid var(--blocked);
+  background: var(--chip); color: var(--blocked); font-size: 14px; }
+h3 { margin: 24px 0 8px; padding-bottom: 2px; border-bottom: 1px dashed var(--accent); font-size: 17px; }
+h4 { margin: 16px 0 4px; font-size: 15px; color: var(--accent); }
+ul.lines { list-style: none; padding-left: 0; }
+ul.lines li { margin: 4px 0; }
 """
 
 APPROVAL_STATES = {"": "承認待ち", "対応する": "対応中", "対応しない": "対応なし", "保留": "保留"}
@@ -284,6 +293,59 @@ def render_bug(data):
     return title, parts
 
 
+EARS_TYPES = [("【異常】", "異常", True), ("とき →", "イベント", False), ("あいだ →", "状態", False), ("場合 →", "オプション", False)]
+
+
+def ears_badge(text):
+    for marker, label, err in EARS_TYPES:
+        if marker in text:
+            return f'<span class="badge{" err" if err else ""}">{label}</span>'
+    return '<span class="badge">常時</span>'
+
+
+def question_block(text):
+    return f'<div class="question">要確認: {esc(text)}</div>' if text else ""
+
+
+def render_requirements(data):
+    title = f"要件定義: {data['feature']}"
+    parts = header(title, data, with_verdict=False)
+    meta = [
+        f"リポジトリ: {data.get('repo', '')}",
+        f"ブランチ: {data.get('branch_name', '')}",
+        f"PR タイトル: {data.get('pr_title', '')}",
+    ]
+    parts.append("<h2>概要</h2>" + f"<p>{esc(data.get('overview', ''))}</p>" + bullets([m for m in meta if not m.endswith(': ')]))
+    for q in data.get("open_questions", []):
+        parts.append(question_block(q))
+
+    scope = data.get("out_of_scope", [])
+    if scope:
+        items = "".join(
+            f"<li>{esc(x['item'])}"
+            + (f"<br><span class=\"meta\">理由: {esc(x['reason'])}</span>" if x.get("reason") else "")
+            + question_block(x.get("question", ""))
+            + "</li>"
+            for x in scope
+        )
+        parts.append(f"<h2>スコープ外</h2><ul>{items}</ul>")
+
+    parts.append("<h2>要件</h2>")
+    for subject in data.get("subjects", []):
+        parts.append(f"<h3>{esc(subject['name'])}</h3>")
+        for r in subject.get("requirements", []):
+            lines = "".join(
+                f"<li>{ears_badge(line['text'])}{esc(line['text'])}{question_block(line.get('question', ''))}</li>"
+                for line in r.get("lines", [])
+            )
+            parts.append(f"<h4>Requirement {esc(r['id'])}: {esc(r['title'])}</h4><ul class=\"lines\">{lines}</ul>")
+
+    for t in data.get("appendix", []):
+        rows = [[td(c) for c in row] for row in t.get("rows", [])]
+        parts.append(f"<h2>付録: {esc(t['title'])}</h2>" + table(t.get("columns", []), rows))
+    return title, parts
+
+
 KINDS = {
     "qa-report": render_qa,
     "test-report": render_test,
@@ -291,12 +353,13 @@ KINDS = {
     "ci-report": render_ci,
     "comment-report": render_comments,
     "bug-report": render_bug,
+    "requirements": render_requirements,
 }
 
 
 def main():
     if len(sys.argv) != 2:
-        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report>.jsonc")
+        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report|requirements>.jsonc")
     src = Path(sys.argv[1])
     if src.stem not in KINDS:
         sys.exit(f"未対応のレポートです: {src.name}")

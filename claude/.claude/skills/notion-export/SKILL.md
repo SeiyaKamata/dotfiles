@@ -49,7 +49,7 @@ allowed-tools: Read, Glob, Bash(git *), Bash(gh *), mcp__claude_ai_Notion__*
 - 材料が乏しくても見出しは必ず作り、中身に「未実施」「該当なし」と書いて欠落が人に伝わるようにする
 
 ### ページのプロパティ
-- 成果物の frontmatter に `title` があれば、ページのタイトルプロパティを書き換える
+- 成果物の frontmatter か `.jsonc` のトップレベルに `title` があれば、ページのタイトルプロパティを書き換える
 - ほかのプロパティは頼まれない限り触らない
 
 ### 書き出さないもの
@@ -66,7 +66,7 @@ allowed-tools: Read, Glob, Bash(git *), Bash(gh *), mcp__claude_ai_Notion__*
 
 ### Step 2: 書き戻し先 URL の解決
 
-成果物の frontmatter の `notion_url` を読む。
+成果物の frontmatter か `.jsonc` のトップレベルの `notion_url` を読む。
 無い、または空ならユーザーに Notion ページ URL を聞き、得られなければ Step 6 の中断カードで報告する。
 
 ### Step 3: 材料を集める

@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 # QAシナリオ生成スキル
 
 ## 役割
-`requirements.md` の受け入れ条件から `/qa` が実行する QA シナリオを導出し、`.specs/qa.md` に書き出す。
+`requirements.jsonc` の受け入れ条件から `/qa` が実行する QA シナリオを導出し、`.specs/qa.md` に書き出す。
 シナリオは検証できる環境ごとに振り分け、受け入れ条件の全網羅は目的にしない。
 
 ## 判断が割れる点の扱い
@@ -67,12 +67,12 @@ UI に一切現れないものだけを次の 2 つに分ける。
 
 ### Step 1: 入力の確認と開始 Step の判定
 
-- `.specs/requirements.md` を読む。無ければ Step 6 の中断カードで報告して終了
+- `.specs/requirements.jsonc` を読む。無ければ Step 6 の中断カードで報告して終了
 - `.specs/plan.md` があれば読む
 
 `.specs/qa.md` の有無で分岐する:
 - **無い**: 新規作成。Step 2 から書き起こす
-- **有る**: 編集。現在の `requirements.md` / `plan.md` と突き合わせ、シナリオの無い受け入れ条件・削除された要件のシナリオの残存のようなズレと変更要望に該当する箇所だけを Step 2〜3 で直す
+- **有る**: 編集。現在の `requirements.jsonc` / `plan.md` と突き合わせ、シナリオの無い受け入れ条件・削除された要件のシナリオの残存のようなズレと変更要望に該当する箇所だけを Step 2〜3 で直す
   - どちらも無ければ Step 2〜5 を飛ばし、Step 6 で「変更なし」と報告して終了
 
 ### Step 2: 手順の手がかりの特定
@@ -83,7 +83,7 @@ UI に一切現れないものだけを次の 2 つに分ける。
 
 ### Step 3: QAシナリオの導出
 
-`requirements.md` の受け入れ条件から `qa.md` のシナリオを起こす。
+`requirements.jsonc` の受け入れ条件から `qa.md` のシナリオを起こす。
 節への振り分けは「振り分けの基準」に従う。
 各シナリオに対応する要件番号を `_Requirements:_` で記す。
 

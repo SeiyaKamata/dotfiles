@@ -1,6 +1,6 @@
 ---
 name: plan
-description: 要件を受け取り技術設計と実装タスクを一つの plan.md にまとめる。.specs/requirements.mdが出来上がったら使う。plan.mdが既にあるときは、現状の判断とずれを提示し、会話で詰めて書き戻す。
+description: 要件を受け取り技術設計と実装タスクを一つの plan.md にまとめる。.specs/requirements.jsoncが出来上がったら使う。plan.mdが既にあるときは、現状の判断とずれを提示し、会話で詰めて書き戻す。
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git rev-parse *), Bash(git -C *), Bash(mkworktree *), WebSearch
 ---
 
@@ -175,12 +175,12 @@ impl の完了条件は `## タスク一覧` だけで、人しか実行でき�
 
 ### Step 1: 開始条件の確認と分岐
 
-- `.specs/requirements.md` が無ければ `/spec` を案内して終了
-- frontmatter の `repo` が今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename と違えば、Step 9 の中断報告で「`<repo>` の worktree で叩く」と案内して終了
+- `.specs/requirements.jsonc` が無ければ `/spec` を案内して終了
+- `requirements.jsonc` の `repo` が今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename と違えば、Step 9 の中断報告で「`<repo>` の worktree で叩く」と案内して終了
 
 `.specs/plan.md` の有無で分岐する:
 - **無い**: Step 2 へ
-- **有る**: `plan.md` と `requirements.md` を読み、Step 2〜8 を飛ばして Step 9 へ進む
+- **有る**: `plan.md` と `requirements.jsonc` を読み、Step 2〜8 を飛ばして Step 9 へ進む
 
 ### Step 2: 踏襲元とコンポーネント境界の確定
 
@@ -193,11 +193,11 @@ impl の完了条件は `## タスク一覧` だけで、人しか実行でき�
 
 ### Step 3: 外部環境の確認
 
-- **別 PJ の実装状況・挙動**: `requirements.md` に「実装済み」のような記載があれば、その PJ のデフォルトブランチを worktree に展開し、Read / Grep で確認する
+- **別 PJ の実装状況・挙動**: `requirements.jsonc` に「実装済み」のような記載があれば、その PJ のデフォルトブランチを worktree に展開し、Read / Grep で確認する
   - bare repo は自分の bare repo `git rev-parse --git-common-dir` と同じ親ディレクトリにある `<リポジトリ名>` を採り、`git -C <bare repo> rev-parse --is-bare-repository` が `true` でなければ確認を諦めて `### 判断` に推測として書く
   - `dest=$(mkworktree <bare repo> <リポジトリ名>-<今の worktree のディレクトリ名>)` で切る。同名の worktree が既にあればそれを使う
   - 依頼元の作業ツリーは remote に載っているとは限らないので、デフォルトブランチのコードを正とする
-  - 食い違いは該当するタスクの細部に書き、`requirements.md` 側の修正要否を `### ずれ` に出す
+  - 食い違いは該当するタスクの細部に書き、`requirements.jsonc` 側の修正要否を `### ずれ` に出す
 - **環境変数・設定値の導入**: ローカル・各デプロイ環境の投入先ファイルを実リポジトリで特定してから設計する
   - 「インフラ側で対応」とスコープ外に出す前にデプロイ定義の有無を確認し、特定できなければ `### 判断` に推測として書く
 

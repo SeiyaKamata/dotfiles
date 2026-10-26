@@ -36,7 +36,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 | 分類 | 進み先 |
 |---|---|
 | 実装バグ | Step 4 で最小修正 |
-| テストの期待値ずれ | `requirements.md` の仕様と照合してから Step 4 で修正 |
+| テストの期待値ずれ | `requirements.jsonc` の仕様と照合してから Step 4 で修正 |
 | 設計の問題 | コードを触らず中断カードで差し戻す。仕様・設計との不整合もここに入る |
 | 環境・依存関係の問題 | 中断カードで報告する |
 

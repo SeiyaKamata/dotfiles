@@ -57,8 +57,8 @@ argument-hint: "[<stage>]"
 
 | 工程 | レビュアー | 上流成果物 | レビュー対象 |
 |---|---|---|---|
-| `/spec` | `spec-reviewer` | 起動時の要望テキスト + `seed.md`(あれば) + 既存の `requirements.md`(あれば) | `requirements.md` |
-| `/plan` | `plan-reviewer` | `requirements.md` | `plan.md` |
+| `/spec` | `spec-reviewer` | 起動時の要望テキスト + `seed.md`(あれば) + 既存の `requirements.jsonc`(あれば) | `requirements.jsonc` |
+| `/plan` | `plan-reviewer` | `requirements.jsonc` | `plan.md` |
 
 ```
 review_round = 0
@@ -112,7 +112,7 @@ loop:
 ### Step 5: `/impl`
 
 実装ブランチ 1 本の上で全タスクを実装する。
-実装ブランチ名は `.specs/requirements.md` の frontmatter の `branch_name` にする。
+実装ブランチ名は `.specs/requirements.jsonc` の `branch_name` にする。
 
 ### Step 6: `/test`
 

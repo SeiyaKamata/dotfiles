@@ -26,10 +26,10 @@ argument-hint: "[task-numbers]"
 
 ### Step 1: 引数の確認
 - `$ARGUMENTS[0]` に `1,2` の形でタスク番号があれば手動モードにし、指定タスクだけを実装する
-- `.specs/requirements.md` の frontmatter の `repo` の列挙に、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename が含まれなければ、Step 7 の中断カードで「`repo` のいずれかの worktree で叩く」と案内して終了
+- `.specs/requirements.jsonc` の `repo` の列挙に、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename が含まれなければ、Step 7 の中断カードで「`repo` のいずれかの worktree で叩く」と案内して終了
 
 ### Step 2: コンテキスト収集
-配布と確認に要るものだけを集め、`requirements.md` の本文と `plan.md` の設計節は読まない。
+配布と確認に要るものだけを集め、`requirements.jsonc` の本文と `plan.md` の設計節は読まない。
 仕様の裏取りは `implementer` が自分で行う。
 
 - `.specs/plan.md` の `## タスク一覧` から、タスクごとのメタ情報 `Req:` `Depends:` `Follows:` と狙いの文、細部
@@ -40,7 +40,7 @@ argument-hint: "[task-numbers]"
 ### Step 3: 実装ブランチの確定
 実装ブランチ `<branch>` 1 本の上で全タスクを実装する。
 実装を隔離しておけば、途中で捨てる・作り直すのが安全になる。
-実装ブランチ名 `<branch>` は `.specs/requirements.md` の frontmatter の `branch_name` にする。
+実装ブランチ名 `<branch>` は `.specs/requirements.jsonc` の `branch_name` にする。
 HEAD の状態で分岐する:
 - `<branch>` ブランチが既にある → checkout して前回の実装を再開する
 - detached HEAD → `git checkout -b <branch>` で今の HEAD から切る

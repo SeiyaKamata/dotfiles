@@ -22,7 +22,7 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 | 裏取りで成立を確認できたバグ・セキュリティ・クラッシュなど重大な問題がある | NG |
 | 指摘がスタイル・軽微な改善のみ | OK。指摘は記録する |
 | 重大と報告されたが裏取りで不成立だった | NG にしない。理由つきで記録する |
-| 実装は仕様どおりだが、`requirements.md` / `plan.md` の記述が実コードと食い違っている | OK。食い違いを推奨対応に上流 doc の修正として列挙し、要確認にも出す |
+| 実装は仕様どおりだが、`requirements.jsonc` / `plan.md` の記述が実コードと食い違っている | OK。食い違いを推奨対応に上流 doc の修正として列挙し、要確認にも出す |
 
 ## review.jsonc のフォーマット
 `/fix` が読む指摘の内訳と、人が読む HTML の元データを兼ねる。
@@ -55,7 +55,7 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 ### Step 1: 対象確定
 
 カレントブランチが実装ブランチ `<branch>` でなければ `git switch <branch>` を試みる。
-実装ブランチ名 `<branch>` は `.specs/requirements.md` の frontmatter の `branch_name` にする。
+実装ブランチ名 `<branch>` は `.specs/requirements.jsonc` の `branch_name` にする。
 - switch できた → そのまま続行
 - `<branch>` が存在しない → 現在のブランチをそのまま採用する
   - PR を作らない運用で直接コミットしているとみなす
@@ -71,13 +71,13 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 いずれも fresh な general-purpose agent とし、レビュー対象は自分で読ませる。
 
 - 仕様整合性 reviewer
-  - `.specs/requirements.md` と、存在すれば `plan.md` を読ませる
+  - `.specs/requirements.jsonc` と、存在すれば `plan.md` を読ませる
   - `git diff <デフォルトブランチ>...HEAD` を読ませ、仕様・設計と整合しているかの指摘一覧を返させる
 - コード品質 reviewer
   - `coderabbit:code-review` skill が導入済みならそれを、未導入なら `code-review` skill を `Skill` ツールで起動させる
   - 効果レベルは指定せず、`--comment` / `--fix` は使わせない
 
-`plan.md` が無いときは `requirements.md` との整合だけを見る。
+`plan.md` が無いときは `requirements.jsonc` との整合だけを見る。
 無いことを中断理由にしない。
 
 ### Step 3: 指摘の裏取り
