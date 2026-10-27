@@ -144,12 +144,14 @@ def check_appendix(appendix, errors):
 
 def check_feature(feature):
     errors = []
-    for key in ("repo", "title", "branch_name"):
+    for key in ("repo", "title", "branch_name", "pr_title"):
         if blank(feature.get(key)):
             errors.append(f"feature.jsonc の {key}: 空か文字列でない")
-    for key in ("notion_url", "pr_title"):
-        if not isinstance(feature.get(key), str):
-            errors.append(f"feature.jsonc の {key}: 文字列でない、または無い")
+    if not isinstance(feature.get("notion_url"), str):
+        errors.append("feature.jsonc の notion_url: 文字列でない、または無い")
+    pr_title = feature.get("pr_title")
+    if isinstance(pr_title, str) and pr_title and not pr_title.startswith("【鎌田QA】"):
+        errors.append("feature.jsonc の pr_title: `【鎌田QA】` で始まっていない")
     branch = feature.get("branch_name")
     if isinstance(branch, str) and branch and not BRANCH.match(branch):
         errors.append(f"feature.jsonc の branch_name: `<type>/<英小文字・数字・ハイフン>` の形でない: {branch}")

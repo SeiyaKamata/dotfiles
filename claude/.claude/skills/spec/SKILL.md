@@ -146,7 +146,8 @@ Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs
 - `repo`: 今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename
 - `title`: 日本語の 20 字以内の名詞句
 - `branch_name`: 英小文字・数字・ハイフンだけの `<type>/<短い英語の説明>`。`title` と要件の内容から決める
-- `notion_url` `pr_title`: 材料に無ければ空文字
+- `pr_title`: 固定 prefix `【鎌田QA】` で始める。指定があればその文字列の前に付け、prefix が既にあれば足さず、無ければ `【鎌田QA】<title>`
+- `notion_url`: 材料に無ければ空文字
 
 ### Step 5: 点検
 

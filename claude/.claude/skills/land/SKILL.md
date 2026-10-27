@@ -18,10 +18,8 @@ allowed-tools: Bash(git *), Bash(gh *), Bash(python3 ~/.claude/skills/_report/re
 push の拒否は自動解決せず、中断カードで人に委ねる。
 
 ## PR のタイトルと本文
-タイトルは固定 prefix `【鎌田QA】` で始め、`<pr_title>` は `.specs/feature.jsonc` から取る。
-無ければコミットメッセージから主題を作る。
-
-- `【鎌田QA】<pr_title>`
+タイトルは `.specs/feature.jsonc` の `pr_title` をそのまま使う。
+空ならコミットメッセージから主題を作る。
 
 ```markdown
 @coderabbitai ignore
