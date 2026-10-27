@@ -119,8 +119,7 @@ impl の完了条件は `tasks` だけで、人しか実行できない項目は
 `.specs/plan.jsonc` に上書きし、同じ内容から `.specs/plan.html` を生成する。
 該当しない項目は、`decisions` `deviations` `setup` `appendix` を空配列にする。
 ただし `summary` と `tasks` は常に埋め、複数のタスクが共有する形があれば `appendix` も埋める。
-末尾カンマは書かない。
-文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
+書式の誤りと、全 Requirement がいずれかのタスクの `req` に現れているかは、書いた直後にフックが指摘して返す。
 `id` と `req` の要素は整数、`depends` の要素は `S<n>` の文字列で書く。
 `appendix` の本文は、改行を `\n` で書かず、1 行を 1 要素とする `lines` の配列に分ける。
 
@@ -242,7 +241,6 @@ Step 2〜6 の内容を「plan.jsonc のフォーマット」で `.specs/plan.js
 ### Step 8: 点検
 
 書き出した `plan.jsonc` が次を満たしているか見直し、外れていれば直してから Step 9 へ進む。
-- 全 Requirement がいずれかのタスクの `req` に現れる
 - 共有する形が `appendix` に、`implementer` が推測せずに書ける具体度で書かれている
 - タスクの番号順が、内側から外側の順になっている
 - 「設計の判断基準」「タスク分解の原則」「plan.jsonc の書き方」「Step 4 の固定チェックリスト」を満たしている
