@@ -4,6 +4,8 @@ import json
 import sys
 from pathlib import Path
 
+COMMENTS_JS = Path(__file__).with_name("comments.js").read_text(encoding="utf-8")
+
 CSS = """
 :root {
   --bg: #ffffff; --fg: #1f2328; --muted: #656d76; --line: #d0d7de;
@@ -49,154 +51,7 @@ ul.lines li { margin: 4px 0; }
 pre { padding: 12px; overflow-x: auto; background: var(--chip); border-radius: 6px; }
 code { padding: 0 4px; background: var(--chip); border-radius: 4px; }
 .task-meta { color: var(--muted); font-size: 14px; }
-.cm-add { margin-left: 8px; padding: 0 6px; border: 0; border-radius: 4px; background: none;
-  color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; opacity: 0; }
-.cm-on :is(li, tr, h2, h3, h4):hover > .cm-add, .cm-on td:hover > .cm-add, .cm-add.has { opacity: 1; }
-.cm-box { margin: 8px 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;
-  background: var(--chip); color: var(--fg); font-size: 14px; font-weight: 400; }
-.cm-box[hidden] { display: none; }
-.cm-item { margin: 4px 0; padding-left: 8px; border-left: 3px solid var(--accent); white-space: pre-wrap; }
-.cm-item.done { opacity: .5; border-left-color: var(--muted); }
-.cm-box textarea { width: 100%; min-height: 64px; margin-top: 4px; padding: 6px 8px; border: 1px solid var(--line);
-  border-radius: 4px; background: var(--bg); color: var(--fg); font: inherit; }
-.cm-box button, .cm-enable { padding: 2px 12px; border: 1px solid var(--line); border-radius: 6px;
-  background: var(--chip); color: var(--fg); font: inherit; font-size: 13px; cursor: pointer; }
-.cm-enable { position: fixed; top: 12px; right: 16px; z-index: 10; }
 """
-
-COMMENT_JS = r"""
-(() => {
-  if (!window.showDirectoryPicker) return;
-  const FILE = "comments.jsonc";
-  const doc = decodeURIComponent(location.pathname.split("/").pop());
-  const ROOT_KEY = "root";
-  const text = (n) => n.textContent.replace(/\s+/g, " ").trim().slice(0, 80);
-  const items = [...document.querySelectorAll("main li, main tbody tr, main h2, main h3, main h4")].map((node) => ({
-    node, quote: text(node),
-  }));
-  let dir = null;
-  let comments = [];
-
-  const idb = (mode, fn) => new Promise((resolve, reject) => {
-    const open = indexedDB.open("report-comments", 1);
-    open.onupgradeneeded = () => open.result.createObjectStore("kv");
-    open.onerror = () => reject(open.error);
-    open.onsuccess = () => {
-      const req = fn(open.result.transaction("kv", mode).objectStore("kv"));
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    };
-  });
-
-  async function read() {
-    let file;
-    try {
-      file = await (await dir.getFileHandle(FILE)).getFile();
-    } catch (e) {
-      if (e.name === "NotFoundError") return { comments: [] };
-      throw e;
-    }
-    const body = await file.text();
-    return body.trim() ? JSON.parse(body) : { comments: [] };
-  }
-
-  async function add(item, body) {
-    const data = await read();
-    data.comments.push({
-      file: doc, quote: item.quote, text: body, status: "open", created: new Date().toISOString(),
-    });
-    const w = await (await dir.getFileHandle(FILE, { create: true })).createWritable();
-    await w.write(JSON.stringify(data, null, 2) + "\n");
-    await w.close();
-    comments = data.comments;
-  }
-
-  function mine(item) {
-    return comments.filter((c) => c.file === doc && c.quote === item.quote);
-  }
-
-  function draw(item) {
-    const list = mine(item);
-    item.button.textContent = list.length ? `💬 ${list.length}` : "💬";
-    item.button.classList.toggle("has", list.length > 0);
-    item.box.replaceChildren(
-      ...list.map((c) => Object.assign(document.createElement("div"), {
-        className: `cm-item${c.status === "open" ? "" : " done"}`, textContent: c.text,
-      })),
-    );
-    const area = document.createElement("textarea");
-    area.placeholder = "コメント";
-    const save = Object.assign(document.createElement("button"), { textContent: "保存" });
-    save.addEventListener("click", async () => {
-      const body = area.value.trim();
-      if (!body) return;
-      try {
-        await add(item, body);
-      } catch (e) {
-        alert(`${FILE} に書き込めませんでした: ${e.message}`);
-        return;
-      }
-      items.forEach(draw);
-      item.box.hidden = false;
-    });
-    item.box.append(area, save);
-  }
-
-  function mount() {
-    document.body.classList.add("cm-on");
-    for (const item of items) {
-      item.button = Object.assign(document.createElement("button"), { className: "cm-add", textContent: "💬" });
-      item.box = Object.assign(document.createElement("div"), { className: "cm-box", hidden: true });
-      item.button.addEventListener("click", () => { item.box.hidden = !item.box.hidden; });
-      const host = item.node.tagName === "TR" ? item.node.lastElementChild : item.node;
-      host.append(item.button);
-      if (/^H/.test(item.node.tagName)) item.node.after(item.box);
-      else host.append(item.box);
-    }
-    items.forEach(draw);
-  }
-
-  const feature = decodeURIComponent(location.pathname.split("/").slice(-2, -1)[0] || "");
-
-  async function resolve(picked) {
-    try {
-      await picked.getFileHandle(doc);
-      return picked;
-    } catch {
-      return picked.getDirectoryHandle(feature);
-    }
-  }
-
-  async function use(picked) {
-    dir = await resolve(picked);
-    await dir.getFileHandle(doc);
-    comments = (await read()).comments;
-    mount();
-    enable.remove();
-  }
-
-  const enable = Object.assign(document.createElement("button"), { className: "cm-enable", textContent: "コメントを有効にする" });
-  enable.addEventListener("click", async () => {
-    try {
-      const saved = await idb("readonly", (s) => s.get(ROOT_KEY)).catch(() => null);
-      let picked = saved && (await saved.requestPermission({ mode: "readwrite" })) === "granted" ? saved : null;
-      if (!picked) {
-        picked = await showDirectoryPicker({ id: "specs-comments", mode: "readwrite", ...(saved ? { startIn: saved } : {}) });
-      }
-      await use(picked);
-      idb("readwrite", (s) => s.put(picked, ROOT_KEY)).catch(() => {});
-    } catch (e) {
-      if (e.name !== "AbortError") alert(`.specs か、このページがあるフォルダを選んでください: ${e.message}`);
-    }
-  });
-  document.body.append(enable);
-
-  idb("readonly", (s) => s.get(ROOT_KEY)).then(async (saved) => {
-    if (saved && (await saved.queryPermission({ mode: "readwrite" })) === "granted") await use(saved);
-  }).catch(() => {});
-})();
-"""
-
 
 APPROVAL_STATES = {"": "承認待ち", "対応する": "対応中", "対応しない": "対応なし", "保留": "保留"}
 PASS = {"pass", "ok", "green"}
@@ -724,7 +579,7 @@ def main():
         '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
         f"<title>{esc(title)}</title>\n<style>{CSS}</style>\n</head>\n"
-        f"<body>\n<main>\n{''.join(parts)}\n</main>\n<script>{COMMENT_JS}</script>\n</body>\n</html>\n"
+        f"<body>\n<main>\n{''.join(parts)}\n</main>\n<script>{COMMENTS_JS}</script>\n</body>\n</html>\n"
     )
     out.write_text(page, encoding="utf-8")
     print(out)
