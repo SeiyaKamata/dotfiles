@@ -219,14 +219,12 @@ Step 2〜4 の内容を「plan.jsonc のフォーマット」で `.specs/plan.js
 
 ### Step 7: 提示
 
-`decisions` と `deviations` の各項目を 1 行ずつ並べて出力し、詳細は `.specs/plan.html` で確認する旨を添える。
-中断したときは、中断理由を 1 行で出し、`/plan` か `/spec` で再開できる旨を添えて終了する。
+`decisions` と `deviations` の各項目を 1 行ずつ並べて出力する。
 
 ### Step 8: 判断とずれとコメントの議論
 
 `decisions` と `deviations` の未解決の項目か未対応のコメントを 1 件選ぶ。
 未対応のコメントは、`.specs/comments.jsonc` の `comments` のうち、`file` が `plan.html` で `status` が `open` のもの。
-1 件も無ければ「判断とずれは確定。次は `/scenarios`」の 1 行で終了する。
 
 項目はユーザーに尋ねる。
 コメントは、`quote` が指す箇所に本文の意図を反映し、判断が割れるときだけユーザーに尋ねる。
@@ -234,3 +232,10 @@ Step 2〜4 の内容を「plan.jsonc のフォーマット」で `.specs/plan.js
 コメントを反映したら、そのコメントの `status` を `done` にする。
 `done` が `true` のタスクは番号と本文を変えない。
 ユーザーが直したい点を直接伝えたときも、同じ手順で反映する。
+
+### Step 9: 出力
+
+次を出して終了する。
+- 結果: 判断とずれを確定した
+- 詳細: `.specs/plan.html`
+- 次の一手: `/scenarios`
