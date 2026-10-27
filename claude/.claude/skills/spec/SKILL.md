@@ -15,7 +15,7 @@ allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(open .specs/requir
 要確認の議論と、その結果の書き戻しもこのスキルが行う。
 
 ## 判断が割れる点の扱い
-Step 2〜4 では、ユーザーに質問もスコープ承認もしない。
+Step 2〜3 では、ユーザーに質問もスコープ承認もしない。
 判断が割れる点は最も素直な解釈を採って進め、採った解釈と理由は該当する行の `question` に書く。
 特定の 1 行に紐づかないものは `open_questions` に書く。
 
@@ -71,13 +71,11 @@ Requirement 番号は主体の節をまたいで連番にする。
 
 検討経緯・却下した代替案は書かず、決まったことだけを書く。
 後続の skill が読む要件と、人が読む HTML の元データを兼ねる。
-`.specs/requirements.jsonc` に上書きし、同じ内容から `.specs/requirements.html` を生成する。
+`.specs/requirements.jsonc` に上書きする。
 書式の誤りは、書いた直後にフックが指摘して返す。
-指摘に従って直せばよく、書式を事前に点検する手順は無い。
 
-各行の `text` は「受け入れ条件の書き方」の型の記法をそのまま使う。
 `question` は判断で埋めたときだけ採った解釈と理由を書き、無ければ空文字にする。
-スコープ外の項目に、EARS は使わない。
+スコープ外に EARS は使わない。
 表は行数にかかわらず `appendix` に置き、スコープ外と受け入れ条件からは「詳細は付録」と 1 行で参照する。
 
 ```jsonc
@@ -117,28 +115,19 @@ Requirement 番号は主体の節をまたいで連番にする。
 
 ### Step 1: 開始 Step の判定
 
-`.specs/requirements.jsonc` と `.specs/feature.jsonc` の有無で分岐する。
+- `requirements.jsonc` が有る: 読み、Step 4 から進める
+- 無く、`feature.jsonc` が有る: `title` と `memo` を要望の材料にする
+- どちらも無く、会話文脈に要望も無い: 「使い方: /spec <要望>」を表示して終了する
 
-- **`requirements.jsonc` が有る**: 読み、Step 2〜4 を飛ばして Step 5 から進める
-- **`requirements.jsonc` が無く `feature.jsonc` が有る**: 雑メモの下書き。`title` と `memo` を要望の材料として使い、Step 2 から詳細化する
-- **どちらも無い**
-  - 会話文脈に要望があれば、新規として Step 2 から書き起こす
-  - 要望も無ければ、「使い方: /spec <要望>」を表示して終了する
+### Step 2: 要件化
 
-### Step 2: スコープ境界
+out-of-scope を列挙し、in-scope の項目だけを Requirement に起こす。
+in-scope は列挙しない。
+判断が割れる項目は「判断が割れる点の扱い」に、観点・型・書式は「受け入れ条件の書き方」に従う。
 
-out-of-scope を列挙する。
-in-scope は列挙せず、Step 3 で Requirement に起こす。
-要望から in/out を確定できない項目は、「判断が割れる点の扱い」節に従う。
+### Step 3: 書き出し
 
-### Step 3: 受け入れ条件化
-
-in-scope の項目**だけ**を Requirement に起こす。
-埋める観点・型・書式は「受け入れ条件の書き方」に従う。
-
-### Step 4: 書き出し
-
-Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs/requirements.jsonc` に書く。
+「requirements.jsonc のフォーマット」で `.specs/requirements.jsonc` に書く。
 
 続けて `.specs/feature.jsonc` のメタを揃える。
 `feature.jsonc` が無ければ、次の 5 キーだけで新規に作る。
@@ -149,16 +138,16 @@ Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs
 - `pr_title`: 固定 prefix `【鎌田QA】` で始める。指定があればその文字列の前に付け、prefix が既にあれば足さず、無ければ `【鎌田QA】<title>`
 - `notion_url`: 材料に無ければ空文字
 
-### Step 5: 提示
+### Step 4: 提示
 
 `open .specs/requirements.html` で HTML を開く。
 要確認と未対応のコメントの件数を 1 行で添える。
 未対応のコメントは、`.specs/comments.jsonc` の `comments` のうち、`file` が `requirements.html` で `status` が `open` のもの。
 
-要確認か未対応のコメントが 1 件以上なら Step 6 へ進む。
+1 件以上なら Step 5 へ進む。
 0 件なら「要確認なし。次は `/plan`」の 1 行を添えて終了する。
 
-### Step 6: 要確認とコメントの議論
+### Step 5: 要確認とコメントの議論
 
 未解決の要確認か未対応のコメントを 1 件選ぶ。
 要確認は、該当する行や項目とあわせてユーザーに尋ねる。
@@ -168,6 +157,6 @@ Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs
 経緯は書かない。
 コメントを反映したら、そのコメントの `status` を `done` にする。
 
-未解決の要確認か未対応のコメントが残っていれば、Step 6 に戻って次の 1 件を尋ねる。
+未解決の要確認か未対応のコメントが残っていれば、Step 5 に戻って次の 1 件を尋ねる。
 全件が決まったら「要確認なし。次は `/plan`」の 1 行で終了する。
 ユーザーが打ち切ったときは残件数を 1 行で伝えて終了する。
