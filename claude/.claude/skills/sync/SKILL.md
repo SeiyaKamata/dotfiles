@@ -1,20 +1,19 @@
 ---
 name: sync
-description: 既存PRに積んだコミットをpushする。comment-report.jsoncがあれば続けてPRコメントへの返信とissues.jsonc記録も行う。CI赤修正・コメント対応の修正後に使う。
-allowed-tools: Bash(git *), Bash(gh *), Read, Write, Edit
+description: 既存PRに積んだコミットをpushする。comment-report.jsoncがあれば続けてPRコメントへの返信と、保留の棚上げも行う。CI赤修正・コメント対応の修正後に使う。
+allowed-tools: Bash(git *), Bash(gh *), Read, Write, Edit, Skill
 ---
 
 # 既存PR更新スキル
 
 ## 役割
-既に PR を持つブランチに積んだコミットをリモートへ push し、`.specs/comment-report.jsonc` があれば承認済み項目への返信と `issues.jsonc` への記録まで行う。
+既に PR を持つブランチに積んだコミットをリモートへ push し、`.specs/comment-report.jsonc` があれば承認済み項目への返信と、保留の項目の棚上げまで行う。
 返信は必ず push の後に行う。先に返信するとリモートのコードが古いまま「直しました」と伝えることになり、直っていないと指摘され直す。
 新しい PR は作らず、コードも直さず、スレッドの解決済み化もしない。
 
 ## 返信文言
 
 - 返信は 2〜3 文以内に収め、結論と理由だけを書く
-  - 長い説明が要るなら issues.jsonc に詳細を残す
 - 対応・非対応・保留のいずれでも全レコードに返信する
   - 返信しないとスレッドが未返信のまま残り、次の収集で同じ判断を繰り返す
 - 理由は 1 文で書き、内部ドキュメントの名前や節は出さない
@@ -26,30 +25,6 @@ allowed-tools: Bash(git *), Bash(gh *), Read, Write, Edit
 | スコープ外 | `この PR のスコープ外のため対応しません。<理由を 1 文>` |
 | 対応済み | `ご指摘の通り修正しました。<修正内容の要点>` |
 | 保留 | `この PR では判断できないため保留とします。確認した範囲: <範囲>／不明点: <不明点>` |
-
-## issues.jsonc のフォーマット
-
-見送った指摘を PR をまたいで溜める一覧で、人が読む HTML の元データを兼ねる。
-`.specs/issues.jsonc` に `items` として 1 件ずつ並べ、同じ内容から `.specs/issues.html` を生成する。
-ファイルが無ければ新規作成し、有れば読み直して `items` の末尾に追加し、既存の項目は変えずに全体を書き直す。
-同じ `pr` と `text` の項目が既に有れば追加しない。
-`resolved` は常に `false` で書き、`true` にするのは人だけ。
-末尾カンマは書かない。
-文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
-
-```jsonc
-{
-  "items": [
-    {
-      "pr": 123,
-      "kind": "[対応しない / 保留]",
-      "text": "[コメントの要点]",
-      "reason": "[対応しない理由。保留ならその場で判断できなかった点]",
-      "resolved": false
-    }
-  ]
-}
-```
 
 ## 進め方
 
@@ -81,7 +56,7 @@ git push
 |---|---|
 | `対応する` | 修正結果と突き合わせ、修正済みなら Step 4 で返信、未修正なら要確認に回す |
 | `対応しない` | Step 4 で返信 |
-| `保留` | Step 4 で返信し、Step 5 で issues.jsonc に記録 |
+| `保留` | Step 4 で返信し、Step 5 で棚上げ |
 | 空欄 | 承認待ちとして要確認に回し、返信しない |
 
 ### Step 4: 返信
@@ -102,14 +77,15 @@ gh pr comment <PR番号> --body "<返信内容>"
 
 返信が失敗した項目は、`id` / `path` / `line` のうち特定できるものと失敗理由を控えて Step 7 で報告し、Step 6 でチェックしない。
 
-### Step 5: issues 記録
+### Step 5: 保留の棚上げ
 
-「対応しない」と「保留」の項目が 1 件以上あれば、「issues.jsonc のフォーマット」で `.specs/issues.jsonc` に追記する。
-要件側を直すべきと判断した矛盾、スコープ外の指摘も記録対象に含める。
+`保留` の項目が 1 件以上あれば、`Skill` で `/feature` を実行する。
+引数には、各項目のコメントの要点、PR の URL、`reason` に書かれた確認範囲と不明点を渡す。
+`対応しない` の項目は棚上げせず、返信だけで終える。
 
 ### Step 6: comment-report.jsonc のチェック
 
-書き直す直前に `.specs/comment-report.jsonc` を読み直し、返信または issues.jsonc 記録まで済んだ項目の `done` だけを `true` にして書き直す。
+書き直す直前に `.specs/comment-report.jsonc` を読み直し、返信まで済み、`保留` なら棚上げまで済んだ項目の `done` だけを `true` にして書き直す。
 他の項目と他のフィールドは、読み直した内容のまま維持する。Step 3 のあとに人や orch が `approval` を書き換えている場合があるため。
 承認待ち・未修正・返信失敗の項目は `done` を `false` のまま残し、項目は削除しない。
 
@@ -124,7 +100,7 @@ gh pr comment <PR番号> --body "<返信内容>"
 - <対応件数・非対応件数・保留件数を 1 行。comment-report.jsonc を処理していなければ省略>
 
 生成物: <対象 PR の URL>
-<issues.jsonc に追記していれば>`.specs/issues.jsonc` と `.specs/issues.html`
+<棚上げしていれば>`/feature` が作った下書きの `feature.jsonc`
 
 ### 要確認
 - 承認待ち <n> 件。comment-report.jsonc の `approval` が空欄

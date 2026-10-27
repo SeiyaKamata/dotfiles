@@ -163,9 +163,9 @@ PR の CI green を待つ。
 `/triage-comments` を実行し、`comment-report.jsonc` の各項目の `approval` を orch 自身が埋める。
 - 提示された「提案」をそのまま採用する
 - 裏取りが `未検証` のまま、または分類の確信が持てないと明記された件は `保留` にする
-  - `/sync` が保留の返信と issues.jsonc 記録を行うので、拾うかは人が issues.jsonc で判断する
+  - `/sync` が保留の返信と `/feature` での棚上げを行うので、拾うかは人が下書きの `feature.jsonc` で判断する
 
-承認欄を埋めたら `/fix` で `対応する` の項目を修正し、`/commit` → `/sync` で push・返信・issues.jsonc 記録まで行う。
+承認欄を埋めたら `/fix` で `対応する` の項目を修正し、`/commit` → `/sync` で push・返信・保留の棚上げまで行う。
 続けて orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って再レビューを発火し、`/watch-ci` に戻る。
 
 このループは最大 2 巡。

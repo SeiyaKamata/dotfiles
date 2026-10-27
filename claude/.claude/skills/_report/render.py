@@ -631,25 +631,6 @@ def render_feature(data):
     return title, parts
 
 
-def render_issues(data):
-    items = data.get("items", [])
-    open_count = sum(1 for i in items if not i.get("resolved"))
-    parts = header("残対応", data, with_verdict=False)
-    parts.append("<h2>サマリ</h2>" + bullets([f"未解決: {open_count} 件", f"全件: {len(items)} 件"]))
-    prs = []
-    for i in items:
-        if i["pr"] not in prs:
-            prs.append(i["pr"])
-    for pr in prs:
-        rows = [
-            [td("解決済み" if i.get("resolved") else "未解決"), td(i["kind"]), td(i["text"]), td(i.get("reason", ""))]
-            for i in items
-            if i["pr"] == pr
-        ]
-        parts.append(f"<h2>PR #{esc(pr)} で見送り</h2>" + table(["状態", "区分", "コメントの要点", "理由"], rows))
-    return "残対応", parts
-
-
 def render_logs(data):
     title = f"ログ調査: {data['target']}"
     parts = header(title, data, with_verdict=False)
@@ -681,7 +662,6 @@ KINDS = {
     "plan": render_plan,
     "qa": render_scenarios,
     "feature": render_feature,
-    "issues": render_issues,
     "log-report": render_logs,
 }
 
