@@ -2,7 +2,7 @@
 name: notion-import
 description: Notion のタスクページから下書きfeature.jsoncを作る。Notion のチケット URL を渡されたら spec の前に使う。
 disable-model-invocation: true
-allowed-tools: Write, Bash(python3 ~/.claude/skills/_report/render.py *), mcp__claude_ai_Notion__*
+allowed-tools: Write, mcp__claude_ai_Notion__*
 argument-hint: "<notion-url>"
 ---
 
@@ -59,8 +59,6 @@ Notion の要点を落とさず要約し、長文の丸写しはしない。
 ### Step 3: 書き出し
 
 Step 2 の内容を「feature.jsonc のフォーマット」で `.specs/feature.jsonc` に書く。
-続けて `python3 ~/.claude/skills/_report/render.py .specs/feature.jsonc` で `.specs/feature.html` を生成する。
-生成に失敗したら `.jsonc` は残し、Step 4 の要確認に失敗の内容を載せる。
 
 ### Step 4: 出力
 

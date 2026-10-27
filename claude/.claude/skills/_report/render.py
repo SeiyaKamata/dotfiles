@@ -697,24 +697,21 @@ def feature_title(src):
     return str(feature.get("title", ""))
 
 
-def main():
-    if len(sys.argv) != 2:
-        sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report|requirements|plan|qa|feature|issues|log-report>.jsonc")
-    src = Path(sys.argv[1])
+def render_file(src):
     if src.stem not in KINDS:
-        sys.exit(f"未対応のレポートです: {src.name}")
+        return f"未対応のレポートです: {src.name}"
     out = src.with_suffix(".html")
     out.unlink(missing_ok=True)
     try:
         data = json.loads(strip_comments(src.read_text(encoding="utf-8")))
     except (IndexError, ValueError) as e:
-        sys.exit(f"{src.name} を JSON として読めません: {e}")
+        return f"{src.name} を JSON として読めません: {e}"
     if src.stem in FEATURE_TITLED:
         data["feature"] = feature_title(src)
     try:
         title, parts = KINDS[src.stem](data)
     except (KeyError, TypeError, AttributeError) as e:
-        sys.exit(f"{src.name} の項目が足りないか形が違います: {e!r}")
+        return f"{src.name} の項目が足りないか形が違います: {e!r}"
     page = (
         '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
@@ -722,7 +719,38 @@ def main():
         f"<body>\n<main>\n{''.join(parts)}\n</main>\n<script>{COMMENTS_JS}</script>\n</body>\n</html>\n"
     )
     out.write_text(page, encoding="utf-8")
-    print(out)
+    return None
+
+
+def render_dir(directory):
+    errors = []
+    for src in sorted(directory.glob("*.jsonc")):
+        if src.stem in KINDS:
+            error = render_file(src)
+            if error:
+                errors.append(error)
+    return errors
+
+
+def main():
+    if len(sys.argv) == 2 and sys.argv[1] == "--hook":
+        try:
+            path = Path(json.load(sys.stdin)["tool_input"]["file_path"])
+        except (ValueError, KeyError, TypeError):
+            return
+        if path.suffix != ".jsonc" or path.stem not in KINDS:
+            return
+        errors = render_dir(path.parent)
+        if errors:
+            print("HTML の再生成に失敗しました。\n" + "\n".join(errors), file=sys.stderr)
+            sys.exit(2)
+        return
+    if len(sys.argv) != 2:
+        sys.exit("使い方: render.py <ディレクトリ>、または render.py --hook")
+    target = Path(sys.argv[1])
+    errors = render_dir(target)
+    if errors:
+        sys.exit("\n".join(errors))
 
 
 if __name__ == "__main__":

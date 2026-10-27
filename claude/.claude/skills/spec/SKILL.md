@@ -1,7 +1,7 @@
 ---
 name: spec
 description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのfeature.jsoncの詳細化で使う。requirements.jsoncがあるときは、現状の要件と要確認を提示し、要確認を会話で詰めて、ブラウザで付けたコメントとあわせて書き戻す。
-allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(python3 ~/.claude/skills/spec/check.py), Bash(open .specs/requirements.html), Bash(python3 ~/.claude/skills/_report/render.py *)
+allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(python3 ~/.claude/skills/spec/check.py), Bash(open .specs/requirements.html)
 ---
 
 # 要件策定スキル
@@ -153,9 +153,6 @@ Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs
 
 `python3 ~/.claude/skills/spec/check.py` を実行する。
 指摘が出たら直して再実行し、`OK` が出るまで繰り返す。
-続けて `python3 ~/.claude/skills/_report/render.py .specs/requirements.jsonc` で `.specs/requirements.html` を生成する。
-`feature.jsonc` を書いたときは `python3 ~/.claude/skills/_report/render.py .specs/feature.jsonc` で `.specs/feature.html` も作り直す。
-生成に失敗したら `.jsonc` は残し、Step 6 で HTML を開く代わりに失敗の内容を添える。
 
 ### Step 6: 提示
 
@@ -175,7 +172,6 @@ Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs
 採った解釈のままで決まったときは、`question` だけを空文字にする。
 経緯は書かない。
 コメントを反映したら、そのコメントの `status` を `done` にする。
-直したら `python3 ~/.claude/skills/_report/render.py .specs/requirements.jsonc` で HTML を作り直す。
 
 未解決の要確認か未対応のコメントが残っていれば、Step 7 に戻って次の 1 件を尋ねる。
 全件が決まったら「要確認なし。次は `/plan`」の 1 行で終了する。

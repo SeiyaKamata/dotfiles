@@ -1,7 +1,7 @@
 ---
 name: scenarios
 description: 受け入れ条件からQAシナリオを導出しqa.jsoncに書き出す。/planの後、/implの前に使う。
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(python3 ~/.claude/skills/_report/render.py *)
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # QAシナリオ生成スキル
@@ -103,8 +103,6 @@ UI に一切現れないものだけを次の 2 つに分ける。
 
 Step 3 の内容を「qa.jsonc のフォーマット」で `.specs/qa.jsonc` に書く。
 編集では上書きする。
-続けて `python3 ~/.claude/skills/_report/render.py .specs/qa.jsonc` で `.specs/qa.html` を生成する。
-生成に失敗したら `.jsonc` の構文を直して 1 回だけやり直し、それでも失敗したら Step 6 の要確認に失敗の内容を載せる。
 
 ### Step 5: 点検
 

@@ -1,7 +1,7 @@
 ---
 name: triage-comments
 description: 自分のPRに付いた未解決コメントを収集・分類・裏取りし、対応方針の提案をレポートにまとめる。CI完了後に使う。
-allowed-tools: Read, Write, Glob, Grep, Bash(gh *), Bash(date *), Bash(python3 ~/.claude/skills/_report/render.py *)
+allowed-tools: Read, Write, Glob, Grep, Bash(gh *), Bash(date *)
 ---
 
 # PRコメント選別スキル
@@ -155,9 +155,6 @@ author では絞り込まず、人間と CodeRabbit の両方を対象にする�
 ### Step 7: レポート作成
 
 「comment-report.jsonc のフォーマット」で `.specs/comment-report.jsonc` を書き出す。
-続けて `python3 ~/.claude/skills/_report/render.py .specs/comment-report.jsonc` で `.specs/comment-report.html` を生成する。
-生成に失敗したら `.jsonc` の構文を直して 1 回だけやり直す。
-それでも失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
 
 ### Step 8: 出力
 

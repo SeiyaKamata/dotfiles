@@ -1,7 +1,7 @@
 ---
 name: plan
 description: 要件を受け取り技術設計と実装タスクを一つの plan.jsonc にまとめる。.specs/requirements.jsoncが出来上がったら使う。plan.jsoncが既にあるときは、現状の判断とずれを提示し、会話で詰めて、ブラウザで付けたコメントとあわせて書き戻す。
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git rev-parse *), Bash(git -C *), Bash(mkworktree *), Bash(python3 ~/.claude/skills/_report/render.py *), WebSearch
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git rev-parse *), Bash(git -C *), Bash(mkworktree *), WebSearch
 ---
 
 # 実装計画スキル
@@ -238,8 +238,6 @@ impl の完了条件は `tasks` だけで、人しか実行できない項目は
 ### Step 7: 書き出し
 
 Step 2〜6 の内容を「plan.jsonc のフォーマット」で `.specs/plan.jsonc` に書く。
-続けて `python3 ~/.claude/skills/_report/render.py .specs/plan.jsonc` で `.specs/plan.html` を生成する。
-生成に失敗したら `.jsonc` の構文を直して 1 回だけやり直し、それでも失敗したら Step 9 の提示に失敗の内容を添える。
 
 ### Step 8: 点検
 
@@ -269,7 +267,6 @@ Step 2〜6 の内容を「plan.jsonc のフォーマット」で `.specs/plan.js
 コメントは、`quote` が指す箇所に本文の意図を反映し、判断が割れるときだけユーザーに尋ねる。
 決まったら `plan.jsonc` の該当箇所を決定内容に直し、「設計の判断基準」「タスク分解の原則」「plan.jsonc の書き方」に従って Step 8 の点検をする。
 コメントを反映したら、そのコメントの `status` を `done` にする。
-直したら `python3 ~/.claude/skills/_report/render.py .specs/plan.jsonc` で HTML を作り直す。
 `done` が `true` のタスクは番号と本文を変えない。
 ユーザーが直したい点を直接伝えたときも、同じ手順で反映する。
 

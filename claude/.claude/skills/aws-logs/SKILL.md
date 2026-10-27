@@ -2,7 +2,7 @@
 name: aws-logs
 description: awscli で CloudWatch Logs を調査し、結果を .specs/log-report.jsonc に記録する。AWS 上のエラー原因の追跡・ログ横断・件数集計を頼まれたら使う。
 disable-model-invocation: true
-allowed-tools: Read, Write, Edit, Grep, Bash(aws logs describe-log-groups *), Bash(aws logs describe-log-streams *), Bash(aws logs tail *), Bash(aws logs filter-log-events *), Bash(aws logs get-log-events *), Bash(aws logs start-query *), Bash(aws logs get-query-results *), Bash(aws sts get-caller-identity *), Bash(aws configure list-profiles), Bash(date *), Bash(grep *), Bash(rg *), Bash(jq *), Bash(wc *), Bash(head *), Bash(tail *), Bash(sort *), Bash(uniq *), Bash(mkdir *), Bash(python3 ~/.claude/skills/_report/render.py *)
+allowed-tools: Read, Write, Edit, Grep, Bash(aws logs describe-log-groups *), Bash(aws logs describe-log-streams *), Bash(aws logs tail *), Bash(aws logs filter-log-events *), Bash(aws logs get-log-events *), Bash(aws logs start-query *), Bash(aws logs get-query-results *), Bash(aws sts get-caller-identity *), Bash(aws configure list-profiles), Bash(date *), Bash(grep *), Bash(rg *), Bash(jq *), Bash(wc *), Bash(head *), Bash(tail *), Bash(sort *), Bash(uniq *), Bash(mkdir *)
 argument-hint: "[調べたいこと]"
 ---
 
@@ -173,8 +173,6 @@ Step 6〜9 は広く浅くから絞って深くの順に進み、空振りした
 ### Step 10: 記録
 
 「log-report.jsonc のフォーマット」で `.specs/log-report.jsonc` に書き出す。
-続けて `python3 ~/.claude/skills/_report/render.py .specs/log-report.jsonc` で `.specs/log-report.html` を生成する。
-生成に失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
 
 ### Step 11: 出力
 

@@ -2,7 +2,7 @@
 name: orch
 description: 開発パイプライン全体を管理する。新規開発や機能追加の指示を受けたら使う。
 disable-model-invocation: true
-allowed-tools: Read, Edit, Bash(git *), Bash(gh *), Bash(stage *), Bash(python3 ~/.claude/skills/_report/render.py *), Skill, Agent
+allowed-tools: Read, Edit, Bash(git *), Bash(gh *), Bash(stage *), Skill, Agent
 argument-hint: "[<stage>]"
 ---
 
@@ -160,7 +160,7 @@ PR の CI green を待つ。
 
 ### Step 12: コメント対応
 
-`/triage-comments` を実行し、`comment-report.jsonc` の各項目の `approval` を orch 自身が埋め、`python3 ~/.claude/skills/_report/render.py .specs/comment-report.jsonc` で HTML を作り直す。
+`/triage-comments` を実行し、`comment-report.jsonc` の各項目の `approval` を orch 自身が埋める。
 - 提示された「提案」をそのまま採用する
 - 裏取りが `未検証` のまま、または分類の確信が持てないと明記された件は `保留` にする
   - `/sync` が保留の返信と issues.jsonc 記録を行うので、拾うかは人が issues.jsonc で判断する

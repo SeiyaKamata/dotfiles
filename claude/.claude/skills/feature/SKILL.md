@@ -2,7 +2,7 @@
 name: feature
 description: 要望・指摘・棚上げ案件から、独立 feature の下書き feature.jsonc を作る。詳細化はせず、後で /spec が拾う。思いついた変更を書き留めたいとき、/review 等でスコープ外の指摘が出たとき、投げなくても今のタスクが完了する棚上げ案件があるときに使う。
 argument-hint: "[要望や指摘の本文]"
-allowed-tools: Write, Glob, Bash(python3 ~/.claude/skills/_report/render.py *)
+allowed-tools: Write, Glob
 ---
 
 # feature 下書きスキル
@@ -56,8 +56,7 @@ feature の雑メモを置く場所で、`/spec` が拾う下書きと、人が�
 
 ### Step 2: 書き出し
 
-下書きごとに feature 名を材料から kebab-case・3〜5 語程度で決め、「feature.jsonc のフォーマット」で `~/Develop/.specs/<feature>/feature.jsonc` を書き、`python3 ~/.claude/skills/_report/render.py ~/Develop/.specs/<feature>/feature.jsonc` で同じ場所に `feature.html` を生成する。
-生成に失敗した下書きは、`.jsonc` を残し、完了カードの要確認に失敗の内容を載せる。
+下書きごとに feature 名を材料から kebab-case・3〜5 語程度で決め、「feature.jsonc のフォーマット」で `~/Develop/.specs/<feature>/feature.jsonc` を書く。
 今の worktree の `.specs` は別の feature を指すので、書き先は絶対パスで指定する。
 `Glob("~/Develop/.specs/*")` で同名があれば区別がつく別名にし、1 回の実行で複数生成するときは採用済みの名前も既存として扱う。
 1 件が失敗しても他は生成し、部分成功を報告する。

@@ -1,7 +1,7 @@
 ---
 name: review
 description: 実装を受け取りコードレビューを行う。test PASS 後に使う。
-allowed-tools: Read, Write, Glob, Grep, Bash(git *), Bash(date *), Bash(python3 ~/.claude/skills/_report/render.py *), Agent
+allowed-tools: Read, Write, Glob, Grep, Bash(git *), Bash(date *), Agent
 ---
 
 # レビュースキル
@@ -97,11 +97,9 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 ### Step 5: 書き出し
 
 既存の `review.jsonc` があれば判定と `count` を読み、「review.jsonc のフォーマット」で `.specs/review.jsonc` に上書きする。
-続けて `python3 ~/.claude/skills/_report/render.py .specs/review.jsonc` で `.specs/review.html` を生成する。
 差分の全行は render.py が `git diff <base>...HEAD` から HTML に出すので、差分を `review.jsonc` に書き写さない。
 `file` と `line` が差分の行に当たる指摘は、その行の直下に表示される。
 当たらない指摘は表にまとめて表示される。
-生成に失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
 指摘の一覧はここに寄せ、ターミナルには列挙しない。
 
 ### Step 6: 出力

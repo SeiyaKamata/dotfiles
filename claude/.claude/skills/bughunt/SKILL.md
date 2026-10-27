@@ -1,7 +1,7 @@
 ---
 name: bughunt
 description: バグ報告を起点に再現・原因の一次特定・bug-report.jsoncへの記録を行う調査工程。コードは直さない。バグ報告を受けたら最初に使う。
-allowed-tools: Read, Write, Edit, Bash(python3 ~/.claude/skills/_report/render.py *), Agent
+allowed-tools: Read, Write, Edit, Agent
 ---
 
 # バグ調査スキル
@@ -60,15 +60,12 @@ bug-investigator は `bug-report.jsonc` の症状を起点に再現を確認し�
 
 bug-investigator の所見を「bug-report.jsonc のフォーマット」で `.specs/bug-report.jsonc` にマージ保存する。
 `<path>:<line> — 理由` の形で返された疑わしい箇所は、`suspects` の `location` と `reason` に分けて書く。
-続けて `python3 ~/.claude/skills/_report/render.py .specs/bug-report.jsonc` で `.specs/bug-report.html` を生成する。
-生成に失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
 再現できなかった場合は「再現できず」と必要な追加情報を記録し、Step 4 の中断カードで報告する。
 追加情報が得られたら Step 2 から再委譲する。
 
 ### Step 4: 出力
 
 次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
-HTML を生成できていなければ生成物の `.html` の行を省く。
 中断時は見出しを `### バグ調査中断` にし、1 行目に中断理由を書き、`bug-report.jsonc` に記録済みなら生成物の行を残し、次の一手は「追加情報を添えて `/bughunt`」だけにする。
 
 ```markdown

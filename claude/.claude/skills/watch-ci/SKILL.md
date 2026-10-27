@@ -2,7 +2,7 @@
 name: watch-ci
 description: PRのCIを監視し、完了後に結果に応じて分岐対応する。push後やPR作成後に使う。
 argument-hint: "[PR番号]"
-allowed-tools: Read, Write, Bash(gh *), Bash(git *), Bash(date *), Bash(python3 ~/.claude/skills/_report/render.py *), Agent
+allowed-tools: Read, Write, Bash(gh *), Bash(git *), Bash(date *), Agent
 ---
 
 # CI監視スキル
@@ -77,8 +77,6 @@ gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusi
 ### Step 4: レポートの書き出し
 
 既存の `ci-report.jsonc` があれば `branch`・判定・`count` を読み、「ci-report.jsonc のフォーマット」で `.specs/ci-report.jsonc` に上書きする。
-続けて `python3 ~/.claude/skills/_report/render.py .specs/ci-report.jsonc` で `.specs/ci-report.html` を生成する。
-生成に失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
 
 ### Step 5: 出力
 

@@ -1,7 +1,7 @@
 ---
 name: land
 description: コミット済みの変更を新しいdraft PRとして立ち上げる。commit完了後に使う。デフォルトブランチへ直接取り込む運用の repo では使わない。
-allowed-tools: Bash(git *), Bash(gh *), Bash(python3 ~/.claude/skills/_report/render.py *), Read, Write
+allowed-tools: Bash(git *), Bash(gh *), Read, Write
 ---
 
 # 新規PR着地スキル
@@ -45,8 +45,6 @@ push の拒否は自動解決せず、中断カードで人に委ねる。
 ## feature.jsonc のフォーマット
 feature の一覧画面がカードから PR へ飛ぶための元データで、`/feature` が書く雑メモと同じファイルに置く。
 `.specs/feature.jsonc` に書き、既にあれば読み直して `pr` だけを差し替え、他のキーはそのまま残す。
-書いたあとに `python3 ~/.claude/skills/_report/render.py .specs/feature.jsonc` で `.specs/feature.html` を作り直す。
-生成に失敗したら `.jsonc` は残し、完了カードに失敗の内容を添える。
 文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープし、末尾カンマは書かない。
 
 ```jsonc

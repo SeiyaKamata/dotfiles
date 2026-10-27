@@ -1,7 +1,7 @@
 ---
 name: sync
 description: 既存PRに積んだコミットをpushする。comment-report.jsoncがあれば続けてPRコメントへの返信とissues.jsonc記録も行う。CI赤修正・コメント対応の修正後に使う。
-allowed-tools: Bash(git *), Bash(gh *), Bash(python3 ~/.claude/skills/_report/render.py *), Read, Write, Edit
+allowed-tools: Bash(git *), Bash(gh *), Read, Write, Edit
 ---
 
 # 既存PR更新スキル
@@ -106,16 +106,12 @@ gh pr comment <PR番号> --body "<返信内容>"
 
 「対応しない」と「保留」の項目が 1 件以上あれば、「issues.jsonc のフォーマット」で `.specs/issues.jsonc` に追記する。
 要件側を直すべきと判断した矛盾、スコープ外の指摘も記録対象に含める。
-続けて `python3 ~/.claude/skills/_report/render.py .specs/issues.jsonc` で `.specs/issues.html` を生成する。
-生成に失敗したら `.jsonc` は残し、要確認に失敗の内容を載せる。
 
 ### Step 6: comment-report.jsonc のチェック
 
 書き直す直前に `.specs/comment-report.jsonc` を読み直し、返信または issues.jsonc 記録まで済んだ項目の `done` だけを `true` にして書き直す。
 他の項目と他のフィールドは、読み直した内容のまま維持する。Step 3 のあとに人や orch が `approval` を書き換えている場合があるため。
 承認待ち・未修正・返信失敗の項目は `done` を `false` のまま残し、項目は削除しない。
-続けて `python3 ~/.claude/skills/_report/render.py .specs/comment-report.jsonc` で `.specs/comment-report.html` を生成する。
-生成に失敗したら `.jsonc` は残し、要確認に失敗の内容を載せる。
 
 ### Step 7: 出力
 

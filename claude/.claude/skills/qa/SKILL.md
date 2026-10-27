@@ -1,7 +1,7 @@
 ---
 name: qa
 description: コードレビュー後にブラウザで動作確認する最終受け入れゲート。/review の後に使う。
-allowed-tools: Read, Write, Edit, Bash(git *), Bash(chworktree *), Bash(date *), Bash(mkdir *), Bash(cp *), Bash(python3 ~/.claude/skills/_report/render.py *), Agent
+allowed-tools: Read, Write, Edit, Bash(git *), Bash(chworktree *), Bash(date *), Bash(mkdir *), Bash(cp *), Agent
 disallowed-tools: mcp__playwright__*
 ---
 
@@ -119,14 +119,11 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
 
 - 結果で `.specs/qa.jsonc` の `local` の `done` を更新する。pass のシナリオは `true`、fail のシナリオは `false` にする。
   - Edit で、`"id": "Q<n>"` の行から `"done"` の行までを old_str にして、1 シナリオずつ置換する。`deploy` の `done` には触れない
-  - 続けて `python3 ~/.claude/skills/_report/render.py .specs/qa.jsonc` で `.specs/qa.html` を作り直す
 - 既存の `qa-report.jsonc` があれば上書き前に前回の判定と `count` を読む
 - `mkdir -p .specs/img` のあと、委譲先が返したスクリーンショットを `cp <返ってきたパス> .specs/img/qa-Q<n>.png` で全シナリオ分コピーする
   - 委譲先は Playwright の書き込み制限を受けない保存先に書くので、`.specs/` へはこちらがコピーする
 - 録画パスが `none` でなければ `cp <video パス> .specs/img/qa.webm` でコピーする
 - 「qa-report.jsonc のフォーマット」で `.specs/qa-report.jsonc` を書き出す
-- `python3 ~/.claude/skills/_report/render.py .specs/qa-report.jsonc` で `.specs/qa-report.html` を生成する
-  - 生成に失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる
 
 ### Step 7: 環境停止
 
