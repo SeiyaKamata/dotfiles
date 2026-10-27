@@ -34,6 +34,7 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 {
   "branch": "[Step 1 で確定したブランチ。detached なら none]",
   "head": "[Step 1 で確定した HEAD。40 文字、短縮しない]",
+  "base": "[Step 1 で確定したデフォルトブランチ名。差分の全行を HTML に出すのに使う]",
   "ran_at": "[書き出し時点の時刻。date +\"%Y-%m-%dT%H:%M:%S%z\" で取得]",
   "fixed": false, // 常に false。/fix が修正を適用したときだけ true に書き換える
   "count": 1, // NG の連続回数。今回が NG かつ既存レポートも NG なら既存値 +1、それ以外は 1
@@ -42,6 +43,8 @@ NG の戻し先は決めず、呼び出し元に委ねる。
   "code_findings": [
     {
       "text": "[指摘内容と該当箇所]",
+      "file": "[該当ファイルのリポジトリ相対パス。特定できなければ省略]",
+      "line": 0, // 差分の追加後側の行番号。特定できなければ省略
       "severity": "[重大度]",
       "verification": "[成立 / 不成立。理由 / 未検証]"
     }
@@ -95,6 +98,9 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 
 既存の `review.jsonc` があれば判定と `count` を読み、「review.jsonc のフォーマット」で `.specs/review.jsonc` に上書きする。
 続けて `python3 ~/.claude/skills/_report/render.py .specs/review.jsonc` で `.specs/review.html` を生成する。
+差分の全行は render.py が `git diff <base>...HEAD` から HTML に出すので、差分を `review.jsonc` に書き写さない。
+`file` と `line` が差分の行に当たる指摘は、その行の直下に表示される。
+当たらない指摘は表にまとめて表示される。
 生成に失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる。
 指摘の一覧はここに寄せ、ターミナルには列挙しない。
 

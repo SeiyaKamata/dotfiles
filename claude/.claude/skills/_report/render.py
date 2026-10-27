@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import html
 import json
+import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -51,6 +53,20 @@ ul.lines li { margin: 4px 0; }
 pre { padding: 12px; overflow-x: auto; background: var(--chip); border-radius: 6px; }
 code { padding: 0 4px; background: var(--chip); border-radius: 4px; }
 .task-meta { color: var(--muted); font-size: 14px; }
+.diff { margin: 12px 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.dfile { padding: 6px 12px; background: var(--chip); cursor: pointer;
+  font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.diff[open] > .dfile { border-bottom: 1px solid var(--line); }
+.dh { padding: 2px 12px; background: var(--chip); color: var(--muted); font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.dl { display: flex; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; tab-size: 4; }
+.dl .n { flex: none; width: 44px; padding: 0 6px; text-align: right; color: var(--muted); user-select: none; }
+.dl .s { flex: none; width: 14px; color: var(--muted); user-select: none; }
+.dl .c { flex: 1; min-width: 0; white-space: pre-wrap; word-break: break-all; }
+.dl.add { background: rgba(46, 160, 67, .15); }
+.dl.del { background: rgba(248, 81, 73, .15); }
+.dl.note { color: var(--muted); }
+.finding { margin: 4px 12px 4px 60px; padding: 4px 12px; border-left: 4px solid var(--fail); background: var(--chip); font-size: 14px; }
+.finding p { margin: 0; }
 """
 
 APPROVAL_STATES = {"": "承認待ち", "対応する": "対応中", "対応しない": "対応なし", "保留": "保留"}
@@ -198,23 +214,139 @@ def render_test(data):
     return "テスト結果", parts
 
 
+HLJS = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0"
+HIGHLIGHT = (
+    f'<link rel="stylesheet" href="{HLJS}/styles/github.min.css" media="(prefers-color-scheme: light)">'
+    f'<link rel="stylesheet" href="{HLJS}/styles/github-dark.min.css" media="(prefers-color-scheme: dark)">'
+    f'<script src="{HLJS}/highlight.min.js"></script>'
+    """<script>
+addEventListener("load", () => {
+  if (!window.hljs) return;
+  const alias = { jsonc: "json", zsh: "bash", mjs: "javascript", cjs: "javascript" };
+  for (const file of document.querySelectorAll(".diff[data-ext]")) {
+    const ext = file.dataset.ext;
+    const language = alias[ext] || ext;
+    if (!hljs.getLanguage(language)) continue;
+    for (const code of file.querySelectorAll(".dl .c")) {
+      code.innerHTML = hljs.highlight(code.textContent, { language, ignoreIllegals: true }).value;
+    }
+  }
+});
+</script>"""
+)
+
+HUNK = re.compile(r"^@@ -(\d+)(?:,\d+)? \+(\d+)")
+
+
+def parse_diff(text):
+    files = []
+    cur = None
+    old = new = 0
+    for raw in text.split("\n"):
+        if raw.startswith("diff --git "):
+            cur = {"path": raw.rsplit(" b/", 1)[-1], "hunks": [], "binary": False}
+            files.append(cur)
+        elif cur is None:
+            continue
+        elif raw.startswith("@@"):
+            m = HUNK.match(raw)
+            old, new = int(m[1]), int(m[2])
+            cur["hunks"].append({"head": raw, "lines": []})
+        elif not cur["hunks"]:
+            if raw.startswith("+++ b/"):
+                cur["path"] = raw[6:]
+            elif raw.startswith("Binary files"):
+                cur["binary"] = True
+        elif raw[:1] == " ":
+            cur["hunks"][-1]["lines"].append((" ", old, new, raw[1:]))
+            old += 1
+            new += 1
+        elif raw[:1] == "+":
+            cur["hunks"][-1]["lines"].append(("+", None, new, raw[1:]))
+            new += 1
+        elif raw[:1] == "-":
+            cur["hunks"][-1]["lines"].append(("-", old, None, raw[1:]))
+            old += 1
+        elif raw[:1] == "\\":
+            cur["hunks"][-1]["lines"].append(("\\", None, None, raw[1:].strip()))
+    return files
+
+
+def git_diff(base):
+    result = subprocess.run(
+        ["git", "-c", "core.quotepath=false", "diff", "--no-color", "--no-ext-diff", f"{base}...HEAD"],
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    if result.returncode != 0:
+        print(f"差分を取得できませんでした: {result.stderr.strip()}", file=sys.stderr)
+        return []
+    return parse_diff(result.stdout)
+
+
+def finding_block(c):
+    return (
+        '<div class="finding"><p>'
+        f'<span class="badge err">{esc(c.get("severity", ""))}</span>{esc(c["text"])}'
+        f'<br><span class="meta">検証: {esc(c.get("verification", ""))}</span></p></div>'
+    )
+
+
+def render_diff(files, placed):
+    out = []
+    for f in files:
+        ext = f["path"].rsplit(".", 1)[-1].lower() if "." in f["path"].rsplit("/", 1)[-1] else ""
+        out.append(f'<details class="diff" open data-ext="{esc(ext)}"><summary class="dfile">{esc(f["path"])}</summary>')
+        if f["binary"]:
+            out.append('<div class="dh">バイナリファイル</div>')
+        for h in f["hunks"]:
+            out.append(f'<div class="dh">{esc(h["head"])}</div>')
+            for sign, old, new, body in h["lines"]:
+                if sign == "\\":
+                    out.append(f'<div class="dl note"><span class="n"></span><span class="n"></span><span class="s"></span><span class="c">{esc(body)}</span></div>')
+                    continue
+                key = f'{f["path"]}:{"-" + str(old) if sign == "-" else new}'
+                kind = {"+": "add", "-": "del", " ": ""}[sign]
+                out.append(
+                    f'<div class="dl {kind}" data-quote="{esc(key)}">'
+                    f'<span class="n">{old or ""}</span><span class="n">{new or ""}</span>'
+                    f'<span class="s">{esc(sign.strip())}</span><span class="c">{esc(body)}</span></div>'
+                )
+                if sign != "-":
+                    out.extend(finding_block(c) for c in placed.get((f["path"], new), []))
+        out.append("</details>")
+    return "".join(out)
+
+
 def render_review(data):
     parts = header("レビュー結果", data)
     spec = data.get("spec_findings", [])
     if spec:
         parts.append("<h2>仕様整合性</h2>" + bullets(spec))
-    code = data.get("code_findings", [])
-    if code:
+    files = git_diff(data["base"]) if data.get("base") else []
+    on_new_side = {(f["path"], new) for f in files for h in f["hunks"] for sign, _, new, _ in h["lines"] if sign != "-" and new}
+    placed = {}
+    loose = []
+    for c in data.get("code_findings", []):
+        key = (c.get("file"), c.get("line"))
+        if key in on_new_side:
+            placed.setdefault(key, []).append(c)
+        else:
+            if c.get("file") and c.get("line"):
+                print(f"差分に無い行への指摘です: {c['file']}:{c['line']}", file=sys.stderr)
+            loose.append(c)
+    if loose:
         parts.append(
             "<h2>AI コードレビューの指摘</h2>"
             + table(
                 ["指摘と該当箇所", "重大度", "検証結果"],
-                [[td(c["text"]), td(c.get("severity", "")), td(c.get("verification", ""))] for c in code],
+                [[td(c["text"]), td(c.get("severity", "")), td(c.get("verification", ""))] for c in loose],
             )
         )
     recs = data.get("recommendations", [])
     if recs:
         parts.append("<h2>推奨対応</h2>" + bullets(recs))
+    if files:
+        parts.append(f"<h2>差分、{len(files)} ファイル。指摘 {sum(len(v) for v in placed.values())} 件は該当行の直下</h2>" + render_diff(files, placed) + HIGHLIGHT)
     return "レビュー結果", parts
 
 

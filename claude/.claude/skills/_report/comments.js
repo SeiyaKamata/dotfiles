@@ -8,7 +8,7 @@
 }
 .cm-add { margin-left: 8px; padding: 0 6px; border: 0; border-radius: 4px; background: none;
   color: var(--cm-muted); font: inherit; font-size: 13px; cursor: pointer; opacity: 0; }
-.cm-on :is(li, tr, h1, h2, h3, h4, p, pre, figure):hover .cm-add, .cm-add.has { opacity: 1; }
+.cm-on :is(li, tr, h1, h2, h3, h4, p, pre, figure, .dl):hover .cm-add, .cm-add.has { opacity: 1; }
 .cm-box { margin: 8px 0; padding: 8px 12px; border: 1px solid var(--cm-line); border-radius: 6px;
   background: var(--cm-bg); color: var(--cm-fg); font-size: 14px; font-weight: 400; }
 .cm-box[hidden] { display: none; }
@@ -25,10 +25,10 @@
   const doc = decodeURIComponent(location.pathname.split("/").pop());
   const ROOT_KEY = "root";
   const text = (n) => n.textContent.replace(/\s+/g, " ").trim().slice(0, 80);
-  const TARGETS = "li, tbody tr, h1, h2, h3, h4, p, pre, figure";
+  const TARGETS = "li, tbody tr, h1, h2, h3, h4, p, pre, figure, .dl";
   const items = [...document.querySelectorAll(TARGETS)]
     .filter((node) => !node.querySelector(TARGETS))
-    .map((node) => ({ node, quote: text(node) }));
+    .map((node) => ({ node, quote: node.dataset.quote || text(node) }));
   let dir = null;
   let comments = [];
 
