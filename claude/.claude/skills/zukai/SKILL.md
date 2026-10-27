@@ -28,6 +28,8 @@ allowed-tools: Write
 - ダークモードに対応する
   - 色は CSS 変数で定義し、`prefers-color-scheme: dark` で値を切り替える
   - ブラウザの設定がダークでも、ライトのままだと読みにくいため
+- HTML の `</body>` の直前に `<script src="file:///Users/kamata_seiya/.claude/skills/_report/comments.js"></script>` を置く
+  - 読んだ人がブラウザから `comments.jsonc` にコメントを書けるようにするため
 
 ## 進め方
 
