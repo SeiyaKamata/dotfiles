@@ -74,9 +74,6 @@ gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusi
 
 サブエージェントには対象の `run-id` と失敗ジョブ名を渡し、「`gh run view <run-id> --log-failed` を実行し、失敗ジョブ名・失敗ステップ・主要なエラーメッセージを最大 10〜15 行に絞って報告し、ログ全文は転記しない」と指示する。
 
-原因がその PJ で繰り返しハマる構造的なものなら、記録ではなく改善提案として `/feature` に切り出す。
-その PR 限りのバグやタイポ修正、git log や diff を見れば分かることは切り出さない。
-
 ### Step 4: レポートの書き出し
 
 既存の `ci-report.jsonc` があれば `branch`・判定・`count` を読み、「ci-report.jsonc のフォーマット」で `.specs/ci-report.jsonc` に上書きする。
