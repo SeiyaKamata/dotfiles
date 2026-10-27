@@ -30,6 +30,7 @@ allowed-tools: Read, Write, Edit, Bash
   "fixed": false, // 常に false。/fix が修正を適用したときだけ true に書き換える
   "count": 1, // FAIL の連続回数。今回が FAIL かつ既存レポートも FAIL なら既存値 +1、それ以外は 1
   "verdict": "[PASS / FAIL]",
+  "open_questions": ["[判定に影響しうる判断。無ければ空配列]"],
   "total": 0,
   "passed": 0,
   "failed": 0,
@@ -85,5 +86,3 @@ tail -n 50 .specs/.test-output.log
 - 結果: 実行数と `PASS` か `FAIL`
 - 詳細: `.specs/test-report.html`
 - 次の一手: PASS なら `/review`、FAIL なら `/fix`
-
-要確認があれば `要確認: <内容>` を 1 件 1 行で足す。

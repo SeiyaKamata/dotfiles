@@ -32,6 +32,7 @@ CI の完了を待って結果を出力で報告し、途中でユーザーに�
   "fixed": false, // 常に false。/fix が修正を適用したときだけ true に書き換える
   "count": 1, // 赤の連続回数。今回が赤かつ既存レポートの branch が同じで判定も赤なら既存値 +1、それ以外は 1
   "verdict": "[green / 赤]",
+  "open_questions": ["[SKIPPED 扱いにしたジョブ、再実行で結果が変わったジョブなど判定に影響しうる点。無ければ空配列]"],
   "pr": { "number": 0, "url": "[PR の URL]" },
   "failed_jobs": [
     {
@@ -84,5 +85,3 @@ gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusi
 - 結果: 対象 PR の CI 判定 `green` か `赤`
 - 詳細: `.specs/ci-report.html`
 - 次の一手: green なら `/triage-comments`、赤なら `/fix`
-
-要確認があれば `要確認: <内容>` を 1 件 1 行で足す。

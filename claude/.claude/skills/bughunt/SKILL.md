@@ -28,6 +28,7 @@ allowed-tools: Read, Write, Edit, Agent
 {
   "feature": "[機能名]",
   "fixed": false, // 常に false。/fix が修正を適用したときだけ true に書き換える
+  "open_questions": ["[断定できなかった点、他の可能性。無ければ空配列]"],
   "symptom": "[一文]",
   "reproducible": "[再現OK / 再現できず。Step 1 の書き出し時点は 未調査]",
   "expected": "[期待する挙動]",
@@ -69,5 +70,3 @@ bug-investigator の所見を「bug-report.jsonc のフォーマット」で `.s
 - 結果: 症状と一次特定した原因
 - 詳細: `.specs/bug-report.html`
 - 次の一手: 直すなら `/fix`、本番 tag に当てるなら `/hotfix`
-
-要確認があれば `要確認: <内容>` を 1 件 1 行で足す。
