@@ -120,7 +120,7 @@ Requirement 番号は主体の節をまたいで連番にする。
 `.specs/requirements.jsonc` と `.specs/feature.jsonc` の有無で分岐する。
 
 - **`requirements.jsonc` が有る**: 読み、Step 2〜4 を飛ばして Step 5 から進める
-- **`requirements.jsonc` が無く `feature.jsonc` が有る**: 雑メモの下書き。`title` `background` `goal` `hints` `constraints` を要望の材料として使い、Step 2 から詳細化する
+- **`requirements.jsonc` が無く `feature.jsonc` が有る**: 雑メモの下書き。`title` と `memo` を要望の材料として使い、Step 2 から詳細化する
 - **どちらも無い**
   - 会話文脈に要望があれば、新規として Step 2 から書き起こす
   - 要望も無ければ、「使い方: /spec <要望>」を表示して終了する

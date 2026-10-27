@@ -622,12 +622,8 @@ def render_feature(data):
     if data.get("notion_url"):
         url = data["notion_url"]
         parts.append(f"<p>Notion: {link(url, url) if url.startswith('https://') else esc(url)}</p>")
-    for heading, key in (("背景・目的", "background"), ("やりたいこと", "goal")):
-        if data.get(key):
-            parts.append(f"<h2>{heading}</h2><p>{esc(data[key]).replace(chr(10), '<br>')}</p>")
-    for heading, key in (("対象範囲・既知の手がかり", "hints"), ("制約・前提", "constraints")):
-        if data.get(key):
-            parts.append(f"<h2>{heading}</h2>" + bullets(as_list(data[key])))
+    if data.get("memo"):
+        parts.append(f"<h2>メモ</h2><p>{esc(data['memo']).replace(chr(10), '<br>')}</p>")
     return title, parts
 
 
