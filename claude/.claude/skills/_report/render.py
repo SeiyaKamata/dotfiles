@@ -666,6 +666,7 @@ KINDS = {
 
 
 FEATURE_TITLED = ("requirements", "plan", "qa", "qa-report")
+OPEN_QUESTION_KINDS = ("test-report", "review", "qa-report", "ci-report", "comment-report", "bug-report")
 
 
 def feature_title(src):
@@ -703,6 +704,8 @@ def render_file(src):
         title, parts = KINDS[src.stem](data)
     except (KeyError, TypeError, AttributeError) as e:
         return f"{src.name} の項目が足りないか形が違います: {e!r}"
+    if src.stem in OPEN_QUESTION_KINDS and data.get("open_questions"):
+        parts[2:2] = ["<h2>要確認</h2>" + bullets(data["open_questions"])]
     page = (
         '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
