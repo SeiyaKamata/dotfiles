@@ -112,7 +112,7 @@ loop:
 ### Step 5: `/impl`
 
 実装ブランチ 1 本の上で全タスクを実装する。
-実装ブランチ名は `.specs/requirements.jsonc` の `branch_name` にする。
+実装ブランチ名は `.specs/feature.jsonc` の `branch_name` にする。
 
 ### Step 6: `/test`
 

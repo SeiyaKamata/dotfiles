@@ -8,7 +8,7 @@ EVENT_TYPES = ("とき", "あいだ", "場合")
 VAGUE = ("適切に", "必要に応じて", "適宜", "いい感じ")
 PAREN = re.compile(r"[（(]([^）)]*)[）)]")
 BRANCH = re.compile(r"^[a-z0-9]+/[a-z0-9]+(-[a-z0-9]+)*$")
-TOP_STRINGS = ("repo", "notion_url", "pr_title", "branch_name", "feature", "overview")
+TOP_STRINGS = ("overview",)
 
 
 def strip_comments(text):
@@ -142,17 +142,27 @@ def check_appendix(appendix, errors):
                 errors.append(f"{where} 行 {k}: セル数が columns の {len(cols)} と合わない")
 
 
+def check_feature(feature):
+    errors = []
+    for key in ("repo", "title", "branch_name"):
+        if blank(feature.get(key)):
+            errors.append(f"feature.jsonc の {key}: 空か文字列でない")
+    for key in ("notion_url", "pr_title"):
+        if not isinstance(feature.get(key), str):
+            errors.append(f"feature.jsonc の {key}: 文字列でない、または無い")
+    branch = feature.get("branch_name")
+    if isinstance(branch, str) and branch and not BRANCH.match(branch):
+        errors.append(f"feature.jsonc の branch_name: `<type>/<英小文字・数字・ハイフン>` の形でない: {branch}")
+    return errors
+
+
 def check(data):
     errors = []
     for key in TOP_STRINGS:
         if not isinstance(data.get(key), str):
             errors.append(f"{key}: 文字列でない、または無い")
-    for key in ("repo", "feature", "overview"):
-        if isinstance(data.get(key), str) and not data[key].strip():
-            errors.append(f"{key}: 空")
-    branch = data.get("branch_name")
-    if isinstance(branch, str) and branch and not BRANCH.match(branch):
-        errors.append(f"branch_name: `<type>/<英小文字・数字・ハイフン>` の形でない: {branch}")
+    if isinstance(data.get("overview"), str) and not data["overview"].strip():
+        errors.append("overview: 空")
 
     oq = data.get("open_questions")
     if not isinstance(oq, list) or any(blank(q) for q in oq):
@@ -178,15 +188,18 @@ def check(data):
     return errors
 
 
-def main():
-    src = Path(".specs/requirements.jsonc")
+def load(src):
     try:
         data = json.loads(strip_comments(src.read_text(encoding="utf-8")))
     except (OSError, IndexError, ValueError) as e:
         sys.exit(f"{src.name} を読めないか JSON として不正です: {e}")
     if not isinstance(data, dict):
         sys.exit(f"{src.name} の最上位がオブジェクトでない")
-    errors = check(data)
+    return data
+
+
+def main():
+    errors = check_feature(load(Path(".specs/feature.jsonc"))) + check(load(Path(".specs/requirements.jsonc")))
     if errors:
         print("\n".join(errors))
         sys.exit(1)

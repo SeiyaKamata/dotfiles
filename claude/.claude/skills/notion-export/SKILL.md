@@ -66,14 +66,14 @@ allowed-tools: Read, Glob, Bash(git *), Bash(gh *), mcp__claude_ai_Notion__*
 
 ### Step 2: 書き戻し先 URL の解決
 
-成果物の frontmatter か `.jsonc` のトップレベルの `notion_url` を読む。
+成果物の frontmatter か `.specs/feature.jsonc` の `notion_url` を読む。
 無い、または空ならユーザーに Notion ページ URL を聞き、得られなければ Step 6 の中断カードで報告する。
 
 ### Step 3: 材料を集める
 
 - `.specs/` の成果物を読む
 - 実装結果を報告するときは、PR も集める
-  - 実装ブランチ名は `branch_name` とする
+  - 実装ブランチ名は `.specs/feature.jsonc` の `branch_name` とする
   - `gh pr list --search "head:<実装ブランチ名>" --state all --json number,title,url,isDraft,headRefName` で列挙する
   - 0 件なら現在のブランチと `gh pr list --author @me` から補い、それでも無ければ「該当なし」
 

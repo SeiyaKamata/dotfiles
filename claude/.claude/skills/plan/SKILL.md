@@ -126,7 +126,6 @@ impl の完了条件は `tasks` だけで、人しか実行できない項目は
 
 ```jsonc
 {
-  "feature": "[機能名]",
   "summary": "[何をどう作るかを 3〜5 文で]",
   "decisions": [
     { "decision": "[選んだ形]", "reasons": ["[理由。捨てた案があれば、それを採らない理由も]"], "confirm": "" }
@@ -185,7 +184,7 @@ impl の完了条件は `tasks` だけで、人しか実行できない項目は
 ### Step 1: 開始条件の確認と分岐
 
 - `.specs/requirements.jsonc` が無ければ `/spec` を案内して終了
-- `requirements.jsonc` の `repo` が今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename と違えば、Step 9 の中断報告で「`<repo>` の worktree で叩く」と案内して終了
+- `feature.jsonc` の `repo` が今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename と違えば、Step 9 の中断報告で「`<repo>` の worktree で叩く」と案内して終了
 
 `.specs/plan.jsonc` の有無で分岐する:
 - **無い**: Step 2 へ

@@ -447,12 +447,7 @@ def question_block(text):
 def render_requirements(data):
     title = f"要件定義: {data['feature']}"
     parts = header(title, data, with_verdict=False)
-    meta = [
-        f"リポジトリ: {data.get('repo', '')}",
-        f"ブランチ: {data.get('branch_name', '')}",
-        f"PR タイトル: {data.get('pr_title', '')}",
-    ]
-    parts.append("<h2>概要</h2>" + f"<p>{esc(data.get('overview', ''))}</p>" + bullets([m for m in meta if not m.endswith(': ')]))
+    parts.append("<h2>概要</h2>" + f"<p>{esc(data.get('overview', ''))}</p>")
     for q in data.get("open_questions", []):
         parts.append(question_block(q))
 
@@ -691,6 +686,17 @@ KINDS = {
 }
 
 
+FEATURE_TITLED = ("requirements", "plan", "qa", "qa-report")
+
+
+def feature_title(src):
+    try:
+        feature = json.loads(strip_comments(src.with_name("feature.jsonc").read_text(encoding="utf-8")))
+    except (OSError, ValueError):
+        return ""
+    return str(feature.get("title", ""))
+
+
 def main():
     if len(sys.argv) != 2:
         sys.exit("使い方: render.py <qa-report|test-report|review|ci-report|comment-report|bug-report|requirements|plan|qa|feature|issues|log-report>.jsonc")
@@ -703,6 +709,8 @@ def main():
         data = json.loads(strip_comments(src.read_text(encoding="utf-8")))
     except (IndexError, ValueError) as e:
         sys.exit(f"{src.name} を JSON として読めません: {e}")
+    if src.stem in FEATURE_TITLED:
+        data["feature"] = feature_title(src)
     try:
         title, parts = KINDS[src.stem](data)
     except (KeyError, TypeError, AttributeError) as e:

@@ -23,7 +23,8 @@ feature の雑メモを置く場所で、`/spec` が拾う下書きと、人が�
 既知の情報だけを書き、EARS 形式の受け入れ条件は書かない。
 詳細化は `/spec` が読んだときに行い、`requirements.jsonc` として確定させる。
 `~/Develop/.specs/<feature>/feature.jsonc` に書き、同じ内容から同じ場所に `feature.html` を生成する。
-`/spec` の確定稿の `repo` `notion_url` `pr_title` `branch_name` と同じキーを持ち、`/spec` がそのまま引き継ぐ。
+`repo` `notion_url` `pr_title` `branch_name` `title` は feature のメタの正本で、以降の工程はこのファイルから読む。
+空のキーは `/spec` が埋める。
 末尾カンマは書かない。
 文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 

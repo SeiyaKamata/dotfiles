@@ -58,7 +58,7 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 ### Step 1: 対象確定
 
 カレントブランチが実装ブランチ `<branch>` でなければ `git switch <branch>` を試みる。
-実装ブランチ名 `<branch>` は `.specs/requirements.jsonc` の `branch_name` にする。
+実装ブランチ名 `<branch>` は `.specs/feature.jsonc` の `branch_name` にする。
 - switch できた → そのまま続行
 - `<branch>` が存在しない → 現在のブランチをそのまま採用する
   - PR を作らない運用で直接コミットしているとみなす

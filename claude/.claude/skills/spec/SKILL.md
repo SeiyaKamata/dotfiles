@@ -10,6 +10,8 @@ allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(python3 ~/.claude/
 ユーザーの要望から EARS 形式の要件ドキュメントを作る。
 「何を作るか」だけを扱い、技術的な実装方法を含む「どう作るか」は書かない。
 `requirements.jsonc` を新規に書くのは `/spec` だけが行う。
+`repo` `notion_url` `pr_title` `branch_name` `title` は `feature.jsonc` が持つ正本で、`requirements.jsonc` には書かない。
+`/spec` は `feature.jsonc` が無ければ作り、空のキーを埋める。
 要確認の議論と、その結果の書き戻しもこのスキルが行う。
 
 ## 判断が割れる点の扱い
@@ -80,11 +82,6 @@ Requirement 番号は主体の節をまたいで連番にする。
 
 ```jsonc
 {
-  "repo": "[この feature を実装するリポジトリ。bare repo のディレクトリ名]",
-  "notion_url": "[下書き feature.jsonc にあれば引き継ぐ。無ければ空文字]",
-  "pr_title": "[下書き feature.jsonc にあれば引き継ぐ。無ければ空文字]",
-  "branch_name": "[下書き feature.jsonc にあれば引き継ぐ。無ければ feature 名と要件の内容から、英小文字・数字・ハイフンだけの `<type>/<短い英語の説明>` の形で決める]",
-  "feature": "[機能名。日本語の短いタイトル。下書き feature.jsonc に title があれば引き継ぐ。看板の一覧に出る]",
   "overview": "[機能の目的と背景を 2〜3 文で]",
   "open_questions": ["[Requirement 全体に関わるなど、特定の 1 行に紐づかない要確認。無ければ空配列]"],
   "out_of_scope": [
@@ -142,13 +139,21 @@ in-scope の項目**だけ**を Requirement に起こす。
 ### Step 4: 書き出し
 
 Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs/requirements.jsonc` に書く。
-`repo` は、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename から採る。
+
+続けて `.specs/feature.jsonc` のメタを揃える。
+`feature.jsonc` が無ければ、次の 5 キーだけで新規に作る。
+有れば、既存のキーは残し、空のキーだけを埋める。
+- `repo`: 今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename
+- `title`: 日本語の 20 字以内の名詞句
+- `branch_name`: 英小文字・数字・ハイフンだけの `<type>/<短い英語の説明>`。`title` と要件の内容から決める
+- `notion_url` `pr_title`: 材料に無ければ空文字
 
 ### Step 5: 点検
 
 `python3 ~/.claude/skills/spec/check.py` を実行する。
 指摘が出たら直して再実行し、`OK` が出るまで繰り返す。
 続けて `python3 ~/.claude/skills/_report/render.py .specs/requirements.jsonc` で `.specs/requirements.html` を生成する。
+`feature.jsonc` を書いたときは `python3 ~/.claude/skills/_report/render.py .specs/feature.jsonc` で `.specs/feature.html` も作り直す。
 生成に失敗したら `.jsonc` は残し、Step 6 で HTML を開く代わりに失敗の内容を添える。
 
 ### Step 6: 提示
