@@ -1,7 +1,7 @@
 ---
 name: spec
 description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのfeature.jsoncの詳細化で使う。requirements.jsoncがあるときは、現状の要件と要確認を提示し、要確認を会話で詰めて書き戻す。
-allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(python3 ~/.claude/skills/spec/check.py), Bash(python3 ~/.claude/skills/_report/render.py *)
+allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(python3 ~/.claude/skills/spec/check.py), Bash(open .specs/requirements.html), Bash(python3 ~/.claude/skills/_report/render.py *)
 ---
 
 # 要件策定スキル
@@ -139,8 +139,6 @@ in-scope は列挙せず、Step 3 で Requirement に起こす。
 in-scope の項目**だけ**を Requirement に起こす。
 埋める観点・型・書式は「受け入れ条件の書き方」に従う。
 
-要望が実質的に空で Requirement を 1 つも起こせないときだけ中断し、Step 6 の中断報告で終了する。
-
 ### Step 4: 書き出し
 
 Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs/requirements.jsonc` に書く。
@@ -151,31 +149,24 @@ Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs
 `python3 ~/.claude/skills/spec/check.py` を実行する。
 指摘が出たら直して再実行し、`OK` が出るまで繰り返す。
 続けて `python3 ~/.claude/skills/_report/render.py .specs/requirements.jsonc` で `.specs/requirements.html` を生成する。
-生成に失敗したら `.jsonc` は残し、Step 6 の提示に失敗の内容を添える。
+生成に失敗したら `.jsonc` は残し、Step 6 で HTML を開く代わりに失敗の内容を添える。
 
 ### Step 6: 提示
 
-現状の要件を次の形で出力する。
-
-- 主体の節ごとに、Requirement 番号と名前を並べる
-  - 要確認が付いた Requirement には、要点を 1 行添える
-- スコープ外は項目名だけを並べる
-  - 要確認が付いた項目には、要点を 1 行添える
-- スコープ外にも Requirement にも紐づかない要確認は、末尾に並べる
+`open .specs/requirements.html` で HTML を開く。
+要確認の件数を 1 行で添える。
 
 要確認が 1 件以上なら Step 7 へ進む。
 0 件なら「要確認なし。次は `/plan`」の 1 行を添えて終了する。
-生成物は `.specs/requirements.jsonc` と `.specs/requirements.html` で、1 行で示す。
-
-Step 3 で中断したときは、中断理由と `requirements.jsonc` が未確定である旨を 1 行で出して終了する。
 
 ### Step 7: 要確認の議論
 
-要確認を 1 件ずつユーザーに尋ねる。
+未解決の要確認を 1 件選び、該当する行や項目とあわせてユーザーに尋ねる。
 決まったら `requirements.jsonc` の該当行の `text` を決定内容に直し、その行の `question` を空文字にする。
 採った解釈のままで決まったときは、`question` だけを空文字にする。
 経緯は書かない。
 直したら `python3 ~/.claude/skills/_report/render.py .specs/requirements.jsonc` で HTML を作り直す。
 
+未解決の要確認が残っていれば、Step 7 に戻って次の 1 件を尋ねる。
 全件が決まったら「要確認なし。次は `/plan`」の 1 行で終了する。
 ユーザーが打ち切ったときは残件数を 1 行で伝えて終了する。
