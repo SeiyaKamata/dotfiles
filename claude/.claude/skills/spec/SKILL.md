@@ -1,7 +1,7 @@
 ---
 name: spec
 description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのfeature.jsoncの詳細化で使う。requirements.jsoncがあるときは、現状の要件と要確認を提示し、要確認を会話で詰めて、ブラウザで付けたコメントとあわせて書き戻す。
-allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(python3 ~/.claude/skills/spec/check.py), Bash(open .specs/requirements.html)
+allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(open .specs/requirements.html)
 ---
 
 # 要件策定スキル
@@ -72,8 +72,8 @@ Requirement 番号は主体の節をまたいで連番にする。
 検討経緯・却下した代替案は書かず、決まったことだけを書く。
 後続の skill が読む要件と、人が読む HTML の元データを兼ねる。
 `.specs/requirements.jsonc` に上書きし、同じ内容から `.specs/requirements.html` を生成する。
-末尾カンマは書かない。
-文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
+書式の誤りは、書いた直後にフックが指摘して返す。
+指摘に従って直せばよく、書式を事前に点検する手順は無い。
 
 各行の `text` は「受け入れ条件の書き方」の型の記法をそのまま使う。
 `question` は判断で埋めたときだけ採った解釈と理由を書き、無ければ空文字にする。
@@ -149,21 +149,16 @@ Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs
 - `pr_title`: 固定 prefix `【鎌田QA】` で始める。指定があればその文字列の前に付け、prefix が既にあれば足さず、無ければ `【鎌田QA】<title>`
 - `notion_url`: 材料に無ければ空文字
 
-### Step 5: 点検
-
-`python3 ~/.claude/skills/spec/check.py` を実行する。
-指摘が出たら直して再実行し、`OK` が出るまで繰り返す。
-
-### Step 6: 提示
+### Step 5: 提示
 
 `open .specs/requirements.html` で HTML を開く。
 要確認と未対応のコメントの件数を 1 行で添える。
 未対応のコメントは、`.specs/comments.jsonc` の `comments` のうち、`file` が `requirements.html` で `status` が `open` のもの。
 
-要確認か未対応のコメントが 1 件以上なら Step 7 へ進む。
+要確認か未対応のコメントが 1 件以上なら Step 6 へ進む。
 0 件なら「要確認なし。次は `/plan`」の 1 行を添えて終了する。
 
-### Step 7: 要確認とコメントの議論
+### Step 6: 要確認とコメントの議論
 
 未解決の要確認か未対応のコメントを 1 件選ぶ。
 要確認は、該当する行や項目とあわせてユーザーに尋ねる。
@@ -173,6 +168,6 @@ Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs
 経緯は書かない。
 コメントを反映したら、そのコメントの `status` を `done` にする。
 
-未解決の要確認か未対応のコメントが残っていれば、Step 7 に戻って次の 1 件を尋ねる。
+未解決の要確認か未対応のコメントが残っていれば、Step 6 に戻って次の 1 件を尋ねる。
 全件が決まったら「要確認なし。次は `/plan`」の 1 行で終了する。
 ユーザーが打ち切ったときは残件数を 1 行で伝えて終了する。

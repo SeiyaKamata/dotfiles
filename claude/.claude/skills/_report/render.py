@@ -6,6 +6,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from check import CHECKS  # noqa: E402
+
 COMMENTS_JS = Path(__file__).with_name("comments.js").read_text(encoding="utf-8")
 
 CSS = """
@@ -673,6 +676,14 @@ def feature_title(src):
     return str(feature.get("title", ""))
 
 
+def requirement_ids(directory):
+    try:
+        data = json.loads(strip_comments(directory.joinpath("requirements.jsonc").read_text(encoding="utf-8")))
+        return {r["id"] for s in data["subjects"] for r in s["requirements"]}
+    except (OSError, IndexError, ValueError, KeyError, TypeError):
+        return None
+
+
 def render_file(src):
     if src.stem not in KINDS:
         return f"未対応のレポートです: {src.name}"
@@ -682,6 +693,10 @@ def render_file(src):
         data = json.loads(strip_comments(src.read_text(encoding="utf-8")))
     except (IndexError, ValueError) as e:
         return f"{src.name} を JSON として読めません: {e}"
+    check = CHECKS.get(src.stem)
+    problems = check(data, requirement_ids(src.parent)) if check and isinstance(data, dict) else []
+    if problems:
+        return "\n".join(f"{src.name}: {p}" for p in problems)
     if src.stem in FEATURE_TITLED:
         data["feature"] = feature_title(src)
     try:
@@ -708,17 +723,28 @@ def render_dir(directory):
     return errors
 
 
+def parse_errors(src):
+    try:
+        json.loads(strip_comments(src.read_text(encoding="utf-8")))
+    except (OSError, IndexError, ValueError) as e:
+        return [f"{src.name} を JSON として読めません: {e}"]
+    return []
+
+
 def main():
     if len(sys.argv) == 2 and sys.argv[1] == "--hook":
         try:
             path = Path(json.load(sys.stdin)["tool_input"]["file_path"])
         except (ValueError, KeyError, TypeError):
             return
-        if path.suffix != ".jsonc" or path.stem not in KINDS:
+        if path.suffix != ".jsonc":
             return
-        errors = render_dir(path.parent)
+        if path.stem in KINDS:
+            errors = render_dir(path.parent)
+        else:
+            errors = parse_errors(path)
         if errors:
-            print("HTML の再生成に失敗しました。\n" + "\n".join(errors), file=sys.stderr)
+            print("jsonc の検査か HTML の再生成に失敗しました。\n" + "\n".join(errors), file=sys.stderr)
             sys.exit(2)
         return
     if len(sys.argv) != 2:
