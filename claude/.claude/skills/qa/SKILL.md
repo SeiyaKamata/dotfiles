@@ -113,7 +113,7 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
 `deploy` と `excluded` は渡さない。
 
 渡すのはベース URL、`local` の配列そのまま、git 管理外のスクリーンショット保存先ディレクトリの 3 つ。
-受け取るのは `Q<n>: pass|fail` と原因 1 行とスクショパスの配列だけ。
+受け取るのは `Q<n>: pass|fail` と原因 1 行とスクショパスの配列と、全シナリオ通しの録画パス `video:` だけ。
 ベース URL に到達できないと返ってきたときはシナリオ未実施なので BLOCKED とし、Step 7 で停止してから Step 8 の中断カードで報告する。再委譲はしない。
 
 ### Step 6: 書き出し
@@ -124,6 +124,7 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
 - 既存の `qa-report.jsonc` があれば上書き前に前回の判定と `count` を読む
 - `mkdir -p .specs/img` のあと、委譲先が返したスクリーンショットを `cp <返ってきたパス> .specs/img/qa-Q<n>.png` で全シナリオ分コピーする
   - 委譲先は Playwright の書き込み制限を受けない保存先に書くので、`.specs/` へはこちらがコピーする
+- 録画パスが `none` でなければ `cp <video パス> .specs/img/qa.webm` でコピーする
 - 「qa-report.jsonc のフォーマット」で `.specs/qa-report.jsonc` を書き出す
 - `python3 ~/.claude/skills/_report/render.py .specs/qa-report.jsonc` で `.specs/qa-report.html` を生成する
   - 生成に失敗したら `.jsonc` は残し、生成物から `.html` を省いて要確認に失敗の内容を載せる
@@ -151,6 +152,7 @@ FAIL の原因調査で環境が要るなら `/fix` 側で起動し直す。
 - `.specs/qa.jsonc`
 - `.specs/qa-report.jsonc`
 - `.specs/qa-report.html`
+- `.specs/img/qa.webm`
 
 ### 要確認
 - <シナリオに書かれておらず判断で補った点> 該当: Q<n>
