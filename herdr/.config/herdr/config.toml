@@ -85,7 +85,7 @@ command = "gh pr view --web"
 [[keys.command]]
 key = "prefix+w"
 type = "shell"
-command = '''herdr workspace rename "$HERDR_WORKSPACE_ID" "$(jq -r .title .specs/feature.jsonc)"'''
+command = '''herdr workspace rename "$HERDR_ACTIVE_WORKSPACE_ID" "$(jq -r '.title | gsub(" ";"")' .specs/feature.jsonc)"'''
 
 [[keys.command]]
 key = "prefix+s"
