@@ -103,12 +103,6 @@ Bash のリダイレクトや別コマンドのような別手段で同じ書き
 | 実装ブランチ | `/impl` が実装の最初に切る、`branch_name` のブランチ 1 本。目的は実装の隔離で、捨てる・作り直すのを安全にするため。`/land` がこのブランチから 1 本の PR を作り、追加 push は `/sync` が担う。 |
 | Step | スキル内部の手順見出し。工程とは別物。 |
 
-### HTML の生成
-
-`.specs/` の jsonc を Write か Edit で書くと、`settings.json` の PostToolUse フックが `render.py` を呼び、同じディレクトリの jsonc すべての HTML を作り直す。
-skill は `render.py` を呼ばない。
-jsonc が壊れていると、フックが失敗の内容を返すので、jsonc を直す。
-
 ### 前提が覆ったとき
 
 spec の前提、スコープ・依存・外部条件が途中で覆ったら、覆った前提のキーワードで `.specs/` 配下を grep し、requirements.jsonc / plan.jsonc に残る古い記述をすべて更新する。
