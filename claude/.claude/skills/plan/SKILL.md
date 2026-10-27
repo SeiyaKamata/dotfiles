@@ -1,6 +1,6 @@
 ---
 name: plan
-description: 要件を受け取り技術設計と実装タスクを一つの plan.jsonc にまとめる。.specs/requirements.jsoncが出来上がったら使う。plan.jsoncが既にあるときは、現状の判断とずれを提示し、会話で詰めて書き戻す。
+description: 要件を受け取り技術設計と実装タスクを一つの plan.jsonc にまとめる。.specs/requirements.jsoncが出来上がったら使う。plan.jsoncが既にあるときは、現状の判断とずれを提示し、会話で詰めて、ブラウザで付けたコメントとあわせて書き戻す。
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git rev-parse *), Bash(git -C *), Bash(mkworktree *), Bash(python3 ~/.claude/skills/_report/render.py *), WebSearch
 ---
 
@@ -254,20 +254,26 @@ Step 2〜6 の内容を「plan.jsonc のフォーマット」で `.specs/plan.js
 
 `decisions` と `deviations` の各項目を 1 行ずつ並べて出力する。
 項目が無ければ「判断とずれなし」と書く。
+既存の `plan.jsonc` を読み込んだときは、未対応のコメントの件数も 1 行で添える。
+未対応のコメントは、`.specs/comments.jsonc` の `comments` のうち、`file` が `plan.html` で `status` が `open` のもの。
 
 既存の `plan.jsonc` を読み込んだときは Step 10 へ進む。
 新規に書き出したときは「次は `/scenarios`。直したい点は伝えれば反映する」を 1 行添えて終了する。
 
 中断したときは、中断理由を 1 行で出し、`/plan` か `/spec` で再開できる旨を添えて終了する。
 
-### Step 10: 判断とずれの議論
+### Step 10: 判断とずれとコメントの議論
 
 既存の `plan.jsonc` を読み込んだときだけ行う。
-`decisions` と `deviations` の項目を 1 件ずつユーザーに尋ねる。
+`decisions` と `deviations` の未解決の項目か未対応のコメントを 1 件選ぶ。
+項目は、ユーザーに尋ねる。
+コメントは、`quote` が指す箇所に本文の意図を反映し、判断が割れるときだけユーザーに尋ねる。
 決まったら `plan.jsonc` の該当箇所を決定内容に直し、「設計の判断基準」「タスク分解の原則」「plan.jsonc の書き方」に従って Step 8 の点検をする。
+コメントを反映したら、そのコメントの `status` を `done` にする。
 直したら `python3 ~/.claude/skills/_report/render.py .specs/plan.jsonc` で HTML を作り直す。
 `done` が `true` のタスクは番号と本文を変えない。
 ユーザーが直したい点を直接伝えたときも、同じ手順で反映する。
 
+未解決の項目か未対応のコメントが残っていれば、Step 10 に戻って次の 1 件を扱う。
 全件を終えたら「判断とずれは確定。次は `/scenarios`」の 1 行で終了する。
 ユーザーが打ち切ったときはそこで終了する。

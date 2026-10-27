@@ -1,6 +1,6 @@
 ---
 name: spec
-description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのfeature.jsoncの詳細化で使う。requirements.jsoncがあるときは、現状の要件と要確認を提示し、要確認を会話で詰めて書き戻す。
+description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのfeature.jsoncの詳細化で使う。requirements.jsoncがあるときは、現状の要件と要確認を提示し、要確認を会話で詰めて、ブラウザで付けたコメントとあわせて書き戻す。
 allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(python3 ~/.claude/skills/spec/check.py), Bash(open .specs/requirements.html), Bash(python3 ~/.claude/skills/_report/render.py *)
 ---
 
@@ -154,19 +154,23 @@ Step 2〜3 の内容を「requirements.jsonc のフォーマット」で `.specs
 ### Step 6: 提示
 
 `open .specs/requirements.html` で HTML を開く。
-要確認の件数を 1 行で添える。
+要確認と未対応のコメントの件数を 1 行で添える。
+未対応のコメントは、`.specs/comments.jsonc` の `comments` のうち、`file` が `requirements.html` で `status` が `open` のもの。
 
-要確認が 1 件以上なら Step 7 へ進む。
+要確認か未対応のコメントが 1 件以上なら Step 7 へ進む。
 0 件なら「要確認なし。次は `/plan`」の 1 行を添えて終了する。
 
-### Step 7: 要確認の議論
+### Step 7: 要確認とコメントの議論
 
-未解決の要確認を 1 件選び、該当する行や項目とあわせてユーザーに尋ねる。
+未解決の要確認か未対応のコメントを 1 件選ぶ。
+要確認は、該当する行や項目とあわせてユーザーに尋ねる。
+コメントは、`quote` が指す行や項目に本文の意図を反映し、判断が割れるときだけユーザーに尋ねる。
 決まったら `requirements.jsonc` の該当行の `text` を決定内容に直し、その行の `question` を空文字にする。
 採った解釈のままで決まったときは、`question` だけを空文字にする。
 経緯は書かない。
+コメントを反映したら、そのコメントの `status` を `done` にする。
 直したら `python3 ~/.claude/skills/_report/render.py .specs/requirements.jsonc` で HTML を作り直す。
 
-未解決の要確認が残っていれば、Step 7 に戻って次の 1 件を尋ねる。
+未解決の要確認か未対応のコメントが残っていれば、Step 7 に戻って次の 1 件を尋ねる。
 全件が決まったら「要確認なし。次は `/plan`」の 1 行で終了する。
 ユーザーが打ち切ったときは残件数を 1 行で伝えて終了する。
