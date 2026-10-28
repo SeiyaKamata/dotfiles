@@ -72,7 +72,7 @@ enabled = false              # クリップボードコピー時の "copied to c
 [[keys.command]]
 key = "prefix+n"
 type = "popup"
-command = '''dir=$(devpick); [ -n "$dir" ] && herdr workspace create --cwd "$dir" --focus'''
+command = '''first=--focus; devpick | while IFS= read -r dir; do herdr workspace create --cwd "$dir" $first; first=--no-focus; done'''
 width = "70%"
 height = "60%"
 

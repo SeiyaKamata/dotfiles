@@ -50,19 +50,20 @@ is_main_repo() {
   [ -e "$1/.git" ]
 }
 
-# 選んだ行の最終列を path として出力する。何も選ばなければ戻り値 1。
+# 選んだ行の最終列を path として 1 行ずつ出力する。何も選ばなければ戻り値 1。
+# 第 2 引数が multi なら複数選択できる。
 fzf_path() {
-  local prompt="$1" sel
+  local prompt="$1" multi="${2:-}" sel
   sel=$(sort \
     | awk -F'\t' '{ name[NR]=$1; rest[NR]=substr($0, length($1) + 2); if (length($1) > w) w = length($1) }
                   END { for (i = 1; i <= NR; i++) printf "%-" w "s\t%s\n", name[i], rest[i] }' \
-    | fzf --prompt="$prompt" --delimiter='\t' --with-nth=1,2 --nth=1)
+    | fzf --prompt="$prompt" --delimiter='\t' --with-nth=1,2 --nth=1 ${multi:+--multi})
   [ -n "$sel" ] || return 1
-  printf '%s\n' "${sel##*$'\t'}"
+  printf '%s\n' "$sel" | awk -F'\t' '{ print $NF }'
 }
 
 pick_repo() {
-  list_repos | fzf_path "repo> "
+  list_repos | fzf_path "repo> " "${1:-}"
 }
 
 pick_parent_dir() {
@@ -110,18 +111,21 @@ resolve_repo() {
 
 # bare repo はそのままでは作業できないので mkworktree に渡し、新規 worktree を作らせてその path を採用する。
 # worktree 名は feature 名と揃える。同名の worktree が既にあるときだけ mkworktree の機械的命名に任せる。
+# 複数の repo を選んだときは、feature を repo ごとに分ける。1 つの feature に複数の repo の worktree が結びつくと、
+# feature.jsonc の pr を repo 同士で上書きし合うため。
 create_worktree() {
-  local path="$1" feature="$2" name="" wt_root
+  local path="$1" feature="$2" count="${3:-1}" name="" wt_root
   if is_main_repo "$path"; then
     printf '%s\n' "$path"
     return
   fi
   if [ -n "$feature" ] && [ "$feature" != - ]; then
+    [ "$count" -gt 1 ] && feature="$feature-$(basename "${path%.git}")"
     mkdir -p "$HOME/Develop/.specs/$feature"
     wt_root="$(dirname "$(dirname "$path")")/worktrees"
     [ -e "$wt_root/$feature" ] || name="$feature"
   fi
-  "$(dirname "$0")/mkworktree" "$path" "$name" "$feature"
+  "$(dirname "$0")/mkworktree" "$path" "$name" "$feature" </dev/null
 }
 
 # 既存の feature は、結びついた worktree をそのまま開く。無ければ feature.jsonc の repo で作り、repo が分からなければ選ばせる。
@@ -143,7 +147,7 @@ open_feature() {
 }
 
 main() {
-  local out kind feature rc path
+  local out kind feature rc path paths count
   out=$(pick_feature); rc=$?
   case $rc in 0) ;; 1) exit 0 ;; *) exit 1 ;; esac
   kind="${out%%$'\t'*}"
@@ -153,8 +157,12 @@ main() {
     dir) path=$(pick_parent_dir) || exit 0 ;;
     feat) path=$(open_feature "$feature") || exit 1 ;;
     *)
-      path=$(pick_repo) || exit 0
-      path=$(create_worktree "$path" "$feature") || exit 1
+      paths=$(pick_repo multi) || exit 0
+      count=$(printf '%s\n' "$paths" | awk 'END { print NR }')
+      while IFS= read -r path; do
+        create_worktree "$path" "$feature" "$count" || exit 1
+      done <<<"$paths"
+      return
       ;;
   esac
 
