@@ -24,15 +24,11 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, WebSearch, WebFetch
 ## 進め方
 
 ### Step 1: コンテキスト収集
-配布と確認に要るものだけを集め、`requirements.jsonc` の本文と `plan.jsonc` の `summary` `decisions` `deviations` `appendix` は読まない。
-仕様の裏取りは `implementer` が自分で行う。
+読むのは次の 2 つだけにする。
+仕様の裏取りは `implementer` が自分で行うので、`requirements.jsonc` と `plan.jsonc` のそれ以外は読まない。
 
-- `.specs/plan.jsonc` の `tasks` から、タスクごとのメタ情報 `req` `depends` `follows` と狙いの文、細部
+- `.specs/plan.jsonc` の `tasks`
 - ビルド設定ファイルから読み取ったテスト・ビルドコマンド
-
-対象のタスクの `depends` に `setup` の `done` が `false` の `S<n>` があれば、人の作業待ちなので止まる。
-結果に当該項目の内容と `to` をそのまま書く。
-次の一手は、`to` があれば相手 PJ のセッションと会話して詰め、無ければ当該項目を実施して `/impl` を再実行する。
 
 ### Step 2: 実装ブランチへの移動
 実装ブランチ名 `<branch>` は `.specs/feature.jsonc` の `branch_name` にする。
@@ -42,6 +38,10 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, WebSearch, WebFetch
 ### Step 3: implementer に配布
 
 未完了のタスクの最初の 1 つを配布する。タスクの完了は `done` が `true` かで判定する。
+
+そのタスクの `depends` に `setup` の `done` が `false` の `S<n>` があれば、人の作業待ちなので配布せず止まる。
+結果に当該項目の内容と `to` をそのまま書く。
+次の一手は、`to` があれば相手 PJ のセッションと会話して詰め、無ければ当該項目を実施して `/impl` を再実行する。
 
 プロンプトに渡すもの:
 - `tasks` の該当の要素から転記した `goal`・`req`・`details`
