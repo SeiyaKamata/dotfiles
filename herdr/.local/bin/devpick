@@ -1,93 +1,160 @@
 #!/bin/bash
 
 # fzf の reload から呼ばれる。{} を含むコマンドは fzf が置換してしまうため、リスト生成はここに閉じる。
+# 行は kind<TAB>表示<TAB>feature 名。feat 行は worktree が結びついているかを表示に添える。
 list_features() {
   local q="${1:-}"
-  if [ -z "$q" ]; then printf 'new\t新規作成\n'; else printf 'new\t「%s」で新規作成\n' "$q"; fi
-  printf 'none\tfeature を紐付けない\n'
+  if [ -z "$q" ]; then printf 'new\t新規作成\t\n'; else printf 'new\t「%s」で新規作成\t\n' "$q"; fi
+  printf 'none\tfeature を紐付けない\t\n'
+  printf 'dir\tリポジトリの親ディレクトリを開く\t\n'
+  local linked name mark
+  linked=$(linked_map | cut -f1)
   command find "$HOME"/Develop/.specs -mindepth 1 -maxdepth 1 -type d ! -name '.*' -exec basename {} \; | sort \
-    | awk 'NR==FNR { linked[$0]; next } !($0 in linked)' <(linked_features) - \
-    | sed 's/^/feat\t/'
+    | while IFS= read -r name; do
+        if printf '%s\n' "$linked" | grep -Fxq -- "$name"; then mark="開く"; else mark="worktree なし"; fi
+        printf 'feat\t%s  [%s]\t%s\n' "$name" "$mark" "$name"
+      done
 }
 
-# worktree の .specs symlink が指す feature は紐づき済みなので、選択肢から外すために集める。
-linked_features() {
-  command find "$HOME"/Develop/*/worktrees -mindepth 2 -maxdepth 2 -name .specs -type l -exec readlink {} \; 2>/dev/null \
-    | sed 's|.*/||'
-}
-
-# repos 側と worktrees 側を find の時点で分けて、bare repo への git 呼び出しを避ける。
-# repos 配下で .git を持つものは dotfiles のように作業ツリーそのものを使う repo。
-list_spaces() {
-  local path kind branch org
-  for path in "$HOME"/Develop/*/repos; do
-    [ -d "$path" ] || continue
-    org="${path%/repos}"
-    printf '%s/repos\t%s\t%s\n' "${org##*/}" '(dir)' "$path"
+# worktree の .specs symlink から、feature 名と worktree の対応を feature<TAB>worktree で出す。
+linked_map() {
+  local link target
+  for link in "$HOME"/Develop/*/worktrees/*/.specs; do
+    [ -L "$link" ] || continue
+    target=$(readlink "$link")
+    printf '%s\t%s\n' "${target##*/}" "${link%/.specs}"
   done
+}
+
+# repos 配下の bare repo は git を呼ばずに find で拾う。
+# repos 配下で .git を持つものは dotfiles のように作業ツリーそのものを使う repo。
+list_repos() {
+  local path kind
   command find "$HOME"/Develop/*/repos -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null \
     | while IFS= read -r path; do
         if is_main_repo "$path"; then kind='(main)'; else kind='(bare)'; fi
         printf '%s\t%s\t%s\n' "${path##*/}" "$kind" "$path"
       done
-  command find "$HOME"/Develop/*/worktrees -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null \
-    | while IFS= read -r path; do
-        branch=$(git -C "$path" branch --show-current 2>/dev/null)
-        printf '%s\t%s\t%s\n' "${path##*/}" "${branch:--}" "$path"
-      done
+}
+
+list_parent_dirs() {
+  local path org
+  for path in "$HOME"/Develop/*/repos; do
+    [ -d "$path" ] || continue
+    org="${path%/repos}"
+    printf '%s/repos\t%s\n' "${org##*/}" "$path"
+  done
 }
 
 is_main_repo() {
   [ -e "$1/.git" ]
 }
 
-pick_space() {
-  local sel
-  sel=$(list_spaces \
-    | sort \
-    | awk -F'\t' '{ name[NR]=$1; branch[NR]=$2; path[NR]=$3; if (length($1) > w) w = length($1) }
-                  END { for (i = 1; i <= NR; i++) printf "%-" w "s\t%s\t%s\n", name[i], branch[i], path[i] }' \
-    | fzf --prompt="space> " --delimiter='\t' --with-nth=1,2 --nth=1)
+# 選んだ行の最終列を path として出力する。何も選ばなければ戻り値 1。
+fzf_path() {
+  local prompt="$1" sel
+  sel=$(sort \
+    | awk -F'\t' '{ name[NR]=$1; rest[NR]=substr($0, length($1) + 2); if (length($1) > w) w = length($1) }
+                  END { for (i = 1; i <= NR; i++) printf "%-" w "s\t%s\n", name[i], rest[i] }' \
+    | fzf --prompt="$prompt" --delimiter='\t' --with-nth=1,2 --nth=1)
   [ -n "$sel" ] || return 1
   printf '%s\n' "${sel##*$'\t'}"
 }
 
-# 選んだ feature 名を出力する。紐付けないときは - を出力する。新規作成なら .specs 配下にディレクトリも作る。何も選ばなければ空を出力する。
+pick_repo() {
+  list_repos | fzf_path "repo> "
+}
+
+pick_parent_dir() {
+  list_parent_dirs | fzf_path "dir> "
+}
+
+# kind<TAB>feature 名を出力する。kind は new、none、feat、dir のどれか。
+# 紐付けないとき feature は - 。new で名前が空なら、feature は worktree 名と同名で mkworktree が作る。
 # 戻り値は、中断が 1、入力不正が 2。
 pick_feature() {
-  local out query sel feature=""
+  local out query sel kind feature=""
   out=$(list_features "" \
     | fzf --prompt="feature> " --no-sort --print-query --delimiter='\t' --with-nth=2 \
         --bind "change:reload:'$0' --list {q}") || return 1
   { IFS= read -r query; IFS= read -r sel; } <<<"$out"
-  if [ "${sel%%$'\t'*}" = none ]; then
-    feature=-
-  elif [ "${sel%%$'\t'*}" = feat ]; then
-    feature="${sel#*$'\t'}"
-  elif [ -n "$query" ]; then
-    case "$query" in */*) echo "feature 名に / は使えません: $query" >&2; return 2 ;; esac
-    feature="$query"
-    mkdir -p "$HOME/Develop/.specs/$feature"
-  fi
-  printf '%s\n' "$feature"
+  kind="${sel%%$'\t'*}"
+  case "$kind" in
+    none) feature=- ;;
+    feat) feature="${sel##*$'\t'}" ;;
+    dir) ;;
+    *)
+      kind=new
+      case "$query" in */*) echo "feature 名に / は使えません: $query" >&2; return 2 ;; esac
+      feature="$query"
+      ;;
+  esac
+  printf '%s\t%s\n' "$kind" "$feature"
+}
+
+feature_repo() {
+  local f="$HOME/Develop/.specs/$1/feature.jsonc"
+  [ -f "$f" ] || return 0
+  sed -n 's/^[[:space:]]*"repo"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$f" | head -n 1
+}
+
+# feature.jsonc の repo は repos 配下のディレクトリ名。bare repo は .git 付きの名前で置いてある。
+resolve_repo() {
+  local name="$1" p
+  [ -n "$name" ] || return 1
+  for p in "$HOME"/Develop/*/repos/"$name" "$HOME"/Develop/*/repos/"$name".git; do
+    [ -d "$p" ] && { printf '%s\n' "$p"; return 0; }
+  done
+  return 1
 }
 
 # bare repo はそのままでは作業できないので mkworktree に渡し、新規 worktree を作らせてその path を採用する。
 # worktree 名は feature 名と揃える。同名の worktree が既にあるときだけ mkworktree の機械的命名に任せる。
-main() {
-  local path feature rc name wt_root
-  path=$(pick_space) || exit 0
+create_worktree() {
+  local path="$1" feature="$2" name="" wt_root
+  if is_main_repo "$path"; then
+    printf '%s\n' "$path"
+    return
+  fi
+  if [ -n "$feature" ] && [ "$feature" != - ]; then
+    mkdir -p "$HOME/Develop/.specs/$feature"
+    wt_root="$(dirname "$(dirname "$path")")/worktrees"
+    [ -e "$wt_root/$feature" ] || name="$feature"
+  fi
+  "$(dirname "$0")/mkworktree" "$path" "$name" "$feature"
+}
 
-  case "$path" in
-    "$HOME"/Develop/*/repos/*)
-      if ! is_main_repo "$path"; then
-        feature=$(pick_feature); rc=$?
-        case $rc in 0) ;; 1) exit 0 ;; *) exit 1 ;; esac
-        name=""
-        wt_root="$(dirname "$(dirname "$path")")/worktrees"
-        if [ -n "$feature" ] && [ "$feature" != - ] && [ ! -e "$wt_root/$feature" ]; then name="$feature"; fi
-        path=$("$(dirname "$0")/mkworktree" "$path" "$name" "$feature") || exit 1
-      fi
+# 既存の feature は、結びついた worktree をそのまま開く。無ければ feature.jsonc の repo で作り、repo が分からなければ選ばせる。
+open_feature() {
+  local feature="$1" wts n repo path
+  wts=$(linked_map | awk -F'\t' -v f="$feature" '$1 == f { print $2 }')
+  if [ -n "$wts" ]; then
+    n=$(printf '%s\n' "$wts" | awk 'END { print NR }')
+    if [ "$n" -gt 1 ]; then
+      printf '%s\n' "$wts" | fzf --prompt="worktree> "
+    else
+      printf '%s\n' "$wts"
+    fi
+    return
+  fi
+  repo=$(feature_repo "$feature")
+  path=$(resolve_repo "$repo") || path=$(pick_repo) || return 1
+  create_worktree "$path" "$feature"
+}
+
+main() {
+  local out kind feature rc path
+  out=$(pick_feature); rc=$?
+  case $rc in 0) ;; 1) exit 0 ;; *) exit 1 ;; esac
+  kind="${out%%$'\t'*}"
+  feature="${out#*$'\t'}"
+
+  case "$kind" in
+    dir) path=$(pick_parent_dir) || exit 0 ;;
+    feat) path=$(open_feature "$feature") || exit 1 ;;
+    *)
+      path=$(pick_repo) || exit 0
+      path=$(create_worktree "$path" "$feature") || exit 1
       ;;
   esac
 
