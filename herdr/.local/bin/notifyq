@@ -1,0 +1,63 @@
+#!/bin/bash
+# claude が出した実行依頼のキュー。add で積み、run で上から確認して 1 件ずつフォアグラウンド実行する。
+#   notifyq add [依頼元ペインID]  標準入力のコマンド 1 本を pending に積む。ペイン省略時は HERDR_PANE_ID
+#   notifyq run                    pending を古い順に確認して実行する。herdr の popup から呼ぶ
+set -euo pipefail
+
+root="${XDG_STATE_HOME:-$HOME/.local/state}/notify-queue"
+pending="$root/pending"
+done_dir="$root/done"
+mkdir -p "$pending" "$done_dir"
+
+add() {
+  local pane="${1:-${HERDR_PANE_ID:-}}"
+  [ -n "$pane" ] || { echo "notifyq: 依頼元ペインIDが分かりません" >&2; return 2; }
+  local tmp
+  tmp=$(mktemp "$root/.add.XXXXXX")
+  cat >"$tmp"
+  mv "$tmp" "$pending/$(date +%Y%m%d%H%M%S)-$pane.sh"
+}
+
+pane_of() {
+  local name
+  name=$(basename "$1" .sh)
+  echo "${name#*-}"
+}
+
+run() {
+  local file pane cmd claimed key
+  local count=0
+  for file in "$pending"/*.sh; do
+    [ -e "$file" ] || break
+    pane=$(pane_of "$file")
+    cmd=$(cat "$file")
+
+    printf '\n\033[1m依頼元 %s\033[0m\n%s\n\n' "$pane" "$cmd"
+    printf '[y] 実行  [n] 拒否  [s] 飛ばす  [q] 終了 '
+    read -rsn1 key
+    printf '\n'
+
+    case "$key" in
+      y)
+        claimed="$done_dir/$(basename "$file")"
+        mv "$file" "$claimed" 2>/dev/null || continue
+        count=$((count + 1))
+        zsh -ic 'Notify -t "$1" zsh -ic "$2"' _ "$pane" "$cmd" || true
+        ;;
+      n)
+        rm -f "$file"
+        herdr agent prompt "$pane" "「$cmd」の実行が拒否されました" >/dev/null || true
+        ;;
+      q) break ;;
+    esac
+  done
+
+  printf '\n終了。何かキーを押すと閉じます '
+  read -rsn1 _
+}
+
+case "${1:-}" in
+  add) shift; add "$@" ;;
+  run) run ;;
+  *) echo "usage: notifyq add [pane] | notifyq run" >&2; exit 2 ;;
+esac
