@@ -22,7 +22,7 @@ next_workspace = "ctrl+j"           # 上下移動は vim 流 j=次/k=前、pref
 previous_workspace = "ctrl+k"       # ctrl+j/k はペインへ渡らなくなるため nvim 側の同キー割り当ては削除済み
 
 # tab は番号で直接切り替える。next_tab の標準 prefix+n は hspace ピッカーと衝突するため巡回系は空にする
-new_tab = "prefix+t"
+new_tab = ""
 switch_tab = "ctrl+1..9"
 next_tab = ""
 previous_tab = ""
