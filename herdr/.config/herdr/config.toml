@@ -24,7 +24,7 @@ previous_workspace = "ctrl+k"       # ctrl+j/k はペインへ渡らなくなる
 # tab は番号で直接切り替える。next_tab の標準 prefix+n は hspace ピッカーと衝突するため巡回系は空にする
 new_tab = "prefix+t"
 switch_tab = "ctrl+1..9"
-next_tab = "ctrl+o"
+next_tab = ""
 previous_tab = ""
 
 # ペイン分割は使わない運用
@@ -32,7 +32,7 @@ split_horizontal = ""
 split_vertical = ""
 close_pane = "prefix+x"             # tmux: bind x kill-pane
 zoom = "prefix+z"                   # tmux: bind z resize-pane -Z
-cycle_pane_next = ""                # ctrl+o は next_tab に割り当てたため空にする
+cycle_pane_next = ""                # ctrl+o は下の [[keys.command]] に割り当てたため空にする
 
 # 方向移動は tmux に合わせて無効化（tmux は ctrl+t 巡回のみで hjkl 移動を使っていない）
 focus_pane_left = ""                # prefix+h は split_vertical で使用中のため空けておく
@@ -88,6 +88,11 @@ type = "popup"
 command = "stagepick"
 width = "30%"
 height = "25%"
+
+[[keys.command]]
+key = "ctrl+o"
+type = "shell"
+command = '''herdr workspace focus "$(herdr workspace list | python3 -c 'import json,sys; print(next(w["workspace_id"] for w in json.load(sys.stdin)["result"]["workspaces"] if w["label"]=="コマンド実行スペース"))')"'''
 
 [[keys.command]]
 key = "prefix+v"
