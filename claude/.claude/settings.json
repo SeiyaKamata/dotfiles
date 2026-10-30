@@ -69,19 +69,6 @@
     ]
   },
   "model": "sonnet",
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 -I ~/.claude/skills/_report/render.py --hook"
-          }
-        ]
-      }
-    ]
-  },
   "enableWorkflows": false,
   "workflowKeywordTriggerEnabled": false,
   "statusLine": {
