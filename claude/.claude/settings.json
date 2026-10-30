@@ -95,7 +95,8 @@
     "skill-creator@claude-plugins-official": false,
     "github@claude-plugins-official": false,
     "playwright@claude-plugins-official": false,
-    "yellow@lrm-equipment": true
+    "yellow@lrm-equipment": true,
+    "recipient-centric@lrm-equipment": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
