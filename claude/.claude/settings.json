@@ -94,7 +94,8 @@
     "gopls-lsp@claude-plugins-official": false,
     "skill-creator@claude-plugins-official": false,
     "github@claude-plugins-official": false,
-    "playwright@claude-plugins-official": false
+    "playwright@claude-plugins-official": false,
+    "yellow@lrm-equipment": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -108,7 +109,13 @@
   "spinnerTipsEnabled": false,
   "effortLevel": "medium",
   "awaySummaryEnabled": false,
-  "pluginConfigs": {},
+  "pluginConfigs": {
+    "yellow@lrm-equipment": {
+      "options": {
+        "work_root": "/Users/kamata_seiya/Develop/_work"
+      }
+    }
+  },
   "tui": "fullscreen",
   "autoMemoryEnabled": false,
   "autoDreamEnabled": false,
