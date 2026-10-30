@@ -88,3 +88,10 @@ type = "popup"
 command = "stagepick"
 width = "30%"
 height = "25%"
+
+[[keys.command]]
+key = "prefix+v"
+type = "popup"
+command = "notifyq run"
+width = "80%"
+height = "70%"
