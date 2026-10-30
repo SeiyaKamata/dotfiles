@@ -3,19 +3,6 @@
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
     "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50"
   },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 -I ~/.claude/skills/_report/render.py --hook"
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(git add *)",
@@ -77,9 +64,24 @@
       "Bash(git push * -f *)"
     ],
     "defaultMode": "auto",
-    "additionalDirectories": ["/Users/kamata_seiya/Develop/.specs"]
+    "additionalDirectories": [
+      "/Users/kamata_seiya/Develop/.specs"
+    ]
   },
   "model": "sonnet",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I ~/.claude/skills/_report/render.py --hook"
+          }
+        ]
+      }
+    ]
+  },
   "enableWorkflows": false,
   "workflowKeywordTriggerEnabled": false,
   "statusLine": {
