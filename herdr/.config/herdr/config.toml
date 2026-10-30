@@ -16,8 +16,8 @@ detach = "prefix+d"                 # tmux 既定 bind d detach-client に合わ
 
 # space (workspace) = tmux window 相当
 new_workspace = "prefix+shift+n"    # 素の新規作成（cwd 引き継ぎ）。場所を選んで作るのは prefix+n の hspace ピッカーへ
-workspace_picker = ""               # prefix+w を下の [[keys.command]] に使うため無効化
-rename_workspace = ""
+workspace_picker = ""               # prefix+w を rename_workspace に使うため無効化
+rename_workspace = "prefix+w"
 next_workspace = "ctrl+j"           # 上下移動は vim 流 j=次/k=前、prefix 不要の単独キー
 previous_workspace = "ctrl+k"       # ctrl+j/k はペインへ渡らなくなるため nvim 側の同キー割り当ては削除済み
 
@@ -81,11 +81,6 @@ height = "60%"
 key = "prefix+p"
 type = "shell"
 command = "gh pr view --web"
-
-[[keys.command]]
-key = "prefix+w"
-type = "shell"
-command = '''herdr workspace rename "$HERDR_ACTIVE_WORKSPACE_ID" "$(jq -r '.title | gsub(" ";"")' .specs/feature.jsonc)"'''
 
 [[keys.command]]
 key = "prefix+s"
