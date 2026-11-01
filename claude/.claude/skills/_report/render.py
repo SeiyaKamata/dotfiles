@@ -322,9 +322,9 @@ def render_diff(files, placed):
 
 def render_review(data):
     parts = header("レビュー結果", data)
-    spec = data.get("spec_findings", [])
-    if spec:
-        parts.append("<h2>仕様整合性</h2>" + bullets(spec))
+    plan = data.get("plan_findings", [])
+    if plan:
+        parts.append("<h2>仕様整合性</h2>" + bullets(plan))
     files = git_diff(data["base"]) if data.get("base") else []
     on_new_side = {(f["path"], new) for f in files for h in f["hunks"] for sign, _, new, _ in h["lines"] if sign != "-" and new}
     placed = {}

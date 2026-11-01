@@ -40,7 +40,7 @@ NG の戻し先は決めず、呼び出し元に委ねる。
   "count": 1, // NG の連続回数。今回が NG かつ既存レポートも NG なら既存値 +1、それ以外は 1
   "verdict": "[OK / NG]",
   "open_questions": ["[未検証の指摘、上流 doc と実コードの食い違い。無ければ空配列]"],
-  "spec_findings": ["[指摘内容と該当箇所]"],
+  "plan_findings": ["[指摘内容と該当箇所]"],
   "code_findings": [
     {
       "text": "[指摘内容と該当箇所]",
