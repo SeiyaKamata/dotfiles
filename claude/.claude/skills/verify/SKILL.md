@@ -1,7 +1,7 @@
 ---
 name: verify
 description: 設計や調査の前提になる主張を、実コードと実データで確かめ、確認の種類を付けて返す。ドキュメントや過去の記述を鵜呑みにせず着手したいとき、他スキルから事実確認を頼まれたときに使う。
-allowed-tools: Read, Glob, Grep, Bash(git *), Bash(mkworktree *), Agent
+allowed-tools: Read, Glob, Grep, Bash(git *), Agent
 argument-hint: "[<確かめたい主張>]"
 ---
 
@@ -9,7 +9,7 @@ argument-hint: "[<確かめたい主張>]"
 
 ## 役割
 主張を実物で確かめ、主張ごとに結果と確認の種類を返す。
-ロードマップ、spec、過去の PR 説明、コメントの記述は、過去のある時点の情報として扱う。
+ロードマップ、過去の PR 説明、コメントの記述は、過去のある時点の情報として扱う。
 判断はしない。
 何を選ぶかは呼び出し元が決め、このスキルは決める材料の真偽だけを返す。
 
@@ -44,8 +44,8 @@ argument-hint: "[<確かめたい主張>]"
 - 現状の構造、既存の仕組み: Grep と Read で実コードを探す
   - 同じことをする仕組みが既にあるかも探す
 - 別 PJ の実装状況: その PJ のデフォルトブランチを読む
-  - `mkworktree <bare repo> <リポジトリ名>-<今の worktree のディレクトリ名>` で展開する。同名の worktree があればそれを使う
-  - bare repo は、`git rev-parse --git-common-dir` と同じ親ディレクトリの `<リポジトリ名>`。見つからないか bare でなければ未検証にする
+  - その PJ の repo を `git -C <絶対パス>` で `git fetch` し、`git show origin/<デフォルトブランチ>:<path>` で読む
+  - repo が手元に見つからなければ未検証にする
 - 環境変数、設定値: ローカルと各デプロイ環境の投入先ファイルを実リポジトリで特定する
   - デプロイ定義の有無を確認できなければ未検証にする
 - base ブランチの状態: `git fetch` のあと `git log origin/<base>..HEAD` で未マージを見る

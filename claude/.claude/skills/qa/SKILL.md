@@ -1,7 +1,7 @@
 ---
 name: qa
 description: コードレビュー後にブラウザで動作確認する最終受け入れゲート。/review の後に使う。
-allowed-tools: Read, Write, Edit, Bash(git *), Bash(chworktree *), Bash(date *), Bash(mkdir *), Bash(cp *), Agent
+allowed-tools: Read, Write, Edit, Bash(git *), Bash(date *), Bash(mkdir *), Bash(cp *), Agent
 disallowed-tools: mcp__playwright__*
 ---
 
@@ -18,8 +18,8 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 シナリオに書かれておらず判断で補った点は、`open_questions` に書く。
 
 ## 環境の扱い
-環境は落ちている前提で始め、開始時点の状態に関係なく検証が終わったら常に `chworktree stop` で片付ける。
-「自分が起動した分だけ停止する」判定は追跡を一度誤ると環境が残るので採らず、`chworktree stop` は未起動でも安全なので無条件に呼ぶ。
+環境は落ちている前提で始め、検証が終わったら常に停止コマンドで片付ける。
+「自分が起動した分だけ停止する」判定は追跡を一度誤ると環境が残るので採らず、停止コマンドは無条件に呼ぶ。
 
 ## qa-report.jsonc のフォーマット
 
@@ -42,7 +42,7 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
   "fixed": false,
   "count": 1, // 今回が初回の非 PASS なら 1。前回も非 PASS なら前回値 +1
   "verdict": "[PASS / FAIL / BLOCKED。BLOCKED は環境を起動できないか到達できず検証未実施]",
-  "open_questions": ["[判断で補った点、chworktree stop の失敗。無ければ空配列]"],
+  "open_questions": ["[判断で補った点、停止コマンドの失敗。無ければ空配列]"],
   "scenarios": [
     {
       "id": "Q1",
@@ -76,34 +76,19 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 `git rev-parse HEAD` で head を確定する。
 `plan.jsonc` の `scenarios.local` が空なら、ブラウザで検証するものが無いので環境を起動せず、Step 2〜5 と Step 7 を飛ばして Step 6 でシナリオ数 0 の PASS を書き出す。
 
-### Step 2: 起動プロファイルと稼働状態の確認
+### Step 2: 起動コマンドと停止コマンドの確認
 
-起動プロファイルは `CLAUDE.local.md` の `## 環境起動` 節から採用する。
+起動コマンドと停止コマンドは `CLAUDE.local.md` の `## 環境起動` 節から採用する。
 記載が無ければ推測せず、結果に記載を促す旨を書いて終了する。
 
-```
-chworktree status
-```
+### Step 3: 起動する
 
-到達性を起動済みの証拠にしない。
-compose プロジェクトは 1 リポジトリに 1 つしかなく、別 worktree の環境が起動していてもベース URL には到達できてしまうので、到達できることを根拠に進むと別ブランチのコードを PASS にする。
-
-### Step 3: 状態に応じて起動する
-
-`git rev-parse --show-toplevel` で得た自分の worktree と `chworktree status` を照合して分岐する。
-
-| 稼働状態 | 動作 |
-|---|---|
-| 何も起動していない | `chworktree <profile>` で起動する |
-| 自分の worktree が起動中 | そのまま使う |
-| 別 worktree が起動中 | `chworktree -loop <profile>` で空くのを待って切り替える |
-| 複数 worktree が同居 | `chworktree stop` で全停止してから `chworktree <profile>` で起動し直す |
-
-`-loop` は長時間ブロッキングしうるので `run_in_background` で実行する。
+起動コマンドを実行する。
+長時間ブロッキングしうるので `run_in_background` で実行する。
 
 ### Step 4: 起動失敗の扱い
 
-起動できない・`-loop` が空かないときは BLOCKED とし、Step 7 で停止してから結果に理由を書いて終了する。
+起動できないときは BLOCKED とし、Step 7 で停止してから結果に理由を書いて終了する。
 ベース URL への到達性は Bash で確認せず、Step 5 の委譲先が最初に確かめる。
 
 ### Step 5: シナリオ実行の委譲
@@ -128,10 +113,7 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
 
 ### Step 7: 環境停止
 
-```
-chworktree stop
-```
-
+Step 2 の停止コマンドを実行する。
 停止に失敗しても判定は確定しているので中断せず、`open_questions` に書く。
 FAIL の原因調査で環境が要るなら `/fix` 側で起動し直す。
 

@@ -1,7 +1,7 @@
 ---
 name: plan
 description: 機能要望から、要件・技術設計・実装タスク・QAシナリオを一つの plan.jsonc にまとめる。$CLAUDE_WORK_DIR/ に何も無い最初の一歩、下書きの feature.jsonc の詳細化、plan.jsonc の書き戻しで使う。plan.jsonc があるときは、現状の判断と要確認を提示し、会話で詰めて、ブラウザで付けたコメントとあわせて書き戻す。
-allowed-tools: Read, Write, Edit, Glob, Grep, Skill, Bash(git rev-parse *), Bash(git -C *), Bash(open .specs/plan.html), WebSearch
+allowed-tools: Read, Write, Edit, Glob, Grep, Skill, Bash(git rev-parse *), Bash(git -C *), Bash(open *), WebSearch
 ---
 
 # 計画スキル
@@ -371,7 +371,7 @@ Step 2〜6 の内容を「plan.jsonc のフォーマット」で `$CLAUDE_WORK_D
 続けて `$CLAUDE_WORK_DIR/feature.jsonc` のメタを揃える。
 `feature.jsonc` が無ければ、次の 5 キーだけで新規に作る。
 有れば、既存のキーは残し、空のキーだけを埋める。
-- `repo`: 今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename
+- `repo`: `git rev-parse --show-toplevel` の basename
 - `title`: 日本語の 20 字以内の名詞句
 - `branch_name`: 英小文字・数字・ハイフンだけの `<type>/<短い英語の説明>`。`title` と要件の内容から決める
 - `pr_title`: 固定 prefix `【鎌田QA】` で始める。指定があればその文字列の前に付け、prefix が既にあれば足さず、無ければ `【鎌田QA】<title>`
