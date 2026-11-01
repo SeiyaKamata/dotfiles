@@ -41,7 +41,8 @@
       "Bash(go vet *)",
       "Bash(go fmt *)",
       "Bash(go tool *)",
-      "Read(~/Develop/*)"
+      "Read(~/Develop/*)",
+      "Edit(~/Develop/_work/**)"
     ],
     "deny": [
       "AskUserQuestion",
