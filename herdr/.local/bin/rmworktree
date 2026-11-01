@@ -1,15 +1,9 @@
 #!/bin/bash
 # 指定した worktree ディレクトリを削除する。mkworktree の逆コマンド。
-# 対話プロンプトは持たない。devpick からも Claude からも同じ引数で呼べるようにするため。
+# 対話プロンプトは持たない。人からも Claude からも同じ引数で呼べるようにするため。
 # 未コミットの変更がある場合は削除せずに失敗する。捨ててよいときだけ -f を付ける。
-# worktree が結びついている feature も、他の worktree から参照されていなければ .specs/.archive へ退避する。
-#   完了した feature が溜まると、devpick で feature を選ぶ時に邪魔になるため。
-#   .archive は隠しディレクトリなので devpick の一覧に出ない。戻すときは mv する。
-#   -k で feature をそのまま残し、-d で退避せず完全に削除する。
 # $HOME/Develop/*/worktrees 配下のみを対象にする。repos/ の bare repo は消さないため。
 set -euo pipefail
-
-specs_root="$HOME/Develop/.specs"
 
 die() {
   echo "$1" >&2
@@ -29,57 +23,17 @@ open_workspace_id() {
     | jq -r --arg p "$1" '.result.worktrees[]? | select(.path == $p) | .open_workspace_id // empty'
 }
 
-# .specs のリンク先が .specs 直下の feature でなければ空を返す。細工されたリンクで別の場所を消さないため。
-feature_of() {
-  local specs dir
-  specs="$1/.specs"
-  [ -e "$specs" ] || return 0
-  dir="$(realdir "$specs")"
-  [ "$(dirname "$dir")" = "$specs_root" ] || return 0
-  [[ "$(basename "$dir")" != .* ]] || return 0
-  printf '%s\n' "$dir"
-}
-
-used_by_other_worktree() {
-  local feature="$1" self="$2" link
-  for link in "$HOME"/Develop/*/worktrees/*/.specs; do
-    [ -e "$link" ] || continue
-    [ "$(dirname "$link")" != "$self" ] || continue
-    [ "$(realdir "$link")" = "$feature" ] && return 0
-  done
-  return 1
-}
-
-dispose_feature() {
-  local feature="$1" archive_root archived
-  if [ "$purge" -eq 1 ]; then
-    rm -rf "$feature"
-    echo "feature を削除しました: $feature"
-    return
-  fi
-  archive_root="$specs_root/.archive"
-  archived="$archive_root/$(basename "$feature")"
-  [ ! -e "$archived" ] || archived="$archived-$(date +%Y%m%d%H%M%S)"
-  mkdir -p "$archive_root"
-  mv "$feature" "$archived"
-  echo "feature を退避しました: $archived"
-}
-
 main() {
-  local force=() keep=0 opt arg path ws_id feature=""
-  purge=0
-  while getopts fkd opt; do
+  local force=() opt arg path ws_id
+  while getopts f opt; do
     case "$opt" in
       f) force=(--force) ;;
-      k) keep=1 ;;
-      d) purge=1 ;;
       *) exit 1 ;;
     esac
   done
   shift $((OPTIND - 1))
 
-  arg="${1:?usage: rmworktree [-f] [-k | -d] <worktree-path>}"
-  [ "$keep" -eq 0 ] || [ "$purge" -eq 0 ] || die "-k と -d は同時に指定できません"
+  arg="${1:?usage: rmworktree [-f] <worktree-path>}"
   [ -d "$arg" ] || die "見つかりません: $arg"
   path="$(realdir "$arg")"
 
@@ -92,19 +46,11 @@ main() {
     die "未コミットの変更があります。捨てる場合は -f を付けてください: $path"
   fi
 
-  # 削除すると引けなくなるので、workspace の id と feature は先に調べておく。
+  # 削除すると引けなくなるので、workspace の id は先に調べておく。
   ws_id="$(open_workspace_id "$path")"
-  if [ "$keep" -eq 0 ]; then
-    feature="$(feature_of "$path")"
-    if [ -n "$feature" ] && used_by_other_worktree "$feature" "$path"; then
-      feature=""
-    fi
-  fi
 
   git -C "$path" worktree remove ${force[@]+"${force[@]}"} "$path"
   echo "削除しました: $path"
-
-  [ -z "$feature" ] || dispose_feature "$feature"
 
   # 実行元の pane ごと閉じる場合があるので、他の処理を終えた最後に置く。
   # 開いていなくても削除自体は完了しているので失敗は無視してよい。

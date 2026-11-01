@@ -15,13 +15,13 @@ prefix = "ctrl+space"               # tmux: set -g prefix C-Space
 detach = "prefix+d"                 # tmux 既定 bind d detach-client に合わせる
 
 # space (workspace) = tmux window 相当
-new_workspace = "prefix+shift+n"    # 素の新規作成（cwd 引き継ぎ）。場所を選んで作るのは prefix+n の hspace ピッカーへ
+new_workspace = "prefix+n"          # 素の新規作成（cwd 引き継ぎ）
 workspace_picker = ""               # prefix+w を rename_workspace に使うため無効化
 rename_workspace = "prefix+w"
 next_workspace = "ctrl+j"           # 上下移動は vim 流 j=次/k=前、prefix 不要の単独キー
 previous_workspace = "ctrl+k"       # ctrl+j/k はペインへ渡らなくなるため nvim 側の同キー割り当ては削除済み
 
-# tab は番号で直接切り替える。next_tab の標準 prefix+n は hspace ピッカーと衝突するため巡回系は空にする
+# tab は番号で直接切り替える。next_tab の標準 prefix+n は new_workspace と衝突するため巡回系は空にする
 new_tab = ""
 switch_tab = "ctrl+1..9"
 next_tab = ""
@@ -46,7 +46,7 @@ edit_scrollback = ""                # 下の [[keys.command]] prefix+e (nvim pop
 # リサイズは prefix+r (resize_mode) → 矢印/hjkl。コピペはマウス選択+内蔵クリップボード連携で代替。
 # ステータスラインは herdr のサイドバー UI に置き換わる。
 
-new_worktree = ""                   # herdr 内蔵の worktree 作成は使わない（chworktree/devpick で自前管理しているため無効化）
+new_worktree = ""                   # herdr 内蔵の worktree 作成は使わない（chworktree で自前管理しているため無効化）
 
 [ui]
 agent_panel_sort = "spaces"
@@ -68,14 +68,6 @@ position = "top-right"
 
 [ui.toast.clipboard]
 enabled = false              # クリップボードコピー時の "copied to clipboard" トーストを消す
-
-[[keys.command]]
-key = "prefix+n"
-type = "popup"
-command = '''first=--focus; devpick | while IFS= read -r dir; do herdr workspace create --cwd "$dir" $first; first=--no-focus; done'''
-width = "70%"
-height = "60%"
-
 
 [[keys.command]]
 key = "prefix+p"
