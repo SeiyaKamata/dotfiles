@@ -102,6 +102,12 @@ def check_appendix(appendix, errors):
         cols, rows = t.get("columns"), t.get("rows")
         if blank(t.get("title")):
             errors.append(f"{where}: title が空か文字列でない")
+            continue
+        if "lines" in t:
+            lines = t["lines"]
+            if not isinstance(lines, list) or not lines or any(not isinstance(v, str) or "\n" in v for v in lines):
+                errors.append(f"{where}: lines は改行を含まない文字列の配列にする")
+            continue
         if not isinstance(cols, list) or not cols or not isinstance(rows, list):
             errors.append(f"{where}: columns と rows を配列にする")
             continue
@@ -126,8 +132,7 @@ def check_feature(feature):
     return errors
 
 
-def check_requirements(data):
-    errors = []
+def check_requirements(data, errors):
     for key in TOP_STRINGS:
         if not isinstance(data.get(key), str):
             errors.append(f"{key}: 文字列でない、または無い")
@@ -150,12 +155,35 @@ def check_requirements(data):
     else:
         errors.append("subjects: 1 件以上の配列にする")
 
-    appendix = data.get("appendix")
-    if isinstance(appendix, list):
-        check_appendix(appendix, errors)
-    else:
-        errors.append("appendix: 配列でない")
-    return errors
+
+def requirement_ids(data):
+    ids = set()
+    subjects = data.get("subjects")
+    if not isinstance(subjects, list):
+        return ids
+    for subject in subjects:
+        reqs = subject.get("requirements") if isinstance(subject, dict) else None
+        for r in reqs if isinstance(reqs, list) else []:
+            if isinstance(r, dict) and isinstance(r.get("id"), int):
+                ids.add(r["id"])
+    return ids
+
+
+def check_facts(facts, errors):
+    if not isinstance(facts, list):
+        errors.append("facts: 配列でない")
+        return
+    for i, f in enumerate(facts, 1):
+        where = f"facts[{i}]"
+        if not isinstance(f, dict):
+            errors.append(f"{where}: オブジェクトでない")
+            continue
+        if blank(f.get("claim")):
+            errors.append(f"{where}: claim が空か文字列でない")
+        if f.get("basis") not in ("実データ", "コード", "未検証"):
+            errors.append(f"{where}: basis は 実データ か コード か 未検証 にする")
+        if blank(f.get("where")):
+            errors.append(f"{where}: where が空か文字列でない。コードなら path:行、未検証なら理由を書く")
 
 
 def check_strings(where, value, errors):
@@ -170,7 +198,7 @@ def check_requirement_refs(where, refs, known, errors):
     if known is not None:
         for r in refs:
             if r not in known:
-                errors.append(f"{where}: requirements.jsonc に無い要件番号 {r}")
+                errors.append(f"{where}: plan.jsonc の subjects に無い要件番号 {r}")
 
 
 def check_flag(where, value, errors):
@@ -275,6 +303,9 @@ def check_tasks(tasks, setup_ids, known, errors):
 
 def check_plan(data, known=None):
     errors = []
+    check_requirements(data, errors)
+    known = requirement_ids(data)
+    check_facts(data.get("facts"), errors)
     if blank(data.get("summary")):
         errors.append("summary: 空か文字列でない")
     check_judgments("decisions", data.get("decisions"), errors)
@@ -283,22 +314,20 @@ def check_plan(data, known=None):
     tasks = data.get("tasks")
     if isinstance(tasks, list) and tasks:
         covered = check_tasks(tasks, setup_ids, known, errors)
-        for rid in sorted((known or set()) - covered):
+        for rid in sorted(known - covered):
             errors.append(f"tasks: 要件 {rid} がどのタスクの req にも現れない")
     else:
         errors.append("tasks: 1 件以上の配列にする")
+    scenarios = data.get("scenarios")
+    if isinstance(scenarios, dict):
+        errors.extend(f"scenarios.{e}" for e in check_scenarios(scenarios, known))
+    else:
+        errors.append("scenarios: オブジェクトでない")
     appendix = data.get("appendix")
-    if not isinstance(appendix, list):
+    if isinstance(appendix, list):
+        check_appendix(appendix, errors)
+    else:
         errors.append("appendix: 配列でない")
-        return errors
-    for i, a in enumerate(appendix, 1):
-        where = f"appendix[{i}]"
-        if not isinstance(a, dict) or blank(a.get("title")):
-            errors.append(f"{where}: title が空か文字列でない")
-            continue
-        lines = a.get("lines")
-        if not isinstance(lines, list) or not lines or any(not isinstance(v, str) or "\n" in v for v in lines):
-            errors.append(f"{where}: lines は改行を含まない文字列の配列にする")
     return errors
 
 
@@ -344,8 +373,6 @@ def check_scenarios(data, known=None):
 
 
 CHECKS = {
-    "requirements": lambda data, known: check_requirements(data),
     "feature": lambda data, known: check_feature(data),
     "plan": check_plan,
-    "qa": check_scenarios,
 }
