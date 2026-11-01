@@ -94,6 +94,7 @@
     }
   },
   "language": "Japanese",
+  "promptSuggestionEnabled": false,
   "spinnerTipsEnabled": false,
   "effortLevel": "medium",
   "awaySummaryEnabled": false,
