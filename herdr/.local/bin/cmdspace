@@ -1,0 +1,26 @@
+#!/bin/bash
+# コマンド実行スペースと、そこへ飛ぶ直前の space を行き来する。herdr の ctrl+o から呼ぶ。
+set -euo pipefail
+
+target_label="コマンド実行スペース"
+state="${XDG_STATE_HOME:-$HOME/.local/state}/cmdspace-return"
+
+read -r current target < <(herdr workspace list | python3 -I -c '
+import json, sys
+label = sys.argv[1]
+spaces = json.load(sys.stdin)["result"]["workspaces"]
+current = next((w["workspace_id"] for w in spaces if w["focused"]), "-")
+target = next((w["workspace_id"] for w in spaces if w["label"] == label), "-")
+print(current, target)
+' "$target_label")
+
+[ "$target" != "-" ] || exit 1
+
+if [ "$current" = "$target" ]; then
+  [ -s "$state" ] && herdr workspace focus "$(cat "$state")"
+  exit 0
+fi
+
+mkdir -p "$(dirname "$state")"
+printf '%s\n' "$current" > "$state"
+herdr workspace focus "$target"

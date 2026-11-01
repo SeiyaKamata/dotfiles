@@ -92,7 +92,7 @@ height = "25%"
 [[keys.command]]
 key = "ctrl+o"
 type = "shell"
-command = '''herdr workspace focus "$(herdr workspace list | python3 -c 'import json,sys; print(next(w["workspace_id"] for w in json.load(sys.stdin)["result"]["workspaces"] if w["label"]=="コマンド実行スペース"))')"'''
+command = "cmdspace"
 
 [[keys.command]]
 key = "prefix+v"
