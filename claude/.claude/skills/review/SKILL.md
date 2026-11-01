@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Glob, Grep, Bash(git *), Bash(date *), Agent
 # レビュースキル
 
 ## 役割
-デフォルトブランチとの git 差分を、仕様・設計との整合性とコード品質の観点でレビューし、OK / NG を判定して `.specs/review.jsonc` に記録する。
+デフォルトブランチとの git 差分を、仕様・設計との整合性とコード品質の観点でレビューし、OK / NG を判定して `$CLAUDE_WORK_DIR/review.jsonc` に記録する。
 NG の戻し先は決めず、呼び出し元に委ねる。
 
 ## 判断が割れる点の扱い
@@ -22,11 +22,11 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 | 裏取りで成立を確認できたバグ・セキュリティ・クラッシュなど重大な問題がある | NG |
 | 指摘がスタイル・軽微な改善のみ | OK。指摘は記録する |
 | 重大と報告されたが裏取りで不成立だった | NG にしない。理由つきで記録する |
-| 実装は仕様どおりだが、`requirements.jsonc` / `plan.jsonc` の記述が実コードと食い違っている | OK。食い違いを推奨対応に上流 doc の修正として列挙し、`open_questions` にも書く |
+| 実装は仕様どおりだが、`plan.jsonc` の記述が実コードと食い違っている | OK。食い違いを推奨対応に上流 doc の修正として列挙し、`open_questions` にも書く |
 
 ## review.jsonc のフォーマット
 `/fix` が読む指摘の内訳と、人が読む HTML の元データを兼ねる。
-毎回 `.specs/review.jsonc` に上書きし、同じ内容から `.specs/review.html` を生成する。
+毎回 `$CLAUDE_WORK_DIR/review.jsonc` に上書きし、同じ内容から `$CLAUDE_WORK_DIR/review.html` を生成する。
 末尾カンマは書かない。
 文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 
@@ -59,7 +59,7 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 ### Step 1: 対象確定
 
 カレントブランチが実装ブランチ `<branch>` でなければ `git switch <branch>` を試みる。
-実装ブランチ名 `<branch>` は `.specs/feature.jsonc` の `branch_name` にする。
+実装ブランチ名 `<branch>` は `$CLAUDE_WORK_DIR/feature.jsonc` の `branch_name` にする。
 - switch できた → そのまま続行
 - `<branch>` が存在しない → 現在のブランチをそのまま採用する
   - PR を作らない運用で直接コミットしているとみなす
@@ -75,13 +75,13 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 いずれも fresh な general-purpose agent とし、レビュー対象は自分で読ませる。
 
 - 仕様整合性 reviewer
-  - `.specs/requirements.jsonc` と、存在すれば `plan.jsonc` を読ませる
+  - `$CLAUDE_WORK_DIR/plan.jsonc` を読ませる
   - `git diff <デフォルトブランチ>...HEAD` を読ませ、仕様・設計と整合しているかの指摘一覧を返させる
 - コード品質 reviewer
   - `coderabbit:code-review` skill が導入済みならそれを、未導入なら `code-review` skill を `Skill` ツールで起動させる
   - 効果レベルは指定せず、`--comment` / `--fix` は使わせない
 
-`plan.jsonc` が無いときは `requirements.jsonc` との整合だけを見る。
+`plan.jsonc` が無いときは、仕様整合性 reviewer を起動せずコード品質 reviewer だけで進める。
 無いことを中断理由にしない。
 
 ### Step 3: 指摘の裏取り
@@ -97,7 +97,7 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 
 ### Step 5: 書き出し
 
-既存の `review.jsonc` があれば判定と `count` を読み、「review.jsonc のフォーマット」で `.specs/review.jsonc` に上書きする。
+既存の `review.jsonc` があれば判定と `count` を読み、「review.jsonc のフォーマット」で `$CLAUDE_WORK_DIR/review.jsonc` に上書きする。
 差分の全行は render.py が `git diff <base>...HEAD` から HTML に出すので、差分を `review.jsonc` に書き写さない。
 `file` と `line` が差分の行に当たる指摘は、その行の直下に表示される。
 当たらない指摘は表にまとめて表示される。
@@ -107,5 +107,5 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 
 次を出して終了する。
 - 結果: 判定 `OK` か `NG`
-- 詳細: `.specs/review.html`
+- 詳細: `$CLAUDE_WORK_DIR/review.html`
 - 次の一手: OK なら `/qa`、NG なら `/plan` か `/fix`

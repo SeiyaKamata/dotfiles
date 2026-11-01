@@ -1,6 +1,6 @@
 ---
 name: browser-tester
-description: qa.jsonc のシナリオを Playwright でブラウザ操作し合否を返す。/qa 専用。
+description: plan.jsonc の scenarios.local のシナリオを Playwright でブラウザ操作し合否を返す。/qa 専用。
 tools: Read, Grep, Glob, Bash, mcp__playwright__*
 mcpServers:
   - playwright:
@@ -29,7 +29,7 @@ effort: low
 `/qa` からプロンプトで次が渡される。
 
 - ベース URL: アプリの起点 URL
-- シナリオ配列: `qa.jsonc` の `local` の配列そのまま。各シナリオは `id` シナリオID・`precondition` 開始状態・`steps` 操作手順・`expect` 期待される結果を持つ。`done` は前回の結果なので無視し、渡された全シナリオを実行する
+- シナリオ配列: `plan.jsonc` の `scenarios.local` の配列そのまま。各シナリオは `id` シナリオID・`precondition` 開始状態・`steps` 操作手順・`expect` 期待される結果を持つ。`done` は前回の結果なので無視し、渡された全シナリオを実行する
 - スクリーンショット保存先ディレクトリ: git 管理外の一時領域
 
 ## 処理

@@ -447,9 +447,8 @@ def question_block(text):
     return f'<div class="question">要確認: {esc(text)}</div>' if text else ""
 
 
-def render_requirements(data):
-    title = f"要件定義: {data['feature']}"
-    parts = header(title, data, with_verdict=False)
+def requirements_parts(data):
+    parts = []
     parts.append("<h2>概要</h2>" + f"<p>{esc(data.get('overview', ''))}</p>")
     for q in data.get("open_questions", []):
         parts.append(question_block(q))
@@ -474,11 +473,14 @@ def render_requirements(data):
                 for line in r.get("lines", [])
             )
             parts.append(f"<h4>Requirement {esc(r['id'])}: {esc(r['title'])}</h4><ul class=\"lines\">{lines}</ul>")
+    return parts
 
-    for t in data.get("appendix", []):
-        rows = [[td(c) for c in row] for row in t.get("rows", [])]
-        parts.append(f"<h2>付録: {esc(t['title'])}</h2>" + table(t.get("columns", []), rows))
-    return title, parts
+
+def facts_parts(facts):
+    if not facts:
+        return []
+    rows = [[td(f.get("claim", "")), td(f.get("basis", "")), td(f.get("where", ""))] for f in facts]
+    return ["<h2>前提の確認</h2>" + table(["主張", "確認の種類", "根拠"], rows)]
 
 
 def decision_list(items):
@@ -504,10 +506,12 @@ def touch_list(items):
 
 
 def render_plan(data):
-    title = f"実装計画: {data['feature']}"
+    title = f"計画: {data['feature']}"
     tasks = data.get("tasks", [])
     setup = data.get("setup", [])
     parts = header(title, data, with_verdict=False)
+    parts.extend(requirements_parts(data))
+    parts.extend(facts_parts(data.get("facts", [])))
     parts.append(
         "<h2>方針</h2>"
         f"<p>{esc(data.get('summary', ''))}</p>"
@@ -552,8 +556,13 @@ def render_plan(data):
             parts.append(f"<p>{esc(t['goal'])}</p>")
         if t.get("details"):
             parts.append(bullets(t["details"]))
+    parts.extend(scenario_parts(data.get("scenarios", {})))
     for a in data.get("appendix", []):
-        parts.append(f"<h2>付録: {esc(a['title'])}</h2><pre>{esc(chr(10).join(a.get('lines', [])))}</pre>")
+        if "lines" in a:
+            parts.append(f"<h2>付録: {esc(a['title'])}</h2><pre>{esc(chr(10).join(a['lines']))}</pre>")
+        else:
+            rows = [[td(c) for c in row] for row in a.get("rows", [])]
+            parts.append(f"<h2>付録: {esc(a['title'])}</h2>" + table(a.get("columns", []), rows))
     return title, parts
 
 
@@ -579,14 +588,13 @@ def scenario_cards(items):
     return out
 
 
-def render_scenarios(data):
-    title = f"QAシナリオ: {data['feature']}"
+def scenario_parts(data):
     local = data.get("local", [])
     deploy = data.get("deploy", [])
     excluded = data.get("excluded", [])
-    parts = header(title, data, with_verdict=False)
+    parts = []
     parts.append(
-        "<h2>サマリ</h2>"
+        "<h2>QAシナリオのサマリ</h2>"
         + bullets(
             [
                 f"ローカル: {sum(1 for x in local if x.get('done'))} / {len(local)} 完了",
@@ -605,7 +613,7 @@ def render_scenarios(data):
             for x in excluded
         ]
         parts.append("<h2>自動QA対象外</h2>" + bullets(items))
-    return title, parts
+    return parts
 
 
 def render_feature(data):
@@ -657,15 +665,13 @@ KINDS = {
     "ci-report": render_ci,
     "comment-report": render_comments,
     "bug-report": render_bug,
-    "requirements": render_requirements,
     "plan": render_plan,
-    "qa": render_scenarios,
     "feature": render_feature,
     "log-report": render_logs,
 }
 
 
-FEATURE_TITLED = ("requirements", "plan", "qa", "qa-report")
+FEATURE_TITLED = ("plan", "qa-report")
 OPEN_QUESTION_KINDS = ("test-report", "review", "qa-report", "ci-report", "comment-report", "bug-report")
 
 
@@ -675,14 +681,6 @@ def feature_title(src):
     except (OSError, ValueError):
         return ""
     return str(feature.get("title", ""))
-
-
-def requirement_ids(directory):
-    try:
-        data = json.loads(strip_comments(directory.joinpath("requirements.jsonc").read_text(encoding="utf-8")))
-        return {r["id"] for s in data["subjects"] for r in s["requirements"]}
-    except (OSError, IndexError, ValueError, KeyError, TypeError):
-        return None
 
 
 def render_file(src):
@@ -695,7 +693,7 @@ def render_file(src):
     except (IndexError, ValueError) as e:
         return f"{src.name} を JSON として読めません: {e}"
     check = CHECKS.get(src.stem)
-    problems = check(data, requirement_ids(src.parent)) if check and isinstance(data, dict) else []
+    problems = check(data, None) if check and isinstance(data, dict) else []
     if problems:
         return "\n".join(f"{src.name}: {p}" for p in problems)
     if src.stem in FEATURE_TITLED:

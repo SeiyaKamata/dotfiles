@@ -1,13 +1,13 @@
 ---
 name: impl
-description: 実装計画のタスク一覧を受け取り実装を行う。.specs/plan.jsoncが出来上がったら使う。
+description: 実装計画のタスク一覧を受け取り実装を行う。$CLAUDE_WORK_DIR/plan.jsoncが出来上がったら使う。
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, WebSearch, WebFetch
 ---
 
 # 実装スキル
 
 ## 役割
-`.specs/plan.jsonc` の `tasks` を実装する。
+`$CLAUDE_WORK_DIR/plan.jsonc` の `tasks` を実装する。
 コードは `implementer` サブエージェントに書かせ、自分はコーディネーターとして配布・ビルド確認・進捗更新だけを行う。
 仕様だけで実装が通るかを確かめるため、自分ではコードを書かない。
 
@@ -25,13 +25,13 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, WebSearch, WebFetch
 
 ### Step 1: コンテキスト収集
 読むのは次の 2 つだけにする。
-仕様の裏取りは `implementer` が自分で行うので、`requirements.jsonc` と `plan.jsonc` のそれ以外は読まない。
+仕様の裏取りは `implementer` が自分で行うので、`plan.jsonc` の `tasks` 以外は読まない。
 
-- `.specs/plan.jsonc` の `tasks`
+- `$CLAUDE_WORK_DIR/plan.jsonc` の `tasks`
 - ビルド設定ファイルから読み取ったテスト・ビルドコマンド
 
 ### Step 2: 実装ブランチへの移動
-実装ブランチ名 `<branch>` は `.specs/feature.jsonc` の `branch_name` にする。
+実装ブランチ名 `<branch>` は `$CLAUDE_WORK_DIR/feature.jsonc` の `branch_name` にする。
 今いるブランチが `<branch>` ならそのまま進む。
 違えば `git switch <branch>` し、ブランチが無ければ `git switch -c <branch>` で今の HEAD から切る。
 
@@ -70,7 +70,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, WebSearch, WebFetch
 
 次を出して終了する。
 - 結果: 何タスクを実装したか
-- 詳細: `.specs/plan.html`
+- 詳細: `$CLAUDE_WORK_DIR/plan.html`
 - 次の一手: `/test`。テストコマンドが無ければ `/review`
 
 要確認があれば `要確認: <内容>` を 1 件 1 行で足す。

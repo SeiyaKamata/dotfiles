@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Edit, Bash
 # テストスキル
 
 ## 役割
-実装後にテスト・lint・フォーマットチェックなどの検証を実行し、PASS / FAIL を判定して `.specs/test-report.jsonc` に記録する。
+実装後にテスト・lint・フォーマットチェックなどの検証を実行し、PASS / FAIL を判定して `$CLAUDE_WORK_DIR/test-report.jsonc` に記録する。
 出力は毎回ファイルにリダイレクトし、exit code と失敗行だけを `tail` / `grep` で読む。
 大量のログをメインコンテキストに載せないため。
 
@@ -18,7 +18,7 @@ allowed-tools: Read, Write, Edit, Bash
 
 ## test-report.jsonc のフォーマット
 `/fix` が読む失敗の内訳と、人が読む HTML の元データを兼ねる。
-毎回 `.specs/test-report.jsonc` に上書きし、同じ内容から `.specs/test-report.html` を生成する。
+毎回 `$CLAUDE_WORK_DIR/test-report.jsonc` に上書きし、同じ内容から `$CLAUDE_WORK_DIR/test-report.html` を生成する。
 末尾カンマは書かない。
 文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 
@@ -45,7 +45,7 @@ allowed-tools: Read, Write, Edit, Bash
 ### Step 1: 対象確定
 
 カレントブランチが実装ブランチ `<branch>` でなければ `git switch <branch>` を試みる。
-実装ブランチ名 `<branch>` は `.specs/feature.jsonc` の `branch_name` にする。
+実装ブランチ名 `<branch>` は `$CLAUDE_WORK_DIR/feature.jsonc` の `branch_name` にする。
 - switch できた → そのまま続行
 - `<branch>` が存在しない → 現在のブランチをそのまま採用する
   - PR を作らない運用で直接コミットしているとみなす
@@ -70,19 +70,19 @@ allowed-tools: Read, Write, Edit, Bash
 ### Step 3: 実行・判定
 
 ```bash
-<検出したコマンド> > .specs/.test-output.log 2>&1; echo "exit:$?"
-tail -n 50 .specs/.test-output.log
+<検出したコマンド> > $CLAUDE_WORK_DIR/.test-output.log 2>&1; echo "exit:$?"
+tail -n 50 $CLAUDE_WORK_DIR/.test-output.log
 ```
 
 必要なら `grep -E "FAIL|PASS|passed|failed"` も併用し、PASS / FAIL を判定する。
 
 ### Step 4: 記録
 
-既存の `test-report.jsonc` があれば判定と `count` を読み、「test-report.jsonc のフォーマット」で `.specs/test-report.jsonc` に上書きする。
+既存の `test-report.jsonc` があれば判定と `count` を読み、「test-report.jsonc のフォーマット」で `$CLAUDE_WORK_DIR/test-report.jsonc` に上書きする。
 
 ### Step 5: 出力
 
 次を出して終了する。
 - 結果: 実行数と `PASS` か `FAIL`
-- 詳細: `.specs/test-report.html`
+- 詳細: `$CLAUDE_WORK_DIR/test-report.html`
 - 次の一手: PASS なら `/review`、FAIL なら `/fix`

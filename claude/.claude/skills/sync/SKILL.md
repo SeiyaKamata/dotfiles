@@ -7,7 +7,7 @@ allowed-tools: Bash(git *), Bash(gh *), Read, Write, Edit, Skill
 # 既存PR更新スキル
 
 ## 役割
-既に PR を持つブランチに積んだコミットをリモートへ push し、`.specs/comment-report.jsonc` があれば承認済み項目への返信と、保留の項目の棚上げまで行う。
+既に PR を持つブランチに積んだコミットをリモートへ push し、`$CLAUDE_WORK_DIR/comment-report.jsonc` があれば承認済み項目への返信と、保留の項目の棚上げまで行う。
 返信は必ず push の後に行う。先に返信するとリモートのコードが古いまま「直しました」と伝えることになり、直っていないと指摘され直す。
 新しい PR は作らず、コードも直さず、スレッドの解決済み化もしない。
 
@@ -17,7 +17,7 @@ allowed-tools: Bash(git *), Bash(gh *), Read, Write, Edit, Skill
 - 対応・非対応・保留のいずれでも全レコードに返信する
   - 返信しないとスレッドが未返信のまま残り、次の収集で同じ判断を繰り返す
 - 理由は 1 文で書き、内部ドキュメントの名前や節は出さない
-  - レビュアーは `.specs/` を読めない
+  - レビュアーは `$CLAUDE_WORK_DIR/` を読めない
 
 | ケース | 返信 |
 |---|---|
@@ -48,7 +48,7 @@ git push
 
 ### Step 3: comment-report.jsonc の読込
 
-`.specs/comment-report.jsonc` を読む。
+`$CLAUDE_WORK_DIR/comment-report.jsonc` を読む。
 無い、または `done` が `false` の項目が 1 つも無ければ Step 7 へ進む。
 `done` が `false` の項目だけを `approval` で振り分ける。
 
@@ -85,7 +85,7 @@ gh pr comment <PR番号> --body "<返信内容>"
 
 ### Step 6: comment-report.jsonc のチェック
 
-書き直す直前に `.specs/comment-report.jsonc` を読み直し、返信まで済み、`保留` なら棚上げまで済んだ項目の `done` だけを `true` にして書き直す。
+書き直す直前に `$CLAUDE_WORK_DIR/comment-report.jsonc` を読み直し、返信まで済み、`保留` なら棚上げまで済んだ項目の `done` だけを `true` にして書き直す。
 他の項目と他のフィールドは、読み直した内容のまま維持する。Step 3 のあとに人や orch が `approval` を書き換えている場合があるため。
 承認待ち・未修正・返信失敗の項目は `done` を `false` のまま残し、項目は削除しない。
 

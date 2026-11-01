@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Edit, Agent
 # バグ調査スキル
 
 ## 役割
-ユーザーからのバグ報告を起点に、再現確認と原因の一次特定を行い、`.specs/bug-report.jsonc` に記録する。
+ユーザーからのバグ報告を起点に、再現確認と原因の一次特定を行い、`$CLAUDE_WORK_DIR/bug-report.jsonc` に記録する。
 コード修正・回帰テスト・レビュー・コミットは行わず、この工程は何も直さない。
 
 ## 判断が割れる点の扱い
@@ -17,7 +17,7 @@ allowed-tools: Read, Write, Edit, Agent
 
 ## bug-report.jsonc のフォーマット
 `/fix` と `/hotfix` と bug-investigator が読む調査結果と、人が読む HTML の元データを兼ねる。
-`.specs/bug-report.jsonc` に上書きし、同じ内容から `.specs/bug-report.html` を生成する。
+`$CLAUDE_WORK_DIR/bug-report.jsonc` に上書きし、同じ内容から `$CLAUDE_WORK_DIR/bug-report.html` を生成する。
 末尾カンマは書かない。
 文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 
@@ -46,7 +46,7 @@ allowed-tools: Read, Write, Edit, Agent
 
 ### Step 1: バグ報告の受領
 
-`.specs/bug-report.jsonc` があれば前回までの調査結果として読み込み、既に埋まっている項目は聞き直さない。
+`$CLAUDE_WORK_DIR/bug-report.jsonc` があれば前回までの調査結果として読み込み、既に埋まっている項目は聞き直さない。
 症状・再現手順・期待する挙動・実際の挙動のうち不足している項目だけを質問して補い、`feature` `symptom` `reproducible` `expected` `actual` `steps` を埋めて一旦書き出す。
 `reproducible` はこの時点では `未調査` にする。必須の項目が欠けた `.jsonc` は HTML を生成できない。
 これが調査エージェントの起点になる。
@@ -59,7 +59,7 @@ bug-investigator は `bug-report.jsonc` の症状を起点に再現を確認し�
 
 ### Step 3: 書き出し
 
-bug-investigator の所見を「bug-report.jsonc のフォーマット」で `.specs/bug-report.jsonc` にマージ保存する。
+bug-investigator の所見を「bug-report.jsonc のフォーマット」で `$CLAUDE_WORK_DIR/bug-report.jsonc` にマージ保存する。
 `<path>:<line> — 理由` の形で返された疑わしい箇所は、`suspects` の `location` と `reason` に分けて書く。
 再現できなかった場合は「再現できず」と必要な追加情報を記録し、結果に書き、次の一手を `/bughunt` の再実行にして Step 4 で終了する。
 追加情報が得られたら Step 2 から再委譲する。
@@ -68,5 +68,5 @@ bug-investigator の所見を「bug-report.jsonc のフォーマット」で `.s
 
 次を出して終了する。
 - 結果: 症状と一次特定した原因
-- 詳細: `.specs/bug-report.html`
+- 詳細: `$CLAUDE_WORK_DIR/bug-report.html`
 - 次の一手: 直すなら `/fix`、本番 tag に当てるなら `/hotfix`

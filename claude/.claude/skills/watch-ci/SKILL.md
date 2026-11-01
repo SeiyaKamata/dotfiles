@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Bash(gh *), Bash(git *), Bash(date *), Agent
 # CI監視スキル
 
 ## 役割
-PR の CI が完了するまで監視し、green / 赤を判定して `.specs/ci-report.jsonc` に記録する。
+PR の CI が完了するまで監視し、green / 赤を判定して `$CLAUDE_WORK_DIR/ci-report.jsonc` に記録する。
 赤ならログを取得して要点に畳み、ログ本体はメインコンテキストにも報告にも載せない。
 Ready for review への切り替えは行わず、draft のまま完了とする。
 Ready for review はレビュアーに通知が飛ぶ外向きの操作で、取り消しても通知は戻らないので人が明示的に実行する。
@@ -20,7 +20,7 @@ CI の完了を待って結果を出力で報告し、途中でユーザーに�
 
 ## ci-report.jsonc のフォーマット
 `/fix` が読む失敗の内訳と、人が読む HTML の元データを兼ねる。
-毎回 `.specs/ci-report.jsonc` に上書きし、同じ内容から `.specs/ci-report.html` を生成する。
+毎回 `$CLAUDE_WORK_DIR/ci-report.jsonc` に上書きし、同じ内容から `$CLAUDE_WORK_DIR/ci-report.html` を生成する。
 末尾カンマは書かない。
 文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 
@@ -77,11 +77,11 @@ gh run list --branch <ブランチ名> --limit 5 --json databaseId,name,conclusi
 
 ### Step 4: レポートの書き出し
 
-既存の `ci-report.jsonc` があれば `branch`・判定・`count` を読み、「ci-report.jsonc のフォーマット」で `.specs/ci-report.jsonc` に上書きする。
+既存の `ci-report.jsonc` があれば `branch`・判定・`count` を読み、「ci-report.jsonc のフォーマット」で `$CLAUDE_WORK_DIR/ci-report.jsonc` に上書きする。
 
 ### Step 5: 出力
 
 次を出して終了する。
 - 結果: 対象 PR の CI 判定 `green` か `赤`
-- 詳細: `.specs/ci-report.html`
+- 詳細: `$CLAUDE_WORK_DIR/ci-report.html`
 - 次の一手: green なら `/triage-comments`、赤なら `/fix`
