@@ -56,7 +56,7 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 }
 ```
 
-`requirements` は `qa.jsonc` のシナリオが持つ要件番号で、`fail` のシナリオだけ書く。
+`requirements` は `plan.jsonc` の `scenarios.local` のシナリオが持つ要件番号で、`fail` のシナリオだけ書く。
 `screenshot` は全シナリオに書く。
 `BLOCKED` のときとローカルシナリオが 0 件のときは、`scenarios` を空配列にする。
 
@@ -64,7 +64,7 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 
 ### Step 1: 対象の確定
 
-- `.specs/qa.jsonc` が無ければ 結果に理由を書いて終了する
+- `.specs/plan.jsonc` が無いか `scenarios` が無ければ、結果に理由を書いて終了する
 
 カレントブランチが実装ブランチ `<branch>` でなければ `git switch <branch>` を試みる。
 実装ブランチ名 `<branch>` は `.specs/feature.jsonc` の `branch_name` にする。
@@ -74,7 +74,7 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 - detached HEAD のまま `<branch>` も無い → `branch: none` として続行する
 
 `git rev-parse HEAD` で head を確定する。
-`qa.jsonc` の `local` が空なら、ブラウザで検証するものが無いので環境を起動せず、Step 2〜5 と Step 7 を飛ばして Step 6 でシナリオ数 0 の PASS を書き出す。
+`plan.jsonc` の `scenarios.local` が空なら、ブラウザで検証するものが無いので環境を起動せず、Step 2〜5 と Step 7 を飛ばして Step 6 でシナリオ数 0 の PASS を書き出す。
 
 ### Step 2: 起動プロファイルと稼働状態の確認
 
@@ -118,7 +118,7 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
 
 ### Step 6: 書き出し
 
-- 結果で `.specs/qa.jsonc` の `local` の `done` を更新する。pass のシナリオは `true`、fail のシナリオは `false` にする。
+- 結果で `.specs/plan.jsonc` の `scenarios.local` の `done` を更新する。pass のシナリオは `true`、fail のシナリオは `false` にする。
   - Edit で、`"id": "Q<n>"` の行から `"done"` の行までを old_str にして、1 シナリオずつ置換する。`deploy` の `done` には触れない
 - 既存の `qa-report.jsonc` があれば上書き前に前回の判定と `count` を読む
 - `mkdir -p .specs/img` のあと、委譲先が返したスクリーンショットを `cp <返ってきたパス> .specs/img/qa-Q<n>.png` で全シナリオ分コピーする

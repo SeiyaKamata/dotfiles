@@ -25,7 +25,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, WebSearch, WebFetch
 
 ### Step 1: コンテキスト収集
 読むのは次の 2 つだけにする。
-仕様の裏取りは `implementer` が自分で行うので、`requirements.jsonc` と `plan.jsonc` のそれ以外は読まない。
+仕様の裏取りは `implementer` が自分で行うので、`plan.jsonc` の `tasks` 以外は読まない。
 
 - `.specs/plan.jsonc` の `tasks`
 - ビルド設定ファイルから読み取ったテスト・ビルドコマンド
