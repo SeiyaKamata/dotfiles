@@ -31,7 +31,7 @@ export WORKSPACE="$HOME/Develop/workspace"
 [[ -d "$WORKSPACE" ]] || mkdir -p "$WORKSPACE"
 
 # Claude Code の成果物の置き場。セッションごとの CLAUDE_WORK_DIR は c / cw が起動時に渡す
-export CLAUDE_WORK_ROOT="${CLAUDE_WORK_ROOT:-$HOME/Develop/.specs}"
+export CLAUDE_WORK_ROOT="${CLAUDE_WORK_ROOT:-$HOME/Develop/_work}"
 
 # Go
 export GOPATH="$WORKSPACE/go"
