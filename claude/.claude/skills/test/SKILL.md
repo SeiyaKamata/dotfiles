@@ -7,36 +7,37 @@ allowed-tools: Read, Write, Edit, Bash
 # テストスキル
 
 ## 役割
-実装後にテスト・lint・フォーマットチェックなどの検証を実行し、PASS / FAIL を判定して `.specs/test-report.md` に記録する。
+実装後にテスト・lint・フォーマットチェックなどの検証を実行し、PASS / FAIL を判定して `.specs/test-report.jsonc` に記録する。
 出力は毎回ファイルにリダイレクトし、exit code と失敗行だけを `tail` / `grep` で読む。
 大量のログをメインコンテキストに載せないため。
 
 ## 判断が割れる点の扱い
 途中でユーザーに質問も承認も求めない。
-テストコマンドを判断できないときは推測で実行せず、Step 5 の中断カードで `CLAUDE.local.md` への記載を促す。
+テストコマンドを判断できないときは推測で実行せず、Step 5 の結果に理由を書き、次の一手で `CLAUDE.local.md` への記載を促す。
 誤ったコマンドの PASS は最も危険な嘘になる。
 
-## test-report.md のフォーマット
-frontmatter は review・qa のレポートと共通の形式にする。
+## test-report.jsonc のフォーマット
+`/fix` が読む失敗の内訳と、人が読む HTML の元データを兼ねる。
+毎回 `.specs/test-report.jsonc` に上書きし、同じ内容から `.specs/test-report.html` を生成する。
+末尾カンマは書かない。
+文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 
-```markdown
----
-branch: [Step 1 で確定したブランチ。detached なら none]
-head: [Step 1 で確定した HEAD。40 文字、短縮しない]
-ran_at: [書き出し時点の時刻。date +"%Y-%m-%dT%H:%M:%S%z" で取得]
-fixed: false [常に false。/fix が修正を適用したときだけ true に書き換える]
-count: [FAIL の連続回数。今回が FAIL かつ既存レポートも FAIL なら既存値 +1、それ以外は 1]
----
-
-## テスト結果: [PASS / FAIL]
-
-- 実行数: [N]
-- 成功: [N]
-- 失敗: [N]
-
-### 失敗したテスト
-[FAIL のときだけ。PASS なら節ごと省略]
-- [テスト名]: [エラー内容]
+```jsonc
+{
+  "branch": "[Step 1 で確定したブランチ。detached なら none]",
+  "head": "[Step 1 で確定した HEAD。40 文字、短縮しない]",
+  "ran_at": "[書き出し時点の時刻。date +\"%Y-%m-%dT%H:%M:%S%z\" で取得]",
+  "fixed": false, // 常に false。/fix が修正を適用したときだけ true に書き換える
+  "count": 1, // FAIL の連続回数。今回が FAIL かつ既存レポートも FAIL なら既存値 +1、それ以外は 1
+  "verdict": "[PASS / FAIL]",
+  "open_questions": ["[判定に影響しうる判断。無ければ空配列]"],
+  "total": 0,
+  "passed": 0,
+  "failed": 0,
+  "failures": [
+    { "name": "[テスト名]", "error": "[エラー内容]" }
+  ] // FAIL のときだけ並べる。PASS は空配列
+}
 ```
 
 ## 進め方
@@ -44,11 +45,11 @@ count: [FAIL の連続回数。今回が FAIL かつ既存レポートも FAIL �
 ### Step 1: 対象確定
 
 カレントブランチが実装ブランチ `<branch>` でなければ `git switch <branch>` を試みる。
-実装ブランチ名 `<branch>` は `.specs/requirements.md` の frontmatter の `branch_name` にする。
+実装ブランチ名 `<branch>` は `.specs/feature.jsonc` の `branch_name` にする。
 - switch できた → そのまま続行
 - `<branch>` が存在しない → 現在のブランチをそのまま採用する
   - PR を作らない運用で直接コミットしているとみなす
-- 未コミットの変更があって switch できない → Step 5 の中断カードで報告する
+- 未コミットの変更があって switch できない → Step 5 の結果に理由を書いて終了する
   - stash などの作業ツリー操作はしない
 - detached HEAD のまま `<branch>` も無い → `branch: none` として続行する
 
@@ -63,7 +64,8 @@ count: [FAIL の連続回数。今回が FAIL かつ既存レポートも FAIL �
 2. 記載が無ければ、ビルド設定ファイルからテストフレームワークの標準コマンドを検出する
    - 複数該当すれば変更されたファイルに対応するものを選ぶ
    - 決まったら次回のために `CLAUDE.local.md` に `## テスト` 節として書き戻す
-3. それでも決まらなければ Step 5 の中断カードへ進む
+3. それでも決まらなければ、探した場所を結果に書いて終了する
+   - 次の一手は、`CLAUDE.local.md` の `## テスト` 節に実行コマンドを記載し、`/test` を再実行する
 
 ### Step 3: 実行・判定
 
@@ -76,25 +78,11 @@ tail -n 50 .specs/.test-output.log
 
 ### Step 4: 記録
 
-既存の `test-report.md` があれば判定と `count` を読み、「test-report.md のフォーマット」で `.specs/test-report.md` に上書きする。
+既存の `test-report.jsonc` があれば判定と `count` を読み、「test-report.jsonc のフォーマット」で `.specs/test-report.jsonc` に上書きする。
 
 ### Step 5: 出力
 
-次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
-中断時は見出しを `### テスト実行中断` にし、1 行目に中断理由を書き、生成物の行を省き、次の一手は復帰に必要な操作だけにする。
-テストコマンドを判断できずに中断したときは、要確認に探した場所を挙げ、次の一手を「`CLAUDE.local.md` の `## テスト` 節に実行コマンドを記載する」と「記載後に `/test` を再実行する」の 2 行にする。
-
-```markdown
-### テスト実行完了 — <PASS / FAIL>
-<実行数と判定を 1 行>
-
-生成物: `.specs/test-report.md`
-
-### 要確認
-- <候補が複数あったテストコマンドの選択、スキップした対象など、判定に影響しうる判断>
-<無ければこのブロックを省略>
-
-### 次の一手
-- レビューに進む: `/review`
-  <FAIL なら `- 失敗を直す: /fix` に差し替える>
-```
+次を出して終了する。
+- 結果: 実行数と `PASS` か `FAIL`
+- 詳細: `.specs/test-report.html`
+- 次の一手: PASS なら `/review`、FAIL なら `/fix`

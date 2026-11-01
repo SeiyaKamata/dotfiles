@@ -7,6 +7,7 @@
 # ブランチは実装を始める skill が切るので、ここでは作らない。
 # name省略時は <repo名>-<YYYYMMDDHHMMSS> を機械的に生成する。衝突したら連番を足す。
 # feature省略時は worktree 名と同名の feature を新規に作る。指定時は既存の feature に結びつける。
+# feature に - を指定すると feature を作らず .specs も張らない。
 set -euo pipefail
 
 repo="${1:?usage: mkworktree <bare-repo-path> [name] [feature]}"
@@ -14,7 +15,7 @@ name="${2:-}"
 feature="${3:-}"
 
 [ -d "$repo" ] || { echo "見つかりません: $repo" >&2; exit 1; }
-[ -z "$feature" ] || [ -d "$HOME/Develop/.specs/$feature" ] \
+[ -z "$feature" ] || [ "$feature" = - ] || [ -d "$HOME/Develop/.specs/$feature" ] \
   || { echo "feature が見つかりません: $feature" >&2; exit 1; }
 git -C "$repo" rev-parse --is-bare-repository 2>/dev/null | grep -qx true \
   || { echo "bare repoではありません: $repo" >&2; exit 1; }
@@ -84,7 +85,7 @@ if [ -z "$feature" ]; then
   feature="$name"
   mkdir -p "$specs_home/.specs/$feature"
 fi
-link "$specs_home/.specs/$feature" .specs
+[ "$feature" = - ] || link "$specs_home/.specs/$feature" .specs
 link "$repo/CLAUDE.local.md" CLAUDE.local.md
 link "$repo/.claude/settings.local.json" .claude/settings.local.json
 

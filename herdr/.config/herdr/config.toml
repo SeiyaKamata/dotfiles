@@ -16,13 +16,15 @@ detach = "prefix+d"                 # tmux 既定 bind d detach-client に合わ
 
 # space (workspace) = tmux window 相当
 new_workspace = "prefix+shift+n"    # 素の新規作成（cwd 引き継ぎ）。場所を選んで作るのは prefix+n の hspace ピッカーへ
+workspace_picker = ""               # prefix+w を rename_workspace に使うため無効化
+rename_workspace = "prefix+w"
 next_workspace = "ctrl+j"           # 上下移動は vim 流 j=次/k=前、prefix 不要の単独キー
 previous_workspace = "ctrl+k"       # ctrl+j/k はペインへ渡らなくなるため nvim 側の同キー割り当ては削除済み
 
 # tab は番号で直接切り替える。next_tab の標準 prefix+n は hspace ピッカーと衝突するため巡回系は空にする
-new_tab = "prefix+t"
+new_tab = ""
 switch_tab = "ctrl+1..9"
-next_tab = "ctrl+o"
+next_tab = ""
 previous_tab = ""
 
 # ペイン分割は使わない運用
@@ -30,7 +32,7 @@ split_horizontal = ""
 split_vertical = ""
 close_pane = "prefix+x"             # tmux: bind x kill-pane
 zoom = "prefix+z"                   # tmux: bind z resize-pane -Z
-cycle_pane_next = ""                # ctrl+o は next_tab に割り当てたため空にする
+cycle_pane_next = ""                # ctrl+o は下の [[keys.command]] に割り当てたため空にする
 
 # 方向移動は tmux に合わせて無効化（tmux は ctrl+t 巡回のみで hjkl 移動を使っていない）
 focus_pane_left = ""                # prefix+h は split_vertical で使用中のため空けておく
@@ -52,6 +54,12 @@ prompt_new_tab_name = false
 hide_tab_bar_when_single_tab = true # 1 tab の space ではタブバーを隠す
 show_agent_labels_on_pane_borders = true # タブバーを隠す運用のため、ペイン境界に agent 名を出して見分ける
 
+[ui.sidebar.spaces]
+rows = [["state_icon", { token = "$stage", fg = "#f38ba8", bold = true }, "workspace"]]
+
+[ui.sidebar.agents]
+rows = [[{ token = "state_icon", dim = false }, { token = "$stage", fg = "#f38ba8", bold = true, dim = false }, "workspace", "tab"], ["agent"]]
+
 [ui.toast]
 delivery = "herdr"                  # herdr 画面内トーストで表示（外側端末の通知対応に依存しない）
 
@@ -64,7 +72,7 @@ enabled = false              # クリップボードコピー時の "copied to c
 [[keys.command]]
 key = "prefix+n"
 type = "popup"
-command = '''dir=$(devpick); [ -n "$dir" ] && herdr workspace create --cwd "$dir" --focus'''
+command = '''first=--focus; devpick | while IFS= read -r dir; do herdr workspace create --cwd "$dir" $first; first=--no-focus; done'''
 width = "70%"
 height = "60%"
 
@@ -73,3 +81,22 @@ height = "60%"
 key = "prefix+p"
 type = "shell"
 command = "gh pr view --web"
+
+[[keys.command]]
+key = "prefix+s"
+type = "popup"
+command = "stagepick"
+width = "30%"
+height = "25%"
+
+[[keys.command]]
+key = "ctrl+o"
+type = "shell"
+command = "cmdspace"
+
+[[keys.command]]
+key = "prefix+v"
+type = "popup"
+command = "notifyq run"
+width = "80%"
+height = "70%"

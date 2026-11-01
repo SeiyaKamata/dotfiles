@@ -2,7 +2,7 @@
 name: orch
 description: 開発パイプライン全体を管理する。新規開発や機能追加の指示を受けたら使う。
 disable-model-invocation: true
-allowed-tools: Read, Edit, Bash(git *), Bash(gh *), Skill, Agent
+allowed-tools: Read, Edit, Bash(git *), Bash(gh *), Bash(stage *), Skill, Agent
 argument-hint: "[<stage>]"
 ---
 
@@ -14,18 +14,18 @@ argument-hint: "[<stage>]"
 `/spec`・`/plan` の成果物は工程別レビュアーで検証し、NG ならその工程を再起動して直させる。
 途中の失敗は自己修正ループで潰し、人を呼ぶのは停止点と回復不能な詰まりだけにする。
 
-各工程は人が単体で叩くのと同じ形で起動し、同じ完了カードを返す。
+各工程は人が単体で叩くのと同じ形で起動し、同じ出力を返す。
 全工程を実装ブランチ 1 本の上で回し、PR は feature につき 1 本にする。
 
 ## 判断が割れる点の扱い
-完了カードは人向けの区切りではなく工程間の引き継ぎ情報なので、各工程がカードを出しても応答を終えず、同じ応答内で次のアクションを続ける。
+出力は人向けの区切りではなく工程間の引き継ぎ情報なので、各工程が出力しても応答を終えず、同じ応答内で次のアクションを続ける。
 ユーザーの応答を待って止まるのは、Step 14 の停止点に到達したときと「停止条件」に該当したときだけ。
 
-既定の遷移は各工程の完了カードの「次の一手」に従い、orch はその指示どおりに次を起動する。
-各工程の「完了後」には、ループの停止閾値やカードの判定区分をまたぐ判断のように、カードだけでは分からない orch 固有の判断だけを書く。
+既定の遷移は各工程の出力の次の一手に従い、orch はその指示どおりに次を起動する。
+各工程の「完了後」には、ループの停止閾値や出力の判定区分をまたぐ判断のように、出力だけでは分からない orch 固有の判断だけを書く。
 
-カードの「要確認」とレビュアーの軽微な指摘は読み捨てない。
-判断で埋めた点は成果物本文に注記が残らずカードにしか現れないので、次のレビューまで保持して工程別レビュアーへのプロンプトに含め、停止点の報告にも含める。
+出力の `要確認:` 行と、レポートの `open_questions` と、レビュアーの軽微な指摘は読み捨てない。
+判断で埋めた点は成果物本文に注記が残らず出力にしか現れないので、次のレビューまで保持して工程別レビュアーへのプロンプトに含め、停止点の報告にも含める。
 
 ## 工程レジストリ
 開始工程を `/orch [<stage>]` で指定でき、指定工程より前は実行しない。
@@ -51,14 +51,14 @@ argument-hint: "[<stage>]"
 
 ## 妥当性検証ループ
 `/spec` `/plan` は完了後、orch が対象工程のレビュアーを起動して成果物を検証し、NG ならその工程を再起動して直させる。
-`/spec` `/plan` の実行と直しは、fresh な general-purpose agent に `Skill` ツールで起動させ、orch の文脈には完了カードだけを戻す。
+`/spec` `/plan` の実行と直しは、fresh な general-purpose agent に `Skill` ツールで起動させ、orch の文脈には出力だけを戻す。
 レビュアーは PdM の代役で、成果物が上流の意図を満たす正当な中身かだけを見る。
 書式への適合は各工程の点検 Step が担うので、レビュアーには渡さない。
 
 | 工程 | レビュアー | 上流成果物 | レビュー対象 |
 |---|---|---|---|
-| `/spec` | `spec-reviewer` | 起動時の要望テキスト + `seed.md`(あれば) + 既存の `requirements.md`(あれば) | `requirements.md` |
-| `/plan` | `plan-reviewer` | `requirements.md` | `plan.md` |
+| `/spec` | `spec-reviewer` | 起動時の要望テキスト + `feature.jsonc`(あれば) + 既存の `requirements.jsonc`(あれば) | `requirements.jsonc` |
+| `/plan` | `plan-reviewer` | `requirements.jsonc` | `plan.jsonc` |
 
 ```
 review_round = 0
@@ -78,7 +78,7 @@ loop:
 - 再起動した工程は成果物が既にあるので、白紙に戻さず指摘箇所だけを直す。軽微な指摘は渡さない
 - `/spec` `/plan` は確定済みの成果物があると文脈を載せて終わるので、agent への最初の指示に、その工程の実行と、続けてブロッカーを反映することの両方を入れる
 - 2 巡目のレビューには前巡のブロッカーと `review_round` も渡す。レビュアーは反映の確認と、その修正による新たなブロッカーだけを見る
-- 2 巡目でブロッカーが残っても止まらない。ブロッカーを直す再起動を 1 回行い、再レビューはせずに次工程へ進む。2 巡目で出たブロッカーは Step 14 の完走カードで報告する
+- 2 巡目でブロッカーが残っても止まらない。ブロッカーを直す再起動を 1 回行い、再レビューはせずに次工程へ進む。2 巡目で出たブロッカーは Step 14 の出力に含める
 - 「判断できなかった点」は OK 扱いしない
   - 1 巡目なら渡した材料から補える範囲を補って再レビューする
   - 2 巡目でも残るなら停止する
@@ -106,33 +106,33 @@ loop:
 
 ### Step 4: `/plan`
 
-「妥当性検証ループ」で確定したら `/scenarios` で `qa.md` を作り、完了したら `/impl` へ。
+「妥当性検証ループ」で確定したら `/scenarios` で `qa.jsonc` を作り、完了したら `/impl` へ。
 開始工程が `scenarios` のときは `/plan` を実行せず、ここの `/scenarios` 起動から始める。
 
 ### Step 5: `/impl`
 
 実装ブランチ 1 本の上で全タスクを実装する。
-実装ブランチ名は `.specs/requirements.md` の frontmatter の `branch_name` にする。
+実装ブランチ名は `.specs/feature.jsonc` の `branch_name` にする。
 
 ### Step 6: `/test`
 
-完了後: `test-report.md` の `count` が 3 以上なら報告して停止。
+完了後: `test-report.jsonc` の `count` が 3 以上なら報告して停止。
 
 ### Step 7: `/review`
 
 完了後:
-- `review.md` の `count` が 3 以上なら報告して停止
+- `review.jsonc` の `count` が 3 以上なら報告して停止
 - OK でも推奨対応に上流 doc の記述修正が挙がっていれば、`/spec`・`/plan` を再実行して記述だけ直す。実装は正しいので実装はやり直さない
 
 ### Step 8: `/qa`
 
 qa は commit より前に置き、実装が作業ツリーにあるうちに feature 全体の受け入れを確認する。
 
-完了後: `qa-report.md` の `count` が 2 以上なら報告して停止。
+完了後: `qa-report.jsonc` の `count` が 2 以上なら報告して停止。
 
 ### `/fix`
 
-`/test` FAIL・`/qa` FAIL・`/watch-ci` 赤・設計起因以外の `/review` NG・`/bughunt` 完了のとき、呼び出し元のカードに従って `/fix` を起動する。
+`/test` FAIL・`/qa` FAIL・`/watch-ci` 赤・設計起因以外の `/review` NG・`/bughunt` 完了のとき、呼び出し元の出力に従って `/fix` を起動する。
 対象確認は `fix/SKILL.md` の Step 2 に従う。
 
 完了後:
@@ -141,12 +141,12 @@ qa は commit より前に置き、実装が作業ツリーにあるうちに fe
 
 ### Step 9: `/commit`
 
-実装ブランチにコミットし、カードの次の一手 `/land` へ進む。
+実装ブランチにコミットし、出力の次の一手 `/land` へ進む。
 
 ### Step 10: `/land`
 
 対象ブランチの解決は `/land` 自身が行う。
-PR 本文の `@coderabbitai ignore` で自動レビューは走らないので、PR ができたら orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って最初のレビューを発火させ、カードの次の一手 `/watch-ci` へ進む。
+PR 本文の `@coderabbitai ignore` で自動レビューは走らないので、PR ができたら orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って最初のレビューを発火させ、出力の次の一手 `/watch-ci` へ進む。
 以降 CodeRabbit のレビューは orch が打った時だけ走る。
 
 ### Step 11: `/watch-ci`
@@ -154,18 +154,18 @@ PR 本文の `@coderabbitai ignore` で自動レビューは走らないので�
 PR の CI green を待つ。
 - green → Step 12 へ
 - 赤 → `/fix` → `/commit` → `/sync` → `/watch-ci` に戻る
-  - `/sync` は `comment-report.md` に未チェックの項目が無ければ push だけして戻る
+  - `/sync` は `comment-report.jsonc` に `done` が `false` の項目が無ければ push だけして戻る
 
-完了後: `ci-report.md` の `count` が 3 以上なら報告して停止。
+完了後: `ci-report.jsonc` の `count` が 3 以上なら報告して停止。
 
 ### Step 12: コメント対応
 
-`/triage-comments` を実行し、`comment-report.md` の各項目の承認欄を orch 自身が埋める。
+`/triage-comments` を実行し、`comment-report.jsonc` の各項目の `approval` を orch 自身が埋める。
 - 提示された「提案」をそのまま採用する
 - 裏取りが `未検証` のまま、または分類の確信が持てないと明記された件は `保留` にする
-  - `/sync` が保留の返信と issues.md 記録を行うので、拾うかは人が issues.md で判断する
+  - `/sync` が保留の返信と `/feature` での棚上げを行うので、拾うかは人が下書きの `feature.jsonc` で判断する
 
-承認欄を埋めたら `/fix` で `対応する` の項目を修正し、`/commit` → `/sync` で push・返信・issues.md 記録まで行う。
+承認欄を埋めたら `/fix` で `対応する` の項目を修正し、`/commit` → `/sync` で push・返信・保留の棚上げまで行う。
 続けて orch が `gh pr comment <PR番号> --body "@coderabbitai review"` を打って再レビューを発火し、`/watch-ci` に戻る。
 
 このループは最大 2 巡。
@@ -182,23 +182,15 @@ PR の CI green を待つ。
 
 ### Step 14: 停止点
 
-次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
+パイプラインを完走して終了するときは、報告を出す前に `stage selfreview` を実行する。
 Ready for review への切替と merge は人が判断する。
-「停止条件」に当たって完走できずに終了するときは見出しを `### パイプライン中断` にし、1 行目に停止理由を書き、作成済みの PR があれば生成物の行を残し、次の一手は復帰の判断先にする。
 各工程の `⏳` は各スキルが自分で出すので、orch が工程開始の実況を代わりに出さない。
 
-```markdown
-### パイプライン完走
-<到達状態を 1 行>
-- <開始工程を指定して起動したなら `開始工程: /plan` の形で>
-- <保持していた要確認、軽微な指摘、2 巡目で指摘して再レビューせずに確定したブロッカー>
+次を出して終了する。
+- 結果: 到達状態と PR の URL
+- 次の一手: Ready for review / merge を判断する
 
-生成物:
-- <PR の URL>
-
-### 次の一手
-- Ready for review / merge を判断する
-```
+保持していた要確認、軽微な指摘、再レビューせずに確定したブロッカーがあれば、`要確認: <内容>` を 1 件 1 行で足す。
 
 ## 前進カスケード
 実装中に仕様・設計・タスクの変更が必要になったら、変更が生じた工程から再入し、OK の前進チェーンを辿り直す。

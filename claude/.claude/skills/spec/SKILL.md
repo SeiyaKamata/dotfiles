@@ -1,7 +1,7 @@
 ---
 name: spec
-description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのseed.mdの詳細化で使う。確定済みのrequirements.mdがあるときは、要件定義の進め方と現状の要件を文脈に載せ、直しを会話で行えるようにする。
-allowed-tools: Read, Write, Edit, Bash(git rev-parse *)
+description: ユーザーから機能要望を受け取り、要件を詳細化しEARS形式で出力する。要望はあるが.specs/に何も無い最初の一歩、または下書きのfeature.jsoncの詳細化で使う。requirements.jsoncがあるときは、現状の要件と要確認を提示し、要確認を会話で詰めて、ブラウザで付けたコメントとあわせて書き戻す。
+allowed-tools: Read, Write, Edit, Bash(git rev-parse *), Bash(open .specs/requirements.html)
 ---
 
 # 要件策定スキル
@@ -9,12 +9,15 @@ allowed-tools: Read, Write, Edit, Bash(git rev-parse *)
 ## 役割
 ユーザーの要望から EARS 形式の要件ドキュメントを作る。
 「何を作るか」だけを扱い、技術的な実装方法を含む「どう作るか」は書かない。
-`requirements.md` を新規に書くのは `/spec` だけが行う。
-確定後の直しはこのスキルの外で行い、このスキルの規則に従う。
+`requirements.jsonc` を新規に書くのは `/spec` だけが行う。
+`repo` `notion_url` `pr_title` `branch_name` `title` は `feature.jsonc` が持つ正本で、`requirements.jsonc` には書かない。
+`/spec` は `feature.jsonc` が無ければ作り、空のキーを埋める。
+要確認の議論と、その結果の書き戻しもこのスキルが行う。
 
 ## 判断が割れる点の扱い
-途中でユーザーに質問もスコープ承認もしない。
-判断が割れる点は最も素直な解釈を採って進め、採った解釈は該当する行の下に、インデントを下げた `【要確認】<採った解釈と理由>` の行で付記する。
+Step 2〜3 では、ユーザーに質問もスコープ承認もしない。
+判断が割れる点は最も素直な解釈を採って進め、採った解釈と理由は該当する行の `question` に書く。
+特定の 1 行に紐づかないものは `open_questions` に書く。
 
 ## 受け入れ条件の書き方
 
@@ -64,104 +67,96 @@ Requirement 番号は主体の節をまたいで連番にする。
 - 例示は書かず、条件を言い切る
 - 「適切に」「必要に応じて」のような曖昧語は避け、テスト可能・検証可能な表現にする
 
-## requirements.md のフォーマット
+## requirements.jsonc のフォーマット
 
 検討経緯・却下した代替案は書かず、決まったことだけを書く。
+後続の skill が読む要件と、人が読む HTML の元データを兼ねる。
+`.specs/requirements.jsonc` に上書きする。
+書式の誤りは、書いた直後にフックが指摘して返す。
 
-```markdown
----
-repo: [この feature を実装するリポジトリ。bare repo のディレクトリ名]
-notion_url: [下書きにあれば引き継ぐ。無ければ空文字]
-pr_title: [下書きにあれば引き継ぐ。無ければ空文字]
-branch_name: [下書きにあれば引き継ぐ。無ければ feature 名と要件の内容から、英小文字・数字・ハイフンだけの `<type>/<短い英語の説明>` の形で決める]
----
+`question` は判断で埋めたときだけ採った解釈と理由を書き、無ければ空文字にする。
+スコープ外に EARS は使わない。
+表は行数にかかわらず `appendix` に置き、スコープ外と受け入れ条件からは「詳細は付録」と 1 行で参照する。
 
-# 要件定義: [機能名]
-
-## 概要
-[機能の目的と背景を2〜3文で]
-
-[Requirement 全体に関わるなど、特定の 1 行に紐づかない要確認があれば `【要確認】<内容>` を 1 行で。無ければ書かない]
-
-## スコープ外
-[項目の行は外すものだけを書く。EARS は使わない。別 feature での扱いなどの補足は理由に畳む]
-
-- [外すもの]
-  - 理由: [なぜ外すか]
-  - 【要確認】[判断で埋めたときだけ。採った解釈]
-
-## 要件
-
-### [主体]
-
-#### Requirement 1: [要件名]
-- [振る舞い]
-- [イベント]とき → [振る舞い]
-  - 【要確認】[判断で埋めたときだけ。採った解釈と理由]
-- 【異常】[トリガー] → [振る舞い]
-
-#### Requirement 2: [要件名]
-...
-
-### [別の主体]
-
-#### Requirement 3: [要件名]
-...
-
-## 付録: [表題]
-[表は行数にかかわらず全部ここに置き、スコープ外節と受け入れ条件からは「詳細は付録」と 1 行で参照する。無ければ節ごと省略]
+```jsonc
+{
+  "overview": "[機能の目的と背景を 2〜3 文で]",
+  "open_questions": ["[Requirement 全体に関わるなど、特定の 1 行に紐づかない要確認。無ければ空配列]"],
+  "out_of_scope": [
+    {
+      "item": "[外すもの]",
+      "reason": "[なぜ外すか。別 feature での扱いなどの補足もここに畳む]",
+      "question": "[判断で埋めたときだけ。採った解釈。無ければ空文字]"
+    }
+  ],
+  "subjects": [
+    {
+      "name": "[主体]",
+      "requirements": [
+        {
+          "id": 1,
+          "title": "[要件名]",
+          "lines": [
+            { "text": "[振る舞い]", "question": "" },
+            { "text": "[イベント]とき → [振る舞い]", "question": "[採った解釈と理由]" },
+            { "text": "【異常】[トリガー] → [振る舞い]", "question": "" }
+          ]
+        }
+      ]
+    }
+  ],
+  "appendix": [
+    { "title": "[表題]", "columns": ["[列名]"], "rows": [["[セル]"]] }
+  ] // 表が無ければ空配列
+}
 ```
 
 ## 進め方
 
 ### Step 1: 開始 Step の判定
 
-- `.specs/requirements.md` も `.specs/seed.md` も無く、会話文脈にも要望が無ければ「使い方: /spec <要望>」を表示して終了
-- frontmatter の `repo` は、今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename から採る
+- `requirements.jsonc` が有る: 読み、Step 4 から進める
+- 無く、`feature.jsonc` が有る: `title` と `memo` を要望の材料にする
+- どちらも無く、会話文脈に要望も無い: 「使い方: /spec <要望>」を表示して終了する
 
-`.specs/requirements.md` と `.specs/seed.md` の有無で分岐する:
-- **`requirements.md` が有る**: 読み、Step 2〜5 を飛ばして Step 6 で読み込み完了を報告し、書き換えずに終了する
-  - 以降の直しは、「受け入れ条件の書き方」と「requirements.md のフォーマット」に従い、直したら Step 5 の点検をする
-- **`requirements.md` が無く `seed.md` が有る**: 下書き。本文を要望の材料として使い、Step 2 から詳細化する
-- **どちらも無い**: 新規。Step 2 から書き起こす
+### Step 2: 要件化
 
-### Step 2: スコープ境界
+out-of-scope を列挙し、in-scope の項目だけを Requirement に起こす。
+in-scope は列挙しない。
+判断が割れる項目は「判断が割れる点の扱い」に、観点・型・書式は「受け入れ条件の書き方」に従う。
 
-out-of-scope を列挙する。
-in-scope は列挙せず、Step 3 で Requirement に起こす。
-要望から in/out を確定できない項目は、「判断が割れる点の扱い」節に従う。
+### Step 3: 書き出し
 
-### Step 3: 受け入れ条件化
+「requirements.jsonc のフォーマット」で `.specs/requirements.jsonc` に書く。
 
-in-scope の項目**だけ**を Requirement に起こす。
-埋める観点・型・書式は「受け入れ条件の書き方」に従う。
+続けて `.specs/feature.jsonc` のメタを揃える。
+`feature.jsonc` が無ければ、次の 5 キーだけで新規に作る。
+有れば、既存のキーは残し、空のキーだけを埋める。
+- `repo`: 今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename
+- `title`: 日本語の 20 字以内の名詞句
+- `branch_name`: 英小文字・数字・ハイフンだけの `<type>/<短い英語の説明>`。`title` と要件の内容から決める
+- `pr_title`: 固定 prefix `【鎌田QA】` で始める。指定があればその文字列の前に付け、prefix が既にあれば足さず、無ければ `【鎌田QA】<title>`
+- `notion_url`: 材料に無ければ空文字
 
-要望が実質的に空で Requirement を 1 つも起こせないときだけ中断し、Step 6 の中断カードで報告する。
+### Step 4: 提示
 
-### Step 4: 書き出し
+`open .specs/requirements.html` で HTML を開く。
 
-Step 2〜3 の内容を「requirements.md のフォーマット」で `.specs/requirements.md` に書く。
+### Step 5: 要確認とコメントの議論
 
-### Step 5: 点検
+未解決の要確認か未対応のコメントを 1 件選ぶ。
+未対応のコメントは、`.specs/comments.jsonc` の `comments` のうち、`file` が `requirements.html` で `status` が `open` のもの。
 
-書き出した `requirements.md` が「受け入れ条件の書き方」と「requirements.md のフォーマット」を満たしているか見直し、外れていれば直してから Step 6 へ進む。
+要確認は、該当する行や項目とあわせてユーザーに尋ねる。
+コメントは、`quote` が指す行や項目に本文の意図を反映し、判断が割れるときだけユーザーに尋ねる。
+決まったら `requirements.jsonc` の該当行の `text` を決定内容に直し、その行の `question` を空文字にする。
+採った解釈のままで決まったときは、`question` だけを空文字にする。
+経緯は書かない。
+コメントを反映したら、そのコメントの `status` を `done` にする。
 
 ### Step 6: 出力
 
-次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
-中断時は見出しを `### 要件定義中断` にし、1 行目に中断理由と `requirements.md` が未確定である旨を書き、次の一手は `/spec` だけにする。
-既存の `requirements.md` を読み込んだときは見出しを `### 要件読み込み完了` にし、1 行目に直したい点を伝えれば反映する旨を書き、生成物と要確認のブロックを省き、次の一手は `/plan` だけにする。
-
-```markdown
-### 要件定義完了
-<何を要件化したかを 1 行>
-
-生成物: `.specs/requirements.md`
-
-### 要確認
-<件数>件。無ければこのブロックを省略
-
-### 次の一手
-- 実装計画に進む: `/plan`
-- 要件を直す: 直したい点を伝える
-```
+次を出して終了する。
+- 結果: 要件を確定した
+- 詳細: `.specs/requirements.html`
+- 次の一手: `/plan`

@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-import json, os, subprocess, sys, time
+import json, sys, time
 
-CYAN = "\033[36m"
-MAGENTA = "\033[35m"
-
-R = "\033[0m"
+R ="\033[0m"
 DIM = "\033[2m"
 BOLD = "\033[1m"
 
@@ -48,16 +45,7 @@ model = data.get("model", {}).get("display_name", "Claude")
 effort = (data.get("effort") or {}).get("level")
 rate = data.get("rate_limits") or {}
 
-cwd = (data.get("workspace") or {}).get("current_dir") or data.get("cwd") or os.getcwd()
-branch = subprocess.run(
-    ["git", "-C", cwd, "branch", "--show-current"],
-    capture_output=True, text=True,
-).stdout.strip()
-
-parts = [f"{CYAN}{os.path.basename(cwd)}{R}"]
-if branch:
-    parts.append(f"{MAGENTA}{branch}{R}")
-parts.append(f"{BOLD}{model}{R}")
+parts = [f"{BOLD}{model}{R}"]
 if effort:
     parts.append(f"{DIM}{effort}{R}")
 

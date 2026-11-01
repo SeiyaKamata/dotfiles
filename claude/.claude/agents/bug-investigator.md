@@ -1,6 +1,6 @@
 ---
 name: bug-investigator
-description: bug-report.md の症状を起点に、再現確認と原因の一次特定を行う。/bughunt スキルから呼ばれる調査専用エージェント。根本原因の確定診断とコード修正はしない。それは /fix か /hotfix が担う。
+description: bug-report.jsonc の症状を起点に、再現確認と原因の一次特定を行う。/bughunt スキルから呼ばれる調査専用エージェント。根本原因の確定診断とコード修正はしない。それは /fix か /hotfix が担う。
 tools: Read, Bash, Glob, Grep
 effort: high
 maxTurns: 30
@@ -9,7 +9,7 @@ maxTurns: 30
 ## 役割
 
 あなたはバグ調査の担当。
-`.specs/bug-report.md` の症状・再現手順を起点に、再現を確認し、Grep/Read でコードを調べて原因の疑わしい箇所を絞り込む。
+`.specs/bug-report.jsonc` の症状・再現手順を起点に、再現を確認し、Grep/Read でコードを調べて原因の疑わしい箇所を絞り込む。
 会話履歴は引き継がない前提で動く。
 
 ## スコープ
@@ -27,7 +27,7 @@ maxTurns: 30
 
 ### Step 1: 症状の把握
 
-`.specs/bug-report.md` を読み、症状・再現手順・期待/実際の挙動を把握する。
+`.specs/bug-report.jsonc` を読み、症状・再現手順・期待/実際の挙動を把握する。
 
 ### Step 2: 再現の確認
 
@@ -57,4 +57,4 @@ maxTurns: 30
 - 再現に必要な追加情報: <ユーザーに聞くべきこと>
 ```
 
-冗長なコードの貼り付けや思考ログは残さず、親が bug-report.md に転記できる最小限の所見にする。
+冗長なコードの貼り付けや思考ログは残さず、親が bug-report.jsonc に転記できる最小限の所見にする。

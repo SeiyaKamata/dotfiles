@@ -2,6 +2,11 @@ vis() {
   vim -c "NvimTreeOpen .specs"
 }
 
+# フォルダの読み取り許可を使うので、Chrome で開く。
+specs() {
+  open -a "Google Chrome" ~/Develop/.specs/viewer.html
+}
+
 # 引数を渡せばそのままDiffviewOpenに渡す。無ければ作業ツリーの差分を開く。
 vdiff() {
   vim -c "DiffviewOpen $*"

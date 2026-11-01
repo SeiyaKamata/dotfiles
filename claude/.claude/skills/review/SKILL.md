@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Glob, Grep, Bash(git *), Bash(date *), Agent
 # レビュースキル
 
 ## 役割
-デフォルトブランチとの git 差分を、仕様・設計との整合性とコード品質の観点でレビューし、OK / NG を判定して `.specs/review.md` に記録する。
+デフォルトブランチとの git 差分を、仕様・設計との整合性とコード品質の観点でレビューし、OK / NG を判定して `.specs/review.jsonc` に記録する。
 NG の戻し先は決めず、呼び出し元に委ねる。
 
 ## 判断が割れる点の扱い
@@ -22,31 +22,36 @@ NG の戻し先は決めず、呼び出し元に委ねる。
 | 裏取りで成立を確認できたバグ・セキュリティ・クラッシュなど重大な問題がある | NG |
 | 指摘がスタイル・軽微な改善のみ | OK。指摘は記録する |
 | 重大と報告されたが裏取りで不成立だった | NG にしない。理由つきで記録する |
-| 実装は仕様どおりだが、`requirements.md` / `plan.md` の記述が実コードと食い違っている | OK。食い違いを推奨対応に上流 doc の修正として列挙し、要確認にも出す |
+| 実装は仕様どおりだが、`requirements.jsonc` / `plan.jsonc` の記述が実コードと食い違っている | OK。食い違いを推奨対応に上流 doc の修正として列挙し、`open_questions` にも書く |
 
-## review.md のフォーマット
-frontmatter は test・qa のレポートと共通の形式にする。
+## review.jsonc のフォーマット
+`/fix` が読む指摘の内訳と、人が読む HTML の元データを兼ねる。
+毎回 `.specs/review.jsonc` に上書きし、同じ内容から `.specs/review.html` を生成する。
+末尾カンマは書かない。
+文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 
-```markdown
----
-branch: [Step 1 で確定したブランチ。detached なら none]
-head: [Step 1 で確定した HEAD。40 文字、短縮しない]
-ran_at: [書き出し時点の時刻。date +"%Y-%m-%dT%H:%M:%S%z" で取得]
-fixed: false [常に false。/fix が修正を適用したときだけ true に書き換える]
-count: [NG の連続回数。今回が NG かつ既存レポートも NG なら既存値 +1、それ以外は 1]
----
-
-### 判定
-[OK / NG]
-
-### 仕様整合性
-- [指摘内容と該当箇所]
-
-### AI コードレビューの指摘
-- [指摘内容と該当箇所] — [重大度] + 検証結果: [成立 / 不成立。理由 / 未検証]
-
-### 推奨対応
-- [対応方針]
+```jsonc
+{
+  "branch": "[Step 1 で確定したブランチ。detached なら none]",
+  "head": "[Step 1 で確定した HEAD。40 文字、短縮しない]",
+  "base": "[Step 1 で確定したデフォルトブランチ名。差分の全行を HTML に出すのに使う]",
+  "ran_at": "[書き出し時点の時刻。date +\"%Y-%m-%dT%H:%M:%S%z\" で取得]",
+  "fixed": false, // 常に false。/fix が修正を適用したときだけ true に書き換える
+  "count": 1, // NG の連続回数。今回が NG かつ既存レポートも NG なら既存値 +1、それ以外は 1
+  "verdict": "[OK / NG]",
+  "open_questions": ["[未検証の指摘、上流 doc と実コードの食い違い。無ければ空配列]"],
+  "spec_findings": ["[指摘内容と該当箇所]"],
+  "code_findings": [
+    {
+      "text": "[指摘内容と該当箇所]",
+      "file": "[該当ファイルのリポジトリ相対パス。特定できなければ省略]",
+      "line": 0, // 差分の追加後側の行番号。特定できなければ省略
+      "severity": "[重大度]",
+      "verification": "[成立 / 不成立。理由 / 未検証]"
+    }
+  ],
+  "recommendations": ["[対応方針]"]
+}
 ```
 
 ## 進め方
@@ -54,11 +59,11 @@ count: [NG の連続回数。今回が NG かつ既存レポートも NG なら�
 ### Step 1: 対象確定
 
 カレントブランチが実装ブランチ `<branch>` でなければ `git switch <branch>` を試みる。
-実装ブランチ名 `<branch>` は `.specs/requirements.md` の frontmatter の `branch_name` にする。
+実装ブランチ名 `<branch>` は `.specs/feature.jsonc` の `branch_name` にする。
 - switch できた → そのまま続行
 - `<branch>` が存在しない → 現在のブランチをそのまま採用する
   - PR を作らない運用で直接コミットしているとみなす
-- 未コミットの変更があって switch できない → Step 6 の中断カードで報告する
+- 未コミットの変更があって switch できない → 結果に理由を書いて終了する
   - stash などの作業ツリー操作はしない
 - detached HEAD のまま `<branch>` も無い → `branch: none` として続行する
 
@@ -70,13 +75,13 @@ count: [NG の連続回数。今回が NG かつ既存レポートも NG なら�
 いずれも fresh な general-purpose agent とし、レビュー対象は自分で読ませる。
 
 - 仕様整合性 reviewer
-  - `.specs/requirements.md` と、存在すれば `plan.md` を読ませる
+  - `.specs/requirements.jsonc` と、存在すれば `plan.jsonc` を読ませる
   - `git diff <デフォルトブランチ>...HEAD` を読ませ、仕様・設計と整合しているかの指摘一覧を返させる
 - コード品質 reviewer
   - `coderabbit:code-review` skill が導入済みならそれを、未導入なら `code-review` skill を `Skill` ツールで起動させる
   - 効果レベルは指定せず、`--comment` / `--fix` は使わせない
 
-`plan.md` が無いときは `requirements.md` との整合だけを見る。
+`plan.jsonc` が無いときは `requirements.jsonc` との整合だけを見る。
 無いことを中断理由にしない。
 
 ### Step 3: 指摘の裏取り
@@ -92,26 +97,15 @@ count: [NG の連続回数。今回が NG かつ既存レポートも NG なら�
 
 ### Step 5: 書き出し
 
-既存の `review.md` があれば判定と `count` を読み、「review.md のフォーマット」で `.specs/review.md` に上書きする。
+既存の `review.jsonc` があれば判定と `count` を読み、「review.jsonc のフォーマット」で `.specs/review.jsonc` に上書きする。
+差分の全行は render.py が `git diff <base>...HEAD` から HTML に出すので、差分を `review.jsonc` に書き写さない。
+`file` と `line` が差分の行に当たる指摘は、その行の直下に表示される。
+当たらない指摘は表にまとめて表示される。
 指摘の一覧はここに寄せ、ターミナルには列挙しない。
 
 ### Step 6: 出力
 
-次のカードを、コードフェンス自体は出さずに中身だけ出力して終了する。
-中断時は見出しを `### レビュー中断` にし、1 行目に中断理由を書き、生成物の行を省き、次の一手は復帰に必要な操作だけにする。
-
-```markdown
-### レビュー完了 — <OK / NG>
-<判定と対象範囲を 1 行>
-
-生成物: `.specs/review.md`
-
-### 要確認
-- <未検証の指摘> — 該当: <ファイル:行>
-- <仕様どおりだが上流 doc が実コードと食い違っている点>
-<無ければこのブロックを省略>
-
-### 次の一手
-- 動作確認する: `/qa`
-  <NG なら `- 計画を直す: /plan` と `- 実装を直す: /fix` に差し替える>
-```
+次を出して終了する。
+- 結果: 判定 `OK` か `NG`
+- 詳細: `.specs/review.html`
+- 次の一手: OK なら `/qa`、NG なら `/plan` か `/fix`
