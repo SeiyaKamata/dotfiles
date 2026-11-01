@@ -53,7 +53,8 @@ allowed-tools: Read, Write, Edit, Agent
 
 ### Step 2: bug-investigator へ委譲
 
-`bug-investigator` サブエージェントを起動する。
+`bug-investigator` サブエージェントを、`printenv CLAUDE_WORK_DIR` で得た作業ディレクトリの絶対パスを渡して起動する。
+`bug-investigator` は環境変数を展開できないので、`bug-report.jsonc` を読むパスとして渡す。
 調査中の大量のコード読み・コマンド出力をメインコンテキストに載せないためと、調査に強いモデルを当てるため。
 bug-investigator は `bug-report.jsonc` の症状を起点に再現を確認し、再現できたらコードを調べて「再現可否 / 疑わしい箇所 / 想定修正範囲 / 回帰テストの観点」を、再現できなければ「再現できず + 必要な追加情報」を返す。
 

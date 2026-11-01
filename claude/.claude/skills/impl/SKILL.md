@@ -44,6 +44,8 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, WebSearch, WebFetch
 次の一手は、`to` があれば相手 PJ のセッションと会話して詰め、無ければ当該項目を実施して `/impl` を再実行する。
 
 プロンプトに渡すもの:
+- `printenv CLAUDE_WORK_DIR` で得た作業ディレクトリの絶対パス
+  - `implementer` は環境変数を展開できないので、`plan.jsonc` を読むパスとして渡す
 - `tasks` の該当の要素から転記した `goal`・`req`・`details`
 - タスクに `follows` があれば、そのパスをそのまま渡し、その形に合わせて書く旨を明示する
 - 「plan.jsonc のタスク一覧に書かれた順に実装し、git・plan.jsonc・テストとビルドの実行には触れず、報告フォーマットで返す」旨
