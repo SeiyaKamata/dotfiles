@@ -57,6 +57,7 @@ standalone-tools-install:
 stow-install:
 	$(call log,Linking dotfiles with stow)
 	@stow -d $(DOTFILES_DIR) -t $(HOME) --restow $(STOW_PACKAGES)
+	@stow -d $(DOTFILES_DIR) -t $(HOME) --no-folding --restow work
 	$(call log,Done)
 
 

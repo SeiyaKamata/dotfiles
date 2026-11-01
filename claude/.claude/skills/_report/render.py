@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from check import CHECKS  # noqa: E402
 
-COMMENTS_JS = Path(__file__).with_name("comments.js").read_text(encoding="utf-8")
+COMMENTS_JS = (Path(__file__).resolve().parents[4] / "work/Develop/_work/comments.js").read_text(encoding="utf-8")
 
 CSS = """
 :root {
