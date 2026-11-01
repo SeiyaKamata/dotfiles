@@ -14,6 +14,5 @@ return {
 	require("plugins.telescope"),
 	require("plugins.tokyonight"),
 	require("plugins.treesitter"),
-  require("plugins.render-markdown"),
 	-- require("plugins.whichkey"),
 }
