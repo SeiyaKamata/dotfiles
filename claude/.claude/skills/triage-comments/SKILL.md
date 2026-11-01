@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Glob, Grep, Bash(gh *), Bash(date *)
 # PRコメント選別スキル
 
 ## 役割
-自分の PR に付いた未解決のレビューコメントを収集し、要件照合と裏取りを行った上で、対応方針の提案を `.specs/comment-report.jsonc` にまとめる。
+自分の PR に付いた未解決のレビューコメントを収集し、要件照合と裏取りを行った上で、対応方針の提案を `$CLAUDE_WORK_DIR/comment-report.jsonc` にまとめる。
 コード修正・返信・スレッド対応は行わず、対応する / しないの確定は人がレポートの承認欄に書き込む。
 
 対応中にレビュアーの恒常的な好みや PJ の規約に気づいたら、そのリポジトリの `CLAUDE.local.md` に書き戻す。
@@ -57,7 +57,7 @@ author では絞り込まず、人間と CodeRabbit の両方を対象にする�
 
 ## 引用の基準
 レポートの根拠は、返信にそのまま使えるよう、ファイルパスではなく文言の引用で示す。
-`.specs/` は PR の diff にも GitHub 上にも出ないので、レビュアーはそのファイルを開けない。
+`$CLAUDE_WORK_DIR/` は PR の diff にも GitHub 上にも出ないので、レビュアーはそのファイルを開けない。
 
 | ケース | 引用 |
 |---|---|
@@ -132,7 +132,7 @@ author では絞り込まず、人間と CodeRabbit の両方を対象にする�
 
 ### Step 3: 照合基準の読込
 
-`.specs/plan.jsonc` を Read する。
+`$CLAUDE_WORK_DIR/plan.jsonc` を Read する。
 無ければ特定失敗とし、要件照合を `未照合` にして裏取りだけで続行する。
 `open_questions` に要件を読めなかった旨を書く。
 
@@ -155,13 +155,13 @@ author では絞り込まず、人間と CodeRabbit の両方を対象にする�
 
 ### Step 7: レポート作成
 
-「comment-report.jsonc のフォーマット」で `.specs/comment-report.jsonc` を書き出す。
+「comment-report.jsonc のフォーマット」で `$CLAUDE_WORK_DIR/comment-report.jsonc` を書き出す。
 
 ### Step 8: 出力
 
 次を出して終了する。
 - 結果: 提案件数
-- 詳細: `.specs/comment-report.html`
+- 詳細: `$CLAUDE_WORK_DIR/comment-report.html`
 - 次の一手: 承認を伝えて `approval` を書かせ、`/fix`
 
 `open_questions` の `/feature` と `/plan` は提示のみで、自動起動はしない。

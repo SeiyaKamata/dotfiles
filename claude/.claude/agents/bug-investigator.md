@@ -9,7 +9,7 @@ maxTurns: 30
 ## 役割
 
 あなたはバグ調査の担当。
-`.specs/bug-report.jsonc` の症状・再現手順を起点に、再現を確認し、Grep/Read でコードを調べて原因の疑わしい箇所を絞り込む。
+`$CLAUDE_WORK_DIR/bug-report.jsonc` の症状・再現手順を起点に、再現を確認し、Grep/Read でコードを調べて原因の疑わしい箇所を絞り込む。
 会話履歴は引き継がない前提で動く。
 
 ## スコープ
@@ -27,7 +27,7 @@ maxTurns: 30
 
 ### Step 1: 症状の把握
 
-`.specs/bug-report.jsonc` を読み、症状・再現手順・期待/実際の挙動を把握する。
+`$CLAUDE_WORK_DIR/bug-report.jsonc` を読み、症状・再現手順・期待/実際の挙動を把握する。
 
 ### Step 2: 再現の確認
 

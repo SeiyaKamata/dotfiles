@@ -1,6 +1,6 @@
 ---
 name: plan
-description: 機能要望から、要件・技術設計・実装タスク・QAシナリオを一つの plan.jsonc にまとめる。.specs/ に何も無い最初の一歩、下書きの feature.jsonc の詳細化、plan.jsonc の書き戻しで使う。plan.jsonc があるときは、現状の判断と要確認を提示し、会話で詰めて、ブラウザで付けたコメントとあわせて書き戻す。
+description: 機能要望から、要件・技術設計・実装タスク・QAシナリオを一つの plan.jsonc にまとめる。$CLAUDE_WORK_DIR/ に何も無い最初の一歩、下書きの feature.jsonc の詳細化、plan.jsonc の書き戻しで使う。plan.jsonc があるときは、現状の判断と要確認を提示し、会話で詰めて、ブラウザで付けたコメントとあわせて書き戻す。
 allowed-tools: Read, Write, Edit, Glob, Grep, Skill, Bash(git rev-parse *), Bash(git -C *), Bash(open .specs/plan.html), WebSearch
 ---
 
@@ -182,7 +182,7 @@ UI に一切現れないものだけを次の 2 つに分ける。
 
 ## plan.jsonc のフォーマット
 `implementer` と `/qa` と後続の skill が読む計画と、人が読む HTML の元データを兼ねる。
-`.specs/plan.jsonc` に上書きする。
+`$CLAUDE_WORK_DIR/plan.jsonc` に上書きする。
 書式の誤りと、全 Requirement がいずれかのタスクの `req` に現れているかは、書いた直後にフックが指摘して返す。
 `question` は判断で埋めたときだけ採った解釈と理由を書き、無ければ空文字にする。
 検討経緯は書かず、決まったことだけを書く。
@@ -301,8 +301,8 @@ UI に一切現れないものだけを次の 2 つに分ける。
 
 ### Step 1: 開始 Step の判定
 
-- `.specs/plan.jsonc` が有る: 読み、Step 9 へ進む
-- 無く、`.specs/feature.jsonc` が有る: `title` と `memo` を要望の材料にする
+- `$CLAUDE_WORK_DIR/plan.jsonc` が有る: 読み、Step 9 へ進む
+- 無く、`$CLAUDE_WORK_DIR/feature.jsonc` が有る: `title` と `memo` を要望の材料にする
 - どちらも無く、会話文脈に要望も無い: 「使い方: /plan <要望>」を表示して終了する
 
 ### Step 2: 要件の下書きと未確定の分岐の列挙
@@ -366,9 +366,9 @@ in-scope は列挙しない。
 
 ### Step 7: 書き出し
 
-Step 2〜6 の内容を「plan.jsonc のフォーマット」で `.specs/plan.jsonc` に書く。
+Step 2〜6 の内容を「plan.jsonc のフォーマット」で `$CLAUDE_WORK_DIR/plan.jsonc` に書く。
 
-続けて `.specs/feature.jsonc` のメタを揃える。
+続けて `$CLAUDE_WORK_DIR/feature.jsonc` のメタを揃える。
 `feature.jsonc` が無ければ、次の 5 キーだけで新規に作る。
 有れば、既存のキーは残し、空のキーだけを埋める。
 - `repo`: 今いる worktree の `git rev-parse --path-format=absolute --git-common-dir` の basename
@@ -387,13 +387,13 @@ Step 2〜6 の内容を「plan.jsonc のフォーマット」で `.specs/plan.js
 
 ### Step 9: 提示
 
-`open .specs/plan.html` で HTML を開く。
+`open "$CLAUDE_WORK_DIR/plan.html"` で HTML を開く。
 `open_questions`、`decisions`、`deviations` の各項目を 1 行ずつ並べて出力する。
 
 ### Step 10: 要確認と判断とコメントの議論
 
 未解決の要確認、`decisions`、`deviations`、または未対応のコメントを 1 件選ぶ。
-未対応のコメントは、`.specs/comments.jsonc` の `comments` のうち、`file` が `plan.html` で `status` が `open` のもの。
+未対応のコメントは、`$CLAUDE_WORK_DIR/comments.jsonc` の `comments` のうち、`file` が `plan.html` で `status` が `open` のもの。
 
 項目はユーザーに尋ねる。
 コメントは、`quote` が指す箇所に本文の意図を反映し、判断が割れるときだけユーザーに尋ねる。
@@ -407,5 +407,5 @@ Step 2〜6 の内容を「plan.jsonc のフォーマット」で `.specs/plan.js
 
 次を出して終了する。
 - 結果: 要件・設計・シナリオを確定した。シナリオはローカル・デプロイ環境・対象外の件数を添える
-- 詳細: `.specs/plan.html`
+- 詳細: `$CLAUDE_WORK_DIR/plan.html`
 - 次の一手: `/impl`

@@ -1,6 +1,6 @@
 ---
 name: aws-logs
-description: awscli で CloudWatch Logs を調査し、結果を .specs/log-report.jsonc に記録する。AWS 上のエラー原因の追跡・ログ横断・件数集計を頼まれたら使う。
+description: awscli で CloudWatch Logs を調査し、結果を $CLAUDE_WORK_DIR/log-report.jsonc に記録する。AWS 上のエラー原因の追跡・ログ横断・件数集計を頼まれたら使う。
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Grep, Bash(aws logs describe-log-groups *), Bash(aws logs describe-log-streams *), Bash(aws logs tail *), Bash(aws logs filter-log-events *), Bash(aws logs get-log-events *), Bash(aws logs start-query *), Bash(aws logs get-query-results *), Bash(aws sts get-caller-identity *), Bash(aws configure list-profiles), Bash(date *), Bash(grep *), Bash(rg *), Bash(jq *), Bash(wc *), Bash(head *), Bash(tail *), Bash(sort *), Bash(uniq *), Bash(mkdir *)
 argument-hint: "[調べたいこと]"
@@ -9,7 +9,7 @@ argument-hint: "[調べたいこと]"
 # AWS ログ調査スキル
 
 ## 役割
-awscli で CloudWatch Logs を調べ、「ログに何が出ているか」を `.specs/log-report.jsonc` に記録する。
+awscli で CloudWatch Logs を調べ、「ログに何が出ているか」を `$CLAUDE_WORK_DIR/log-report.jsonc` に記録する。
 対象は `filter-log-events` と Logs Insights だけで、ALB/S3 アクセスログ・CloudTrail・ECS のタスク状態は範囲外。
 コードは直さず、ログに出ていない因果も書かない。原因の確定は別工程が担う。
 
@@ -26,12 +26,12 @@ awscli で CloudWatch Logs を調べ、「ログに何が出ているか」を `
 | SSO 認証 | 人がやる。ブラウザ対話が要るので `aws sso login` を実行せず、失効を検知したらコマンドを提示して中断する |
 | リージョン | プロファイルの設定に従い、`--region` を足さない。必要なら人が引数で渡す |
 | コマンド | `aws logs` の読み取り系のみ。すべての `aws` に `--no-cli-pager` を付ける |
-| 生ログ | 100 行を超えそうならスクラッチパッドにファイルで落として `grep` / `rg` で絞る。`.specs/` にも会話にも全文を貼らない |
+| 生ログ | 100 行を超えそうならスクラッチパッドにファイルで落として `grep` / `rg` で絞る。`$CLAUDE_WORK_DIR/` にも会話にも全文を貼らない |
 
 ## log-report.jsonc のフォーマット
 
 人が読む HTML の元データを兼ねる。
-`.specs/log-report.jsonc` に書き、同じ内容から `.specs/log-report.html` を生成する。
+`$CLAUDE_WORK_DIR/log-report.jsonc` に書き、同じ内容から `$CLAUDE_WORK_DIR/log-report.html` を生成する。
 既にあれば読み直して各配列にマージ・追記する。
 所見は事実だけを書き、推測と分ける。
 何も見つからなかったときも、窓・パターン・グループの条件と「出なかった」ことを記録し、次の調査で同じ空振りを繰り返さないようにする。
@@ -61,7 +61,7 @@ awscli で CloudWatch Logs を調べ、「ログに何が出ているか」を `
 ### Step 1: 入力の確認
 
 - 調べたいことは `$ARGUMENTS` の残りか対話で受ける。症状・エラー文言・時間帯・リクエスト ID
-- `.specs/bug-report.jsonc` があれば症状と時間帯の起点として読む
+- `$CLAUDE_WORK_DIR/bug-report.jsonc` があれば症状と時間帯の起点として読む
 
 ### Step 2: プロファイルの確定
 
@@ -172,11 +172,11 @@ Step 6〜9 は広く浅くから絞って深くの順に進み、空振りした
 
 ### Step 10: 記録
 
-「log-report.jsonc のフォーマット」で `.specs/log-report.jsonc` に書き出す。
+「log-report.jsonc のフォーマット」で `$CLAUDE_WORK_DIR/log-report.jsonc` に書き出す。
 
 ### Step 11: 出力
 
 次を出して終了する。
 - 結果: 何を調べて何が分かったか
-- 詳細: `.specs/log-report.html`
+- 詳細: `$CLAUDE_WORK_DIR/log-report.html`
 - 次の一手: 原因を特定するなら `/bughunt`

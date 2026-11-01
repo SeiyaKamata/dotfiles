@@ -161,7 +161,7 @@
       }
       idb("readwrite", (s) => s.put(picked, ROOT_KEY)).catch(() => {});
     } catch (e) {
-      if (e.name !== "AbortError") alert(`.specs か、このページがあるフォルダを選んでください: ${e.message}`);
+      if (e.name !== "AbortError") alert(`このページがあるフォルダを選んでください: ${e.message}`);
     }
   });
   document.body.append(enable);

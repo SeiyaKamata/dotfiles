@@ -1,6 +1,6 @@
 ---
 name: user-story
-description: Notion の US ページの URL を受け取り、素材集めと事実の裏取りを経て、新テンプレートの型で .specs/story.md に下書きする。「ユーザーストーリー書いて」「US 書いて」「このストーリーを埋めて」「US をブラッシュアップ」のような依頼、および US のページ URL を渡されて「これを書いていきたい」と言われたときに使う。Notion への書き込みはせず、反映は /notion-export が担う。タスク名や古い記述から現状を推測して「〜できない」と書く事故を止める。LRM 社内専用で、Notion の data source id を直接持っている。
+description: Notion の US ページの URL を受け取り、素材集めと事実の裏取りを経て、新テンプレートの型で $CLAUDE_WORK_DIR/story.md に下書きする。「ユーザーストーリー書いて」「US 書いて」「このストーリーを埋めて」「US をブラッシュアップ」のような依頼、および US のページ URL を渡されて「これを書いていきたい」と言われたときに使う。Notion への書き込みはせず、反映は /notion-export が担う。タスク名や古い記述から現状を推測して「〜できない」と書く事故を止める。LRM 社内専用で、Notion の data source id を直接持っている。
 argument-hint: "<US の Notion URL>"
 allowed-tools: Read, Write, Bash(git *), Agent, WebSearch, WebFetch, mcp__claude_ai_Notion__*
 ---
@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Bash(git *), Agent, WebSearch, WebFetch, mcp__claude
 # ユーザーストーリー下書きスキル
 
 ## 役割
-Notion の「ユーザーストーリー」DB の 1 ページを材料に、1 ストーリーを新テンプレートの型で `.specs/story.md` に書く。
+Notion の「ユーザーストーリー」DB の 1 ページを材料に、1 ストーリーを新テンプレートの型で `$CLAUDE_WORK_DIR/story.md` に書く。
 Notion への書き込みはしない。
 書き込みは `/notion-export` が `story.md` を読んで行う。
 
@@ -130,7 +130,7 @@ What / Why / Other や Acceptance Criteria の欄を持つ旧テンプレート�
 ### Step 1: 引数の確認と対象ページの読み込み
 
 - `$ARGUMENTS[0]` が Notion の URL でなければ「使い方: /user-story <US の Notion URL>」を表示して終了
-- `.specs/story.md` が既にあれば読み、Step 5 でそれを直す形で書く
+- `$CLAUDE_WORK_DIR/story.md` が既にあれば読み、Step 5 でそれを直す形で書く
 
 対象の US ページを fetch し、次を控える。
 
@@ -184,7 +184,7 @@ Who と Problem の芯がこの 1 問で決まる。
 
 ### Step 5: 型に沿って story.md を書く
 
-`references/style.md` の型で、Who → Goal → Problem → Benefit → 達成条件 → 要望元 → サマリの順に考え、「story.md のフォーマット」で `.specs/story.md` に書く。
+`references/style.md` の型で、Who → Goal → Problem → Benefit → 達成条件 → 要望元 → サマリの順に考え、「story.md のフォーマット」で `$CLAUDE_WORK_DIR/story.md` に書く。
 サマリは最後に書く。
 
 ### Step 6: 点検

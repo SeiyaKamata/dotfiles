@@ -18,7 +18,7 @@ allowed-tools: Bash(git *), Bash(gh *), Read, Write
 push の拒否は自動解決せず、結果に理由を書いて人に委ねる。
 
 ## PR のタイトルと本文
-タイトルは `.specs/feature.jsonc` の `pr_title` をそのまま使う。
+タイトルは `$CLAUDE_WORK_DIR/feature.jsonc` の `pr_title` をそのまま使う。
 空ならコミットメッセージから主題を作る。
 
 ```markdown
@@ -44,7 +44,7 @@ push の拒否は自動解決せず、結果に理由を書いて人に委ねる
 
 ## feature.jsonc のフォーマット
 feature の一覧画面がカードから PR へ飛ぶための元データで、`/feature` が書く雑メモと同じファイルに置く。
-`.specs/feature.jsonc` に書き、既にあれば読み直して `pr` だけを差し替え、他のキーはそのまま残す。
+`$CLAUDE_WORK_DIR/feature.jsonc` に書き、既にあれば読み直して `pr` だけを差し替え、他のキーはそのまま残す。
 文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープし、末尾カンマは書かない。
 
 ```jsonc
@@ -70,7 +70,7 @@ DEFAULT=$(git default-branch)
 CURRENT=$(git branch --show-current)
 ```
 
-実装ブランチ名は `.specs/feature.jsonc` の `branch_name` にする。
+実装ブランチ名は `$CLAUDE_WORK_DIR/feature.jsonc` の `branch_name` にする。
 `CURRENT` が実装ブランチ名と一致しなければ `git switch <実装ブランチ名>` し、存在しなければ実装ブランチが無い旨を Step 5 の結果に理由を書いて終了する。
 
 `CURRENT` がデフォルトブランチと同じなら、コミット内容から命名したブランチを `git checkout -b` で作ってから進む。
@@ -78,7 +78,7 @@ push を実行するのはこのスキルなので、デフォルトブランチ
 
 ### Step 3: 既存 PR の確認
 
-`gh pr list --head "<対象ブランチ>" --state all --json number,url --jq '.[]'` が空でなければ既に PR があり、`git branch --merged "$DEFAULT"` に含まれていればマージ済みなので、どちらも作らず、既存 PR の番号と URL を `.specs/feature.jsonc` に書いたうえで、URL を Step 5 で報告して終了する。
+`gh pr list --head "<対象ブランチ>" --state all --json number,url --jq '.[]'` が空でなければ既に PR があり、`git branch --merged "$DEFAULT"` に含まれていればマージ済みなので、どちらも作らず、既存 PR の番号と URL を `$CLAUDE_WORK_DIR/feature.jsonc` に書いたうえで、URL を Step 5 で報告して終了する。
 
 ### Step 4: draft PR を作る
 
@@ -95,7 +95,7 @@ gh pr create --draft --base "$DEFAULT" --head <対象ブランチ> --title "<タ
 ```
 
 `gh pr create` が「head branch is the same as base branch」で失敗したら、base と head が同じになっていないかを確認する。
-作成できたら、PR の番号と URL を「feature.jsonc のフォーマット」で `.specs/feature.jsonc` に書く。
+作成できたら、PR の番号と URL を「feature.jsonc のフォーマット」で `$CLAUDE_WORK_DIR/feature.jsonc` に書く。
 
 ### Step 5: 出力
 

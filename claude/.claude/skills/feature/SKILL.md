@@ -8,7 +8,7 @@ allowed-tools: Write, Glob
 # feature 下書きスキル
 
 ## 役割
-要望・指摘・棚上げ案件を、その場で要件化せずに独立 feature の下書き `~/Develop/.specs/<feature>/feature.jsonc` として書き留める。
+要望・指摘・棚上げ案件を、その場で要件化せずに独立 feature の下書き `$CLAUDE_WORK_ROOT/<feature>/feature.jsonc` として書き留める。
 追跡記録は残さず、元 feature に「切り出し済み」のマーキングもしない。
 それが無いと今のタスクが完了しないものは計画の穴なので、ここでは扱わず `/plan` に戻して `S<n>` を足す。
 
@@ -22,7 +22,7 @@ feature の雑メモを置く場所で、`/plan` が拾う下書きと、人が�
 `pr` は `/land` が書くので、ここでは書かない。既に `feature.jsonc` があれば読み直し、`pr` を含む既存のキーは残して、材料から分かったキーだけを足す。
 既知の情報だけを書き、EARS 形式の受け入れ条件は書かない。
 詳細化は `/plan` が読んだときに行い、`plan.jsonc` として確定させる。
-`~/Develop/.specs/<feature>/feature.jsonc` に書き、同じ内容から同じ場所に `feature.html` を生成する。
+`$CLAUDE_WORK_ROOT/<feature>/feature.jsonc` に書き、同じ内容から同じ場所に `feature.html` を生成する。
 `repo` `notion_url` `pr_title` `branch_name` `title` は feature のメタの正本で、以降の工程はこのファイルから読む。
 空のキーは `/plan` が埋める。
 末尾カンマは書かない。
@@ -53,16 +53,16 @@ feature の雑メモを置く場所で、`/plan` が拾う下書きと、人が�
 
 ### Step 2: 書き出し
 
-下書きごとに feature 名を材料から kebab-case・3〜5 語程度で決め、「feature.jsonc のフォーマット」で `~/Develop/.specs/<feature>/feature.jsonc` を書く。
-今の worktree の `.specs` は別の feature を指すので、書き先は絶対パスで指定する。
-`Glob("~/Develop/.specs/*")` で同名があれば区別がつく別名にし、1 回の実行で複数生成するときは採用済みの名前も既存として扱う。
+下書きごとに feature 名を材料から kebab-case・3〜5 語程度で決め、「feature.jsonc のフォーマット」で `$CLAUDE_WORK_ROOT/<feature>/feature.jsonc` を書く。
+`$CLAUDE_WORK_DIR` は今の feature を指すので、書き先は `$CLAUDE_WORK_ROOT` 配下の絶対パスで指定する。
+`Glob("$CLAUDE_WORK_ROOT/*")` で同名があれば区別がつく別名にし、1 回の実行で複数生成するときは採用済みの名前も既存として扱う。
 1 件が失敗しても他は生成し、部分成功を報告する。
 
 ### Step 3: 出力
 
 次を出して終了する。
 - 結果: 何件をどの feature に書き留めたか
-- 詳細: 各 feature の `~/Develop/.specs/<feature>/feature.html`
-- 次の一手: devpick で feature を選んで worktree を作り、`/plan`
+- 詳細: 各 feature の `$CLAUDE_WORK_ROOT/<feature>/feature.html`
+- 次の一手: `cw` で feature を選んで起動し、`/plan`
 
 要確認があれば `要確認: <内容>` を 1 件 1 行で足す。

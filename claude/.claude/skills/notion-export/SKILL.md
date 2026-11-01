@@ -1,6 +1,6 @@
 ---
 name: notion-export
-description: .specs/ の成果物や実装結果を、元の Notion ページに反映する。成果物の見出しとページの見出しを突き合わせ、対応する節は差し替え、対応しない内容は新しい節として足す。過去の記述は消さない。成果物が揃って Notion に反映するとき使う。
+description: $CLAUDE_WORK_DIR/ の成果物や実装結果を、元の Notion ページに反映する。成果物の見出しとページの見出しを突き合わせ、対応する節は差し替え、対応しない内容は新しい節として足す。過去の記述は消さない。成果物が揃って Notion に反映するとき使う。
 argument-hint: "[反映する成果物や内容]"
 disable-model-invocation: true
 allowed-tools: Read, Glob, Bash(git *), Bash(gh *), mcp__claude_ai_Notion__*
@@ -9,7 +9,7 @@ allowed-tools: Read, Glob, Bash(git *), Bash(gh *), mcp__claude_ai_Notion__*
 # Notion 反映スキル
 
 ## 役割
-`.specs/` の成果物と `gh` から材料を集め、元の Notion ページに反映する。
+`$CLAUDE_WORK_DIR/` の成果物と `gh` から材料を集め、元の Notion ページに反映する。
 成果物が正本で、Notion のページは人が読む写しになる。
 ページに元からある記述は消さない。
 
@@ -60,20 +60,20 @@ allowed-tools: Read, Glob, Bash(git *), Bash(gh *), mcp__claude_ai_Notion__*
 
 ### Step 1: 引数の確認
 
-- `.specs/` に反映できる成果物が 1 つも無ければ「`.specs/` に反映できる成果物が無い」と表示して終了
+- `$CLAUDE_WORK_DIR/` に反映できる成果物が 1 つも無ければ「`$CLAUDE_WORK_DIR/` に反映できる成果物が無い」と表示して終了
 - 引数があれば、それを反映する成果物や内容の指定として扱う
-- 引数が無ければ、`.specs/` にある成果物から反映する内容を自分で決める
+- 引数が無ければ、`$CLAUDE_WORK_DIR/` にある成果物から反映する内容を自分で決める
 
 ### Step 2: 書き戻し先 URL の解決
 
-成果物の frontmatter か `.specs/feature.jsonc` の `notion_url` を読む。
+成果物の frontmatter か `$CLAUDE_WORK_DIR/feature.jsonc` の `notion_url` を読む。
 無い、または空ならユーザーに Notion ページ URL を聞き、得られなければ Step 6 の結果に理由を書いて終了する。
 
 ### Step 3: 材料を集める
 
-- `.specs/` の成果物を読む
+- `$CLAUDE_WORK_DIR/` の成果物を読む
 - 実装結果を報告するときは、PR も集める
-  - 実装ブランチ名は `.specs/feature.jsonc` の `branch_name` とする
+  - 実装ブランチ名は `$CLAUDE_WORK_DIR/feature.jsonc` の `branch_name` とする
   - `gh pr list --search "head:<実装ブランチ名>" --state all --json number,title,url,isDraft,headRefName` で列挙する
   - 0 件なら現在のブランチと `gh pr list --author @me` から補い、それでも無ければ「該当なし」
 

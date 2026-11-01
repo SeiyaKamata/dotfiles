@@ -24,14 +24,14 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 ## qa-report.jsonc のフォーマット
 
 `/fix` が読む失敗の内訳と、人が読む HTML の元データを兼ねる。
-毎回 `.specs/qa-report.jsonc` に上書きし、同じ内容から `.specs/qa-report.html` を生成する。
+毎回 `$CLAUDE_WORK_DIR/qa-report.jsonc` に上書きし、同じ内容から `$CLAUDE_WORK_DIR/qa-report.html` を生成する。
 `count` は非 PASS の連続回数で、今回も前回も非 PASS なら前回値 +1、それ以外は 1 にする。
 `fixed` は常に `false` を書き、`true` にするのは `/fix` だけ。
 末尾カンマは書かない。
 文字列の中の二重引用符は `\"` に、改行は `\n` にエスケープする。
 
 `scenarios` は全シナリオを 1 件ずつ並べる。
-スクリーンショットは `.specs/img/qa-Q<n>.png` に固定名で置き、`screenshot` には `.specs/` からの相対パスで書く。
+スクリーンショットは `$CLAUDE_WORK_DIR/img/qa-Q<n>.png` に固定名で置き、`screenshot` には `$CLAUDE_WORK_DIR/` からの相対パスで書く。
 サマリの件数は HTML 生成が `scenarios` から数えるので書かない。
 
 ```jsonc
@@ -64,10 +64,10 @@ QA に必要なデータが足りなければ追加して完遂を目指す。QA
 
 ### Step 1: 対象の確定
 
-- `.specs/plan.jsonc` が無いか `scenarios` が無ければ、結果に理由を書いて終了する
+- `$CLAUDE_WORK_DIR/plan.jsonc` が無いか `scenarios` が無ければ、結果に理由を書いて終了する
 
 カレントブランチが実装ブランチ `<branch>` でなければ `git switch <branch>` を試みる。
-実装ブランチ名 `<branch>` は `.specs/feature.jsonc` の `branch_name` にする。
+実装ブランチ名 `<branch>` は `$CLAUDE_WORK_DIR/feature.jsonc` の `branch_name` にする。
 - switch できた → そのまま続行
 - `<branch>` が存在しない → 現在のブランチをそのまま採用する
 - 未コミットの変更があって switch できない → 結果に理由を書いて終了する。stash などの作業ツリー操作はしない
@@ -118,13 +118,13 @@ compose プロジェクトは 1 リポジトリに 1 つしかなく、別 workt
 
 ### Step 6: 書き出し
 
-- 結果で `.specs/plan.jsonc` の `scenarios.local` の `done` を更新する。pass のシナリオは `true`、fail のシナリオは `false` にする。
+- 結果で `$CLAUDE_WORK_DIR/plan.jsonc` の `scenarios.local` の `done` を更新する。pass のシナリオは `true`、fail のシナリオは `false` にする。
   - Edit で、`"id": "Q<n>"` の行から `"done"` の行までを old_str にして、1 シナリオずつ置換する。`deploy` の `done` には触れない
 - 既存の `qa-report.jsonc` があれば上書き前に前回の判定と `count` を読む
-- `mkdir -p .specs/img` のあと、委譲先が返したスクリーンショットを `cp <返ってきたパス> .specs/img/qa-Q<n>.png` で全シナリオ分コピーする
-  - 委譲先は Playwright の書き込み制限を受けない保存先に書くので、`.specs/` へはこちらがコピーする
-- 録画パスが `none` でなければ `cp <video パス> .specs/img/qa.webm` でコピーする
-- 「qa-report.jsonc のフォーマット」で `.specs/qa-report.jsonc` を書き出す
+- `mkdir -p $CLAUDE_WORK_DIR/img` のあと、委譲先が返したスクリーンショットを `cp <返ってきたパス> $CLAUDE_WORK_DIR/img/qa-Q<n>.png` で全シナリオ分コピーする
+  - 委譲先は Playwright の書き込み制限を受けない保存先に書くので、`$CLAUDE_WORK_DIR/` へはこちらがコピーする
+- 録画パスが `none` でなければ `cp <video パス> $CLAUDE_WORK_DIR/img/qa.webm` でコピーする
+- 「qa-report.jsonc のフォーマット」で `$CLAUDE_WORK_DIR/qa-report.jsonc` を書き出す
 
 ### Step 7: 環境停止
 
@@ -139,7 +139,7 @@ FAIL の原因調査で環境が要るなら `/fix` 側で起動し直す。
 
 次を出して終了する。
 - 結果: シナリオ数と `PASS` か `FAIL`
-- 詳細: `.specs/qa-report.html`
+- 詳細: `$CLAUDE_WORK_DIR/qa-report.html`
 - 次の一手: PASS なら `/commit`、FAIL なら `/fix`
 
 ローカルシナリオが 0 件の PASS は、結果を「ブラウザ検証対象なし」にする。

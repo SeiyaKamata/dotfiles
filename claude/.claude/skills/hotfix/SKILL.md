@@ -14,7 +14,7 @@ tag から release ブランチと work ブランチを切り、症状を止め�
 原因調査は行わない。
 入力は次のどちらか。
 
-- `.specs/bug-report.jsonc` があれば、原因が絞り込まれた調査結果として使う
+- `$CLAUDE_WORK_DIR/bug-report.jsonc` があれば、原因が絞り込まれた調査結果として使う
 - 無ければ、引数の修正依頼かこの会話の依頼内容を使う。セキュリティパッチや依存更新のように、バグ調査を挟まず修正内容が決まっているケース
 
 ## 判断が割れる点の扱い
@@ -68,7 +68,7 @@ tag が `^(.+)_p([0-9]+)$` にマッチすれば base はキャプチャ 1、n �
 
 ### Step 2: 入力の確認
 
-`.specs/bug-report.jsonc` があれば読み、`symptom` `steps` `suspects` `fix_scope` `regression_checks` を控える。
+`$CLAUDE_WORK_DIR/bug-report.jsonc` があれば読み、`symptom` `steps` `suspects` `fix_scope` `regression_checks` を控える。
 `reproducible` が `再現OK` でなければ Step 9 の次の一手で `/bughunt` を案内して終了する。
 
 `bug-report.jsonc` が無ければ、修正依頼から修正対象・修正内容・確認の観点を控える。

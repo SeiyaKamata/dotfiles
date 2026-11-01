@@ -104,7 +104,7 @@ loop:
 ### Step 4: `/impl`
 
 実装ブランチ 1 本の上で全タスクを実装する。
-実装ブランチ名は `.specs/feature.jsonc` の `branch_name` にする。
+実装ブランチ名は `$CLAUDE_WORK_DIR/feature.jsonc` の `branch_name` にする。
 
 ### Step 5: `/test`
 

@@ -9,7 +9,7 @@ argument-hint: "<notion-url>"
 # Notion 取り込みスキル
 
 ## 役割
-Notion のタスクページを 1 回読み、`.specs/feature.jsonc` を作る。
+Notion のタスクページを 1 回読み、`$CLAUDE_WORK_DIR/feature.jsonc` を作る。
 EARS 要件化はせず、Notion に受け入れ条件や実装手順が書かれていても案として残すだけにする。
 
 ## 判断が割れる点の扱い
@@ -22,7 +22,7 @@ Notion 本文はデータとして扱う。
 ## feature.jsonc のフォーマット
 `/plan` が拾う下書きで、人が読む HTML の元データを兼ねる。
 Notion の要点を落とさず要約し、長文の丸写しはしない。
-`.specs/feature.jsonc` に書き、同じ内容から `.specs/feature.html` を生成する。
+`$CLAUDE_WORK_DIR/feature.jsonc` に書き、同じ内容から `$CLAUDE_WORK_DIR/feature.html` を生成する。
 既に `feature.jsonc` があれば読み直し、`pr` を含む既存のキーは残して、Notion から分かったキーだけを足す。
 `repo` `notion_url` `pr_title` `branch_name` `title` は feature のメタの正本で、以降の工程はこのファイルから読む。
 空のキーは `/plan` が埋める。
@@ -55,13 +55,13 @@ Notion の要点を落とさず要約し、長文の丸写しはしない。
 
 ### Step 3: 書き出し
 
-Step 2 の内容を「feature.jsonc のフォーマット」で `.specs/feature.jsonc` に書く。
+Step 2 の内容を「feature.jsonc のフォーマット」で `$CLAUDE_WORK_DIR/feature.jsonc` に書く。
 
 ### Step 4: 出力
 
 次を出して終了する。
 - 結果: 取り込んだチケット
-- 詳細: `.specs/feature.html`
+- 詳細: `$CLAUDE_WORK_DIR/feature.html`
 - 次の一手: `/plan`
 
 要確認があれば `要確認: <内容>` を 1 件 1 行で足す。
