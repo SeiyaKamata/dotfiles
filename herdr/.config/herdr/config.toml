@@ -94,3 +94,10 @@ type = "popup"
 command = "zsh"
 width = "98%"
 height = "98%"
+
+[[keys.command]]
+key = "prefix+y"
+type = "popup"
+command = "yazi"
+width = "98%"
+height = "98%"
