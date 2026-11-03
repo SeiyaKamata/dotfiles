@@ -17,6 +17,7 @@ alias gco="git checkout"
 alias gcop="git checkout -"
 alias gcob="git checkout -b"
 alias gcod="git checkout develop"
+alias gcom="git checkout main"
 
 # Cherry-pick alias (gcp)
 alias gcp="git cherry-pick"
