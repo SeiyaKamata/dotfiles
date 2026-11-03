@@ -87,3 +87,10 @@ type = "popup"
 command = "notifyq run"
 width = "80%"
 height = "70%"
+
+[[keys.command]]
+key = "prefix+v"
+type = "popup"
+command = "nvim"
+width = "98%"
+height = "98%"
