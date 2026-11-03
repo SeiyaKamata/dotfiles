@@ -32,7 +32,7 @@ split_horizontal = ""
 split_vertical = ""
 close_pane = "prefix+x"             # tmux: bind x kill-pane
 zoom = "prefix+z"                   # tmux: bind z resize-pane -Z
-cycle_pane_next = ""                # ctrl+o は下の [[keys.command]] に割り当てたため空にする
+cycle_pane_next = ""
 
 # 方向移動は tmux に合わせて無効化（tmux は ctrl+t 巡回のみで hjkl 移動を使っていない）
 focus_pane_left = ""                # prefix+h は split_vertical で使用中のため空けておく
@@ -80,11 +80,6 @@ type = "popup"
 command = "stagepick"
 width = "30%"
 height = "25%"
-
-[[keys.command]]
-key = "ctrl+o"
-type = "shell"
-command = "cmdspace"
 
 [[keys.command]]
 key = "prefix+v"
