@@ -87,3 +87,10 @@ type = "popup"
 command = "nvim"
 width = "98%"
 height = "98%"
+
+[[keys.command]]
+key = "prefix+s"
+type = "popup"
+command = "zsh"
+width = "98%"
+height = "98%"
