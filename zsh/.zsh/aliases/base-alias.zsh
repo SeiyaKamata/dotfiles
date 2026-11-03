@@ -27,4 +27,3 @@ alias grep='rg'
 
 alias ls='eza'
 alias lsl='eza -al'
-alias lss="eza .specs"
