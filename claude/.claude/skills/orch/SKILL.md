@@ -175,7 +175,6 @@ PR の CI green を待つ。
 
 ### Step 13: 停止点
 
-パイプラインを完走して終了するときは、報告を出す前に `stage selfreview` を実行する。
 Ready for review への切替と merge は人が判断する。
 各工程の `⏳` は各スキルが自分で出すので、orch が工程開始の実況を代わりに出さない。
 
