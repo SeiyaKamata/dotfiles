@@ -1,5 +1,6 @@
 #!/bin/bash
-# claude が出した実行依頼のキュー。add で積み、run で上から確認して 1 件ずつフォアグラウンド実行する。
+# claude が出した実行依頼のキュー。add で積み、run で上から確認して 1 件ずつ実行する。
+# 実行は y がフォアグラウンド、b が popup から切り離したバックグラウンド。
 #   notifyq add [依頼元ペインID]  標準入力のコマンド 1 本を pending に積む。ペイン省略時は HERDR_PANE_ID
 #   notifyq run                    pending を古い順に確認して実行する。herdr の popup から呼ぶ
 set -euo pipefail
@@ -33,7 +34,7 @@ run() {
     cmd=$(cat "$file")
 
     printf '\n\033[1m依頼元 %s\033[0m\n%s\n\n' "$pane" "$cmd"
-    printf '[y] 実行  [n] 拒否  [s] 飛ばす  [q] 終了 '
+    printf '[y] 実行  [b] 裏で実行  [n] 拒否  [s] 飛ばす  [q] 終了 '
     read -rsn1 key
     printf '\n'
 
@@ -43,6 +44,12 @@ run() {
         mv "$file" "$claimed" 2>/dev/null || continue
         count=$((count + 1))
         zsh -ic 'Notify -t "$1" zsh -ic "$2"' _ "$pane" "$cmd" || true
+        ;;
+      b)
+        claimed="$done_dir/$(basename "$file")"
+        mv "$file" "$claimed" 2>/dev/null || continue
+        count=$((count + 1))
+        setsid zsh -ic 'Notify -t "$1" zsh -ic "$2"' _ "$pane" "$cmd" </dev/null >/dev/null 2>&1 &
         ;;
       n)
         rm -f "$file"
