@@ -23,7 +23,5 @@ alias df='duf'
 alias top='btm'
 alias grep='rg'
 
-
-
 alias ls='eza'
 alias lsl='eza -al'
