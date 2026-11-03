@@ -82,7 +82,7 @@ width = "30%"
 height = "25%"
 
 [[keys.command]]
-key = "prefix+v"
+key = "prefix+q"
 type = "popup"
 command = "notifyq run"
 width = "80%"
