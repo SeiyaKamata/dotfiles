@@ -43,13 +43,13 @@ run() {
         claimed="$done_dir/$(basename "$file")"
         mv "$file" "$claimed" 2>/dev/null || continue
         count=$((count + 1))
-        zsh -ic 'Notify -t "$1" zsh -ic "$2"' _ "$pane" "$cmd" || true
+        notify -t "$pane" zsh -ic "$cmd" || true
         ;;
       b)
         claimed="$done_dir/$(basename "$file")"
         mv "$file" "$claimed" 2>/dev/null || continue
         count=$((count + 1))
-        nohup zsh -ic 'Notify -t "$1" zsh -ic "$2"' _ "$pane" "$cmd" </dev/null >/dev/null 2>&1 &
+        nohup notify -t "$pane" zsh -ic "$cmd" </dev/null >/dev/null 2>&1 &
         ;;
       n)
         rm -f "$file"
