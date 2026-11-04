@@ -58,9 +58,6 @@ run() {
       q) break ;;
     esac
   done
-
-  printf '\n終了。何かキーを押すと閉じます '
-  read -rsn1 _
 }
 
 case "${1:-}" in
