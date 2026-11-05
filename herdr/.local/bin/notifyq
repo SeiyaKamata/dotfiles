@@ -49,7 +49,8 @@ run() {
         claimed="$done_dir/$(basename "$file")"
         mv "$file" "$claimed" 2>/dev/null || continue
         count=$((count + 1))
-        nohup notify -t "$pane" zsh -ic "$cmd" </dev/null >/dev/null 2>&1 &
+        # macOS に setsid が無いため perl で新しいセッションに切り離す。tty が残ると zsh -i が popup の終了で落ちる
+        perl -MPOSIX -e 'POSIX::setsid(); exec @ARGV' notify -t "$pane" zsh -ic "$cmd" </dev/null >/dev/null 2>&1 &
         ;;
       n)
         rm -f "$file"
