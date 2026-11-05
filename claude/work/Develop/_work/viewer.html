@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>specs</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%232f81f7'/><rect x='16' y='14' width='32' height='40' rx='4' fill='white'/><rect x='24' y='10' width='16' height='9' rx='3' fill='%231f6feb' stroke='white' stroke-width='2'/><path d='M23 36l6 6 12-13' fill='none' stroke='%232f81f7' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<style>
+:root {
+  --bg: #ffffff;
+  --fg: #1f2328;
+  --muted: #656d76;
+  --line: #d0d7de;
+  --accent: #0969da;
+  --bar: #2da44e;
+  --chip: #f3f4f6;
+  --grid: #afb8c1;
+  --lane: #f6f8fa;
+  --card: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117;
+    --fg: #e6edf3;
+    --muted: #8d96a0;
+    --line: #30363d;
+    --accent: #58a6ff;
+    --bar: #3fb950;
+    --chip: #161b22;
+    --grid: #484f58;
+    --lane: #0f141b;
+    --card: #1c2330;
+  }
+}
+html { overflow-y: scroll; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px 16px 64px;
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
+}
+main { max-width: 1400px; margin: 0 auto; }
+a { color: var(--accent); text-decoration: none; cursor: pointer; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 20px; margin: 0 0 16px; }
+button {
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--chip);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+button:hover { border-color: var(--accent); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+input[type=search] {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+.row:hover { background: var(--chip); }
+.row {
+  display: grid;
+  grid-template-columns: 200px 1fr auto;
+  gap: 4px 16px;
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.name { font-weight: 600; word-break: break-all; }
+.repo {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: top;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 500;
+}
+.stage {
+  align-self: center;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--chip);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.stage.s-draft { color: #9a6700; background: rgba(210, 153, 34, .15); }
+.stage.s-early { color: var(--accent); background: rgba(56, 139, 253, .15); }
+.stage.s-check { color: #8250df; background: rgba(163, 113, 247, .15); }
+.stage.s-ci { color: var(--bar); background: rgba(46, 160, 67, .15); }
+.repo-cell { align-self: start; min-width: 0; padding-top: 2px; }
+@media (max-width: 720px) {
+  .row { grid-template-columns: 1fr auto; }
+  .repo-cell { grid-column: 1 / -1; padding-top: 0; }
+  .meta { grid-column: 1 / -1; }
+}
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; }
+.chips .label { min-width: 3.5em; color: var(--muted); font-size: 12px; }
+.chips button { padding: 2px 12px; border-radius: 999px; font-size: 13px; }
+.chips button.on { border-color: var(--accent); background: var(--accent); color: var(--bg); font-weight: 600; }
+.board { display: grid; gap: 2px; background: var(--grid); border: 2px solid var(--grid); border-radius: 8px; overflow: hidden; }
+.board > div { background: var(--bg); padding: 10px; min-width: 0; }
+.board > .alt { background: var(--lane); }
+.board .colhead { background: var(--chip); color: var(--fg); font-size: 13px; font-weight: 700; text-align: center; }
+.board .repohead { font-weight: 700; font-size: 13px; word-break: break-all; }
+.board .repohead small { display: block; color: var(--muted); font-weight: 400; }
+.cell { display: flex; flex-direction: column; gap: 8px; }
+.card { padding: 8px 10px; border: 1px solid var(--line); border-left: 4px solid var(--muted); border-radius: 6px; background: var(--card); box-shadow: 0 1px 2px rgba(0, 0, 0, .25); font-size: 13px; }
+.card.s-draft { border-left-color: #d29922; }
+.card.s-early { border-left-color: var(--accent); }
+.card.s-check { border-left-color: #a371f7; }
+.card.s-ci { border-left-color: var(--bar); }
+.card:hover { border-color: var(--accent); }
+.card .dirname { color: var(--muted); font-size: 11px; word-break: break-all; }
+.card .title { font-weight: 600; word-break: break-all; }
+.back { display: inline-block; margin-bottom: 16px; }
+.detail { max-width: 960px; }
+.detail h1 { margin-bottom: 4px; }
+.detail h2 { margin: 28px 0 8px; padding-left: 10px; border-left: 4px solid var(--accent); font-size: 16px; }
+.detail .dirname { margin: 0 0 12px; }
+.detail-info { align-items: center; gap: 4px 14px; margin: 8px 0 0; font-size: 13px; }
+.detail .memo { margin: 4px 0; white-space: pre-wrap; }
+.links.big a { padding: 2px 12px; font-size: 14px; }
+.links { display: flex; flex-wrap: wrap; gap: 4px; }
+.card .links { margin-top: 8px; }
+.links a { padding: 0 8px; border: 1px solid var(--line); border-radius: 4px; font-size: 12px; line-height: 20px; }
+.links a:hover { border-color: var(--accent); text-decoration: none; }
+.links a.other { border-style: dashed; }
+.card a.pr { padding: 0 8px; border-radius: 999px; background: var(--accent); color: var(--bg); font-weight: 600; line-height: 18px; }
+.card a.pr:hover { text-decoration: none; opacity: .85; }
+.card .sub { display: flex; flex-wrap: wrap; gap: 2px 10px; margin-top: 2px; color: var(--muted); font-size: 12px; }
+.when { margin-left: 8px; color: var(--muted); font-size: 12px; font-weight: 400; }
+.files a.other { color: var(--muted); }
+.meta { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; font-size: 13px; color: var(--muted); }
+.bar { width: 120px; height: 6px; border-radius: 3px; background: var(--chip); overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--bar); }
+.files { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.empty { color: var(--muted); }
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+const STAGES = [
+  [["ci-report.jsonc"], "CI 確認", "s-ci"],
+  [["qa-report.jsonc"], "受け入れ確認", "s-ci"],
+  [["review.jsonc"], "レビュー", "s-check"],
+  [["test-report.jsonc"], "テスト", "s-check"],
+  [["plan.jsonc"], "計画", "s-early"],
+  [["requirements.jsonc"], "要件", "s-early"],
+  [["feature.jsonc"], "下書き", "s-draft"],
+];
+
+const LABELS = {
+  feature: "メモ",
+  requirements: "要件",
+  design: "設計",
+  plan: "計画",
+  tasks: "タスク",
+  qa: "QA シナリオ",
+  test: "テスト結果",
+  "test-report": "テスト結果",
+  review: "レビュー",
+  "qa-report": "QA 結果",
+  "ci-report": "CI 結果",
+  "comment-report": "コメント対応",
+  "bug-report": "バグ報告",
+  "log-report": "ログ調査",
+  issues: "残対応",
+};
+
+const DOC_EXT = [".html", ".jsonc"];
+
+const SPECS_ROOT = "/Users/kamata_seiya/Develop/_work";
+
+const app = document.getElementById("app");
+let root = null;
+let features = [];
+
+const db = {
+  open: () => new Promise((resolve, reject) => {
+    const req = indexedDB.open("specs-viewer", 1);
+    req.onupgradeneeded = () => req.result.createObjectStore("kv");
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  }),
+  async get(key) {
+    const d = await this.open();
+    return new Promise((resolve, reject) => {
+      const req = d.transaction("kv").objectStore("kv").get(key);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  },
+  async set(key, value) {
+    const d = await this.open();
+    return new Promise((resolve, reject) => {
+      const tx = d.transaction("kv", "readwrite");
+      tx.objectStore("kv").put(value, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  },
+};
+
+function el(tag, props = {}, children = []) {
+  const node = Object.assign(document.createElement(tag), props);
+  node.append(...children);
+  return node;
+}
+
+async function readText(dir, name) {
+  const file = await (await dir.getFileHandle(name)).getFile();
+  return file.text();
+}
+
+function parseJsonc(text) {
+  let out = "";
+  let i = 0;
+  while (i < text.length) {
+    const c = text[i];
+    if (c === '"') {
+      let j = i + 1;
+      while (j < text.length && text[j] !== '"') j += text[j] === "\\" ? 2 : 1;
+      out += text.slice(i, j + 1);
+      i = j + 1;
+    } else if (text.startsWith("//", i)) {
+      while (i < text.length && text[i] !== "\n") i++;
+    } else if (text.startsWith("/*", i)) {
+      const end = text.indexOf("*/", i + 2);
+      i = end < 0 ? text.length : end + 2;
+    } else {
+      out += c;
+      i++;
+    }
+  }
+  return JSON.parse(out);
+}
+
+async function readJsonc(dir, name) {
+  try {
+    return parseJsonc(await readText(dir, name));
+  } catch {
+    return null;
+  }
+}
+
+async function loadFeature(dir) {
+  const files = [];
+  for await (const [name, handle] of dir.entries()) {
+    if (handle.kind === "file" && !name.startsWith(".")) files.push(name);
+  }
+  files.sort();
+  const stage = STAGES.find(([names]) => names.some((n) => files.includes(n)));
+  const stageFile = stage ? stage[0].find((n) => files.includes(n)) : "";
+  const times = await Promise.all(files.map(async (n) => (await (await dir.getFileHandle(n)).getFile()).lastModified));
+  const updated = times.length ? Math.max(...times) : 0;
+  let done = 0;
+  let total = 0;
+  if (files.includes("plan.jsonc")) {
+    const tasks = ((await readJsonc(dir, "plan.jsonc")) || {}).tasks || [];
+    done = tasks.filter((t) => t.done).length;
+    total = tasks.length;
+  }
+  let repo = "";
+  let title = "";
+  let pr = null;
+  if (files.includes("feature.jsonc")) {
+    const info = ((await readJsonc(dir, "feature.jsonc")) || {}).pr;
+    if (info && String(info.url || "").startsWith("https://")) pr = { number: info.number, url: info.url };
+  }
+  const requirements = files.includes("requirements.jsonc") ? (await readJsonc(dir, "requirements.jsonc")) || {} : {};
+  const memo = files.includes("feature.jsonc") ? (await readJsonc(dir, "feature.jsonc")) || {} : {};
+  repo = String(requirements.repo || memo.repo || "");
+  title = String(requirements.feature || memo.title || "");
+  return { name: dir.name, dir, files, repo, title, pr, stageFile, memo, stage: stage ? stage[1] : files.length ? "その他" : "空", stageClass: stage ? stage[2] : "", updated, done, total };
+}
+
+async function loadAll() {
+  const dirs = [];
+  for await (const [name, handle] of root.entries()) {
+    if (handle.kind === "directory" && !name.startsWith(".")) dirs.push(handle);
+  }
+  features = (await Promise.all(dirs.map(loadFeature))).sort((a, b) => b.updated - a.updated || a.name.localeCompare(b.name));
+}
+
+function relativeTime(ms) {
+  if (!ms) return "";
+  const days = Math.floor((Date.now() - ms) / 86400000);
+  if (days < 1) return "今日";
+  if (days < 2) return "昨日";
+  if (days < 30) return `${days} 日前`;
+  return new Date(ms).toLocaleDateString("ja-JP");
+}
+
+function fileLink(f, file) {
+  const stem = file.replace(/\.[^.]+$/, "");
+  const ext = file.slice(stem.length);
+  const label = DOC_EXT.includes(ext) && LABELS[stem] ? LABELS[stem] : file;
+  const props = { textContent: label, title: file, className: label === file ? "other" : "" };
+  props.href = `file://${SPECS_ROOT}/${encodeURIComponent(f.name)}/${encodeURIComponent(file)}`;
+  return el("a", props);
+}
+
+function showStart(message) {
+  const saved = el("button", { textContent: "前回のフォルダを開く", hidden: true });
+  const pick = el("button", { textContent: "フォルダを選ぶ" });
+  pick.addEventListener("click", async () => {
+    try {
+      root = await window.showDirectoryPicker({ id: "specs", mode: "read" });
+    } catch {
+      return;
+    }
+    db.set("root", root).catch(() => {});
+    await start();
+  });
+  saved.addEventListener("click", async () => {
+    const handle = await db.get("root").catch(() => null);
+    if (!handle || (await handle.requestPermission({ mode: "read" })) !== "granted") return;
+    root = handle;
+    await start();
+  });
+  db.get("root").then((h) => { if (h) saved.hidden = false; }).catch(() => {});
+  app.replaceChildren(
+    el("h1", { textContent: "specs" }),
+    el("p", { className: "empty", textContent: message || "~/Develop/_work を選ぶと一覧を表示します。" }),
+    el("div", { className: "actions" }, [saved, pick]),
+  );
+}
+
+const COLUMNS = [
+  ["下書き", ["下書き"]],
+  ["要件・計画", ["要件", "計画"]],
+  ["テスト・レビュー", ["テスト", "レビュー"]],
+  ["QA・CI", ["受け入れ確認", "CI 確認"]],
+  ["その他", ["その他", "空"]],
+];
+const NO_REPO = "repo 不明";
+
+const FILE_ORDER = ["feature", "requirements", "plan", "qa", "test-report", "review", "qa-report", "ci-report"];
+
+function fileOrder(file) {
+  const index = FILE_ORDER.indexOf(file.replace(/\.[^.]+$/, ""));
+  return index < 0 ? FILE_ORDER.length : index;
+}
+
+function visibleFiles(f) {
+  return f.files
+    .filter(
+      (file) =>
+        !(file.endsWith(".jsonc") && f.files.includes(file.replace(/\.jsonc$/, ".html"))) &&
+        !file.endsWith(".md") &&
+        file !== "feature.jsonc",
+    )
+    .sort((a, b) => fileOrder(a) - fileOrder(b));
+}
+
+function latestLink(f) {
+  if (!f.stageFile) return null;
+  const html = f.stageFile.replace(/\.jsonc$/, ".html");
+  return f.files.includes(html) ? fileLink(f, html) : null;
+}
+
+function statusLine(f) {
+  const sub = [el("span", { textContent: relativeTime(f.updated) })];
+  if (f.total) sub.push(el("span", { textContent: `${f.done}/${f.total}` }));
+  if (f.pr) sub.push(el("a", { className: "pr", textContent: `PR #${f.pr.number}`, href: f.pr.url, target: "_blank", rel: "noopener" }));
+  return el("div", { className: "sub" }, sub);
+}
+
+function renderCard(f) {
+  const latest = latestLink(f);
+  return el("div", { className: `card ${f.stageClass}` }, [
+    el("a", { className: "title", textContent: f.title || f.name, href: `#/${encodeURIComponent(f.name)}` }),
+    ...(f.title ? [el("div", { className: "dirname", textContent: f.name })] : []),
+    statusLine(f),
+    ...(latest ? [el("div", { className: "links" }, [latest])] : []),
+  ]);
+}
+
+function renderBoard(items) {
+  const used = COLUMNS.filter(([, stages]) => items.some((f) => stages.includes(f.stage)));
+  const repos = [...new Set(items.map((f) => f.repo || NO_REPO))].sort((a, b) =>
+    a === NO_REPO ? 1 : b === NO_REPO ? -1 : a.localeCompare(b),
+  );
+  const board = el("div", { className: "board" });
+  board.style.gridTemplateColumns = `150px repeat(${used.length}, minmax(180px, 1fr))`;
+  board.append(el("div", { className: "colhead" }), ...used.map(([label]) => el("div", { className: "colhead", textContent: label })));
+  repos.forEach((repo, index) => {
+    const alt = index % 2 ? " alt" : "";
+    const mine = items.filter((f) => (f.repo || NO_REPO) === repo);
+    board.append(el("div", { className: `repohead${alt}` }, [repo, el("small", { textContent: `${mine.length} 件` })]));
+    for (const [, stages] of used) {
+      board.append(el("div", { className: `cell${alt}` }, mine.filter((f) => stages.includes(f.stage)).map(renderCard)));
+    }
+  });
+  return board;
+}
+
+function chipGroup(label, names, onChange) {
+  const selected = new Set();
+  const buttons = names.map((name) => {
+    const button = el("button", { textContent: name });
+    button.addEventListener("click", () => {
+      if (selected.has(name)) selected.delete(name);
+      else selected.add(name);
+      button.classList.toggle("on", selected.has(name));
+      onChange();
+    });
+    return button;
+  });
+  return { selected, node: el("div", { className: "chips" }, [el("span", { className: "label", textContent: label }), ...buttons]) };
+}
+
+function showList() {
+  const list = el("div");
+  const search = el("input", { type: "search", placeholder: "リポジトリ名や feature 名で絞り込む" });
+  const reload = el("button", { textContent: "再読み込み" });
+  const repoNames = [...new Set(features.map((f) => f.repo || NO_REPO))].sort((a, b) =>
+    a === NO_REPO ? 1 : b === NO_REPO ? -1 : a.localeCompare(b),
+  );
+  const stageNames = [...STAGES.map(([, label]) => label).reverse(), "その他"];
+  const repoFilter = chipGroup("repo", repoNames, () => draw());
+  const stageFilter = chipGroup("段階", stageNames, () => draw());
+  reload.addEventListener("click", async () => { await loadAll(); showList(); });
+  const draw = () => {
+    const q = search.value.trim().toLowerCase();
+    const items = features.filter(
+      (f) =>
+        f.files.length &&
+        (!repoFilter.selected.size || repoFilter.selected.has(f.repo || NO_REPO)) &&
+        (!stageFilter.selected.size || stageFilter.selected.has(f.stage)) &&
+        `${f.repo} ${f.title} ${f.name}`.toLowerCase().includes(q),
+    );
+    if (!items.length) list.replaceChildren(el("p", { className: "empty", textContent: "該当なし" }));
+    else list.replaceChildren(renderBoard(items));
+  };
+  search.addEventListener("input", draw);
+  draw();
+  app.replaceChildren(el("h1", { textContent: "specs" }), el("div", { className: "actions" }, [reload]), repoFilter.node, stageFilter.node, search, list);
+}
+
+function showDetail(name) {
+  const f = features.find((x) => x.name === name);
+  const back = el("a", { className: "back", href: "#/", textContent: "← 一覧" });
+  if (!f) {
+    app.replaceChildren(back, el("p", { className: "empty", textContent: "見つかりませんでした" }));
+    return;
+  }
+  const head = [back, el("h1", { textContent: f.title || f.name })];
+  if (f.title) head.push(el("p", { className: "dirname", textContent: f.name }));
+  const info = [el("span", { className: `stage ${f.stageClass}`, textContent: f.stage })];
+  if (f.repo) info.push(el("span", { className: "repo", textContent: f.repo }));
+  info.push(el("span", { textContent: relativeTime(f.updated) }));
+  if (f.total) info.push(el("span", { textContent: `${f.done}/${f.total}` }));
+  if (f.pr) info.push(el("a", { className: "pr", textContent: `PR #${f.pr.number}`, href: f.pr.url, target: "_blank", rel: "noopener" }));
+  const parts = [...head, el("div", { className: "sub detail-info" }, info)];
+  const memo = f.memo || {};
+  for (const [heading, key] of [["背景・目的", "background"], ["やりたいこと", "goal"]]) {
+    if (memo[key]) parts.push(el("h2", { textContent: heading }), el("p", { className: "memo", textContent: memo[key] }));
+  }
+  for (const [heading, key] of [["対象範囲・既知の手がかり", "hints"], ["制約・前提", "constraints"]]) {
+    if (Array.isArray(memo[key]) && memo[key].length) {
+      parts.push(el("h2", { textContent: heading }), el("ul", {}, memo[key].map((t) => el("li", { className: "memo", textContent: t }))));
+    }
+  }
+  parts.push(el("h2", { textContent: "ファイル" }), el("div", { className: "links big" }, visibleFiles(f).map((file) => fileLink(f, file))));
+  app.replaceChildren(el("div", { className: "detail" }, parts));
+}
+
+function route() {
+  const name = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
+  if (name) showDetail(name);
+  else showList();
+}
+
+async function start() {
+  app.replaceChildren(el("h1", { textContent: "specs" }), el("p", { className: "empty", textContent: "読み込み中" }));
+  await loadAll();
+  route();
+}
+
+window.addEventListener("hashchange", () => { if (root) route(); });
+
+async function boot() {
+  const handle = await db.get("root").catch(() => null);
+  if (handle && (await handle.queryPermission({ mode: "read" }).catch(() => "")) === "granted") {
+    root = handle;
+    await start();
+    return;
+  }
+  showStart();
+}
+
+if (window.showDirectoryPicker) {
+  boot();
+} else {
+  app.replaceChildren(
+    el("h1", { textContent: "specs" }),
+    el("p", { className: "empty", textContent: "このブラウザはフォルダの読み取りに未対応です。Chrome で開いてください。" }),
+  );
+}
+</script>
+</body>
+</html>
